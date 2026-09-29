@@ -81,9 +81,10 @@ def _artifact_context(context):
     if context is None:
         return None
     required = {"corpus_revision", "parent_lookup_version"}
-    if not isinstance(context, dict) or set(context) != required or any(not isinstance(context[key], str) or not context[key].strip() for key in required):
+    allowed = required | {"synthetic_rehearsal"}
+    if not isinstance(context, dict) or not required.issubset(context) or not set(context).issubset(allowed) or any(not isinstance(context[key], str) or not context[key].strip() for key in required) or ("synthetic_rehearsal" in context and context["synthetic_rehearsal"] is not True):
         raise ValueError("artifact context requires corpus_revision and parent_lookup_version")
-    return {key: context[key] for key in sorted(required)}
+    return {key: context[key] for key in sorted(context)}
 
 
 def _records(path):

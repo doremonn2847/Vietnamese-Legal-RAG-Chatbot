@@ -25,10 +25,10 @@ $env:QDRANT_API_KEY='<local-key>'
 .\.venv\Scripts\python.exe -m unittest scripts.test_qdrant_integration -q
 
 # Fictional reviewed fixture only; injected Qdrant transport by default.
-.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --output data/embeddings/synthetic-artifact-rehearsal
+.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --output data/embeddings/synthetic-artifact-rehearsal-v2
 
 # Optional local Qdrant rehearsal; uses a unique synthetic collection and deletes it.
-.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --local-qdrant --output data/embeddings/synthetic-artifact-rehearsal
+.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --local-qdrant --output data/embeddings/synthetic-artifact-rehearsal-v2
 
 # Synthetic UI only; no legal corpus or provider request.
 .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts

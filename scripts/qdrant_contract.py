@@ -69,6 +69,18 @@ class QdrantRestAdapter:
     def delete_collection(self, collection):
         return self.transport("DELETE", f"/collections/{collection}", {})
 
+    def get_collection_dimension(self, collection):
+        response = self.transport("GET", f"/collections/{collection}", {})
+        vectors = response.get("result", {}).get("config", {}).get("params", {}).get("vectors", {})
+        dimension = vectors.get("size") if isinstance(vectors, dict) else None
+        if not isinstance(dimension, int):
+            raise ValueError("collection vector schema is unavailable")
+        self._dimensions[collection] = dimension
+        return dimension
+
+    def get_point(self, collection, point_id):
+        return self.transport("GET", f"/collections/{collection}/points/{point_id}", {})
+
     def delete_alias(self, alias):
         return self.transport("POST", "/collections/aliases", {"actions": [{"delete_alias": {"alias_name": alias}}]})
 
@@ -93,13 +105,7 @@ class QdrantRestAdapter:
     def _dimension_for(self, collection):
         if collection in self._dimensions:
             return self._dimensions[collection]
-        response = self.transport("GET", f"/collections/{collection}", {})
-        vectors = response.get("result", {}).get("config", {}).get("params", {}).get("vectors", {})
-        dimension = vectors.get("size") if isinstance(vectors, dict) else None
-        if not isinstance(dimension, int):
-            raise ValueError("collection vector schema is unavailable")
-        self._dimensions[collection] = dimension
-        return dimension
+        return self.get_collection_dimension(collection)
 
 
 def legal_filter(*, legal_date, pham_vi="Trung ương", provision=None, include_open_ended=False, **unknown):

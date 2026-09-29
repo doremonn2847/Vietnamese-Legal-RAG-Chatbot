@@ -4,6 +4,7 @@ import json
 import os
 import uuid
 from pathlib import Path
+from urllib.error import HTTPError
 
 from artifact_import import import_synthetic_artifact
 from e5_artifacts import E5ArtifactSpec
@@ -33,12 +34,28 @@ def run(output, local_qdrant=False):
             return [[1.0] + [0.0] * 383 for _ in texts]
 
     artifact = output / "artifact"
-    build_embedding_batch(source, artifact, spec, FakeEncoder(), shard_size=1, artifact_context={"corpus_revision": "fictional-r1", "parent_lookup_version": "fictional-parent-v1"})
+    build_embedding_batch(source, artifact, spec, FakeEncoder(), shard_size=1, artifact_context={"corpus_revision": "fictional-r1", "parent_lookup_version": "fictional-parent-v1", "synthetic_rehearsal": True})
     arguments = {"corpus_revision": "fictional-r1", "query_encoder_spec": spec, "parent_lookup": {"fictional-article-1": {"document_version_id": "fictional-v1"}}, "parent_lookup_version": "fictional-parent-v1"}
     requests = []
     collection = "synthetic_artifact_rehearsal_" + uuid.uuid4().hex[:8]
     if not local_qdrant:
-        adapter = QdrantRestAdapter(transport=lambda method, path, body: requests.append((method, path, body)) or {"result": True})
+        collections = {}
+        def transport(method, path, body):
+            requests.append((method, path, body))
+            name = path.split("/")[2] if path.startswith("/collections/") else None
+            if method == "GET" and "/points/" not in path:
+                if name not in collections: raise HTTPError(path, 404, "missing", None, None)
+                return {"result": {"config": {"params": {"vectors": {"size": collections[name]["dimension"]}}}}}
+            if method == "GET":
+                point_id = path.rsplit("/", 1)[-1]
+                if point_id not in collections[name]["points"]: raise HTTPError(path, 404, "missing", None, None)
+                return {"result": collections[name]["points"][point_id]}
+            if method == "PUT" and "/points" not in path:
+                collections[name] = {"dimension": body["vectors"]["size"], "points": {}}
+                return {"result": True}
+            collections[name]["points"].update({point["id"]: point for point in body["points"]})
+            return {"result": True}
+        adapter = QdrantRestAdapter(transport=transport)
         return {**import_synthetic_artifact(artifact, adapter, collection, **arguments), "requests": requests, "mode": "injected"}
     api_key = os.getenv("QDRANT_API_KEY")
     if not api_key:
@@ -52,7 +69,7 @@ def run(output, local_qdrant=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="data/embeddings/synthetic-artifact-rehearsal")
+    parser.add_argument("--output", default="data/embeddings/synthetic-artifact-rehearsal-v2")
     parser.add_argument("--local-qdrant", action="store_true")
     args = parser.parse_args()
     result = run(args.output, args.local_qdrant)
