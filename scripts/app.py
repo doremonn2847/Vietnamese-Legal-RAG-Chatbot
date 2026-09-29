@@ -5,6 +5,7 @@ import time
 import uuid
 from collections import deque
 from zoneinfo import ZoneInfo
+from urllib.parse import urlparse
 
 from answer_contract import validate_citations
 from bm25 import BM25Index
@@ -59,6 +60,16 @@ def _configured_evidence(rows, legal_date):
             return {}
         selected[f"{article_id}:{version}"] = {**row, "canonical_text": text, "reviewed_version_id": version}
     return selected
+
+
+def _safe_sources(answer, evidence):
+    sources = []
+    for citation in answer.get("citations", []):
+        source = evidence.get(citation.get("evidence_id"), {})
+        url = source.get("source_url")
+        if not isinstance(url, str) or urlparse(url).scheme not in {"http", "https"}: url = None
+        sources.append({"evidence_id": citation["evidence_id"], "document_version_id": citation["reviewed_version_id"], "effective_from_day": source.get("effective_from_day"), "effective_to_day": source.get("effective_to_day"), "reviewed_through_day": source.get("reviewed_through_day"), "quote": citation["quote"], "source_url": url})
+    return sources
 
 
 class MockProvider:
@@ -156,7 +167,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None):
             return unavailable(502, "Đầu ra không vượt qua kiểm tra bằng chứng.", validation={"valid": False, "reason": "invalid_provider_output"})
         event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance))
         event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, usage=usage, provenance=provenance, reason=answer["state"]))
-        return {"demo": retriever is None, "banner": DEMO_BANNER if retriever is None else None, "state": answer["state"], "answer": answer, "validation": validation, "retrieval": retrieval}
+        return {"demo": retriever is None, "banner": DEMO_BANNER if retriever is None else None, "state": answer["state"], "answer": answer, "sources": _safe_sources(answer, selected_evidence), "validation": validation, "retrieval": retrieval}
 
     @app.get("/api/health")
     @app.get("/health")
