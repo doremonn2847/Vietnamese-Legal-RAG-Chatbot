@@ -71,8 +71,8 @@ Remaining independent engineering tasks:
   Place owner-supplied files under `data/models/e5-small/` and invoke
   `load_transformers_encoder(model_path="data/models/e5-small", tokenizer_path="data/models/e5-small", local_files_only=True)`.
   The loader uses the immutable small-E5 revisions in `data/config/e5_revisions.json`.
-  No CPU benchmark runner exists yet; its command and compatible dependency
-  versions remain unverified. The BGE reranker remains optional and is not a
+  The runner is `python scripts/cpu_benchmark.py data/models/e5-small --output data/benchmarks/cpu-e5.json --repeats 5`; it verifies `artifact_manifest.json` hashes before loading and uses `local_files_only=True`.
+  Compatible dependency versions and real measurements remain unverified. The BGE reranker remains optional and is not a
   default dependency. Do not download or run weights until the owner supplies
   local artifacts.
 - Connect the existing hybrid retriever to the app behind reviewed-corpus
