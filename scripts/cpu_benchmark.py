@@ -13,17 +13,17 @@ from e5_artifacts import E5ArtifactSpec
 
 def run_benchmark(model_path, output_path, *, encoder_factory, repeats=5, documents=("Điều hư cấu.",), queries=("thử việc",), reranker_factory=None, spec=None):
     spec = spec or E5ArtifactSpec.pinned_small(); spec.validate_execution()
-    if type(repeats) is not int or not 0 < repeats <= 20 or not documents or not queries or any(not isinstance(value, str) or not value.strip() for value in documents + queries):
+    if type(repeats) is not int or not 0 < repeats <= 20 or not isinstance(documents, (list, tuple)) or not isinstance(queries, (list, tuple)) or not documents or not queries or any(not isinstance(value, str) or not value.strip() for value in (*documents, *queries)):
         raise ValueError("benchmark requires positive repeats and nonempty inputs")
     manifest = _manifest(Path(model_path), spec)
     encoder = encoder_factory(Path(model_path))
     _vectors(encoder.encode_documents(documents), len(documents), spec.dimension)
     _vectors(encoder.encode_queries(queries), len(queries), spec.dimension)
-    timings = {"documents": _measure(lambda: encoder.encode_documents(documents), repeats), "queries": _measure(lambda: encoder.encode_queries(queries), repeats)}
+    timings = {"documents": _measure(lambda: _vectors(encoder.encode_documents(documents), len(documents), spec.dimension), repeats), "queries": _measure(lambda: _vectors(encoder.encode_queries(queries), len(queries), spec.dimension), repeats)}
     if reranker_factory:
         reranker = reranker_factory(Path(model_path))
         timings["reranker"] = _measure(lambda: reranker.score(queries[0], [{"article_id": "synthetic", "text": documents[0]}]), repeats)
-    report = {"artifact": manifest, "counts": {"documents": len(documents), "queries": len(queries)}, "timings_ms": timings, "platform": platform.platform(), "dependencies": {name: _version(name) for name in ("torch", "transformers")}, "memory": {"metric": "unsupported", "value": None}}
+    report = {"artifact": manifest, "counts": {"documents": len(documents), "queries": len(queries)}, "dimensions": {"expected": spec.dimension, "observed": spec.dimension}, "timings_ms": timings, "platform": platform.platform(), "dependencies": {name: _version(name) for name in ("torch", "transformers")}, "memory": {"metric": "unsupported", "value": None}}
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     partial = output.with_suffix(output.suffix + ".part")
@@ -62,7 +62,11 @@ def _vectors(vectors, count, dimension):
 
 
 def _sha(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _version(name):
