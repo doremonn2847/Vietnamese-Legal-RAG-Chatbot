@@ -46,7 +46,7 @@ def main():
 
 def validate_measurement_cases(cases):
     allowed_states = {"answer", "partial", "clarify", "unavailable", "abstain_conflict", "abstain_insufficient_evidence"}
-    reference_fields = {"document_version_id", "article_id", "quote", "span_start", "span_end", "applicable_on_requested_date"}
+    reference_fields = {"source_locator", "document_version_id", "article_id", "quote", "span_start", "span_end", "applicable_on_requested_date"}
     required = {"case_id", "scenario_family_id", "family", "query", "legal_date", "reference_status", "expected_answer_state", "relevant_article_ids", "references"}
     for case in cases:
         if required - set(case) or not all(isinstance(case[field], str) and case[field].strip() for field in ("case_id", "scenario_family_id", "family", "query")) or case["reference_status"] != "reviewed" or case["expected_answer_state"] not in allowed_states or not isinstance(case["relevant_article_ids"], list) or len(set(case["relevant_article_ids"])) != len(case["relevant_article_ids"]) or any(not isinstance(value, str) or not value.strip() for value in case["relevant_article_ids"]) or not isinstance(case["references"], list):
@@ -60,7 +60,7 @@ def validate_measurement_cases(cases):
             raise ValueError("reviewed answerable cases require reference article IDs")
         reference_article_ids = set()
         for reference in case["references"]:
-            if not isinstance(reference, dict) or reference_fields - set(reference) or not isinstance(reference.get("document_version_id"), str) or not isinstance(reference.get("article_id"), str) or reference.get("article_id") not in case["relevant_article_ids"] or not isinstance(reference.get("quote"), str) or not reference["quote"].strip() or type(reference.get("span_start")) is not int or type(reference.get("span_end")) is not int or reference["span_start"] < 0 or reference["span_end"] <= reference["span_start"] or reference.get("applicable_on_requested_date") is not True:
+            if not isinstance(reference, dict) or reference_fields - set(reference) or not isinstance(reference.get("source_locator"), str) or not reference["source_locator"].strip() or not isinstance(reference.get("document_version_id"), str) or not isinstance(reference.get("article_id"), str) or reference.get("article_id") not in case["relevant_article_ids"] or not isinstance(reference.get("quote"), str) or not reference["quote"].strip() or type(reference.get("span_start")) is not int or type(reference.get("span_end")) is not int or reference["span_start"] < 0 or reference["span_end"] <= reference["span_start"] or reference.get("applicable_on_requested_date") is not True:
                 raise ValueError("reviewed reference is incomplete")
             reference_article_ids.add(reference["article_id"])
         if positive and reference_article_ids != set(case["relevant_article_ids"]):

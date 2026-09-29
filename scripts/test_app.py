@@ -45,14 +45,16 @@ class AppTest(unittest.TestCase):
         class BadProvider:
             def answer(self, *args):
                 called.append(True)
-                return {"state": "answer", "text": "unsafe", "claims": [], "citations": []}
-        client = TestClient(create_app(BadProvider()))
+                return "unsafe"
+        events = []
+        client = TestClient(create_app(BadProvider(), events))
         self.assertEqual(client.post("/api/answer", json={"question": "thử việc", "legal_date": "bad"}).status_code, 422)
         self.assertEqual(called, [])
         response = client.post("/api/answer", json={"question": "thử việc", "legal_date": "2040-01-01"})
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json()["state"], "unavailable")
         self.assertNotIn("unsafe", response.text)
+        self.assertEqual(events[-1]["reason"], "invalid_provider_output")
 
     def test_unselected_and_malformed_provider_output_are_gated(self):
         class UnselectedProvider:

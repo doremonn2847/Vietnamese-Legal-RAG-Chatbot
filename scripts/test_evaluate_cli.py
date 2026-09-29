@@ -14,7 +14,7 @@ class EvaluateCliTest(unittest.TestCase):
         validate_measurement_cases([{**draft, "reference_status": "reviewed", "expected_answer_state": "unavailable"}])
         with self.assertRaises(ValueError):
             validate_measurement_cases([{**draft, "reference_status": "reviewed", "expected_answer_state": "garbage"}])
-        validate_measurement_cases([{**draft, "reference_status": "reviewed", "relevant_article_ids": ["a1"], "references": [{"document_version_id": "v1", "article_id": "a1", "quote": "q", "span_start": 0, "span_end": 1, "applicable_on_requested_date": True}]}])
+        validate_measurement_cases([{**draft, "reference_status": "reviewed", "relevant_article_ids": ["a1"], "references": [{"source_locator": "vbpl:1", "document_version_id": "v1", "article_id": "a1", "quote": "q", "span_start": 0, "span_end": 1, "applicable_on_requested_date": True}]}])
         with self.assertRaises(ValueError):
             validate_split_separation([{"scenario_family_id": "same", "split": "dev"}, {"scenario_family_id": "same", "split": "heldout"}])
 

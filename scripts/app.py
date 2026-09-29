@@ -2,6 +2,7 @@
 from datetime import date, datetime
 import time
 import uuid
+from collections import deque
 from zoneinfo import ZoneInfo
 
 from answer_contract import validate_citations
@@ -77,7 +78,7 @@ def create_app(provider=None, event_sink=None):
         legal_date: str | None = None
 
     provider = provider or MockProvider()
-    event_sink = event_sink if event_sink is not None else []
+    event_sink = event_sink if event_sink is not None else deque(maxlen=100)
     app = FastAPI(title="Vietnamese Legal RAG synthetic demo")
     app.state.events = event_sink
 
@@ -96,21 +97,30 @@ def create_app(provider=None, event_sink=None):
         retrieval = synthetic_retrieve(request.question)
         selected_evidence = {evidence_id: DEMO_EVIDENCE[evidence_id] for evidence_id in retrieval["selected_evidence_ids"]}
         event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance={"prompt_version": "synthetic-v1", "index_version": "fictional-only", "model_version": type(provider).__name__}))
+        provider_started = time.perf_counter_ns()
         try:
             answer = provider.answer(request.question, legal_date, selected_evidence)
         except TimeoutError:
-            event_sink.append(event("provider", trace_id=trace_id, outcome="timeout", reason="provider_timeout", provenance={"model_version": type(provider).__name__}))
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="timeout", reason="provider_timeout", provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo quá thời gian chờ.")})
+        except ValueError:
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance={"model_version": type(provider).__name__}))
+            return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo trả về dữ liệu không hợp lệ.")})
         except Exception:
-            event_sink.append(event("provider", trace_id=trace_id, outcome="error", reason="provider_error", provenance={"model_version": type(provider).__name__}))
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="error", reason="provider_error", provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo không khả dụng.")})
         if not isinstance(answer, dict):
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp trả về dữ liệu không hợp lệ.")})
+        usage = answer.pop("_usage", None)
+        event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, usage=usage, provenance={"model_version": type(provider).__name__}))
+        validation_started = time.perf_counter_ns()
         validation = validate_citations(answer, selected_evidence, requested_legal_date=legal_date)
         if not validation["valid"]:
-            event_sink.append(event("validate", trace_id=trace_id, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__}))
+            event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Đầu ra bản demo không vượt qua kiểm tra bằng chứng."), "validation": {"valid": False, "reason": "invalid_provider_output"}})
-        event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__, "prompt_version": "synthetic-v1", "index_version": "fictional-only"}, reason=answer.get("reason")))
+        event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__}))
+        event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, usage=usage, provenance={"model_version": type(provider).__name__, "prompt_version": "synthetic-v1", "index_version": "fictional-only"}, reason=answer["state"]))
         return {"demo": True, "banner": DEMO_BANNER, "state": answer["state"], "answer": answer, "validation": validation, "retrieval": retrieval}
 
     @app.get("/api/health")
