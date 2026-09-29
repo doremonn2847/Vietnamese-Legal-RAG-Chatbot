@@ -24,6 +24,14 @@ class AppTest(unittest.TestCase):
         self.assertEqual(self.client.get("/api/corpus").json()["legal_corpus_activated"], False)
         self.assertIn("selected_evidence_ids", self.client.get("/api/search", params={"question": "thử việc"}).json()["retrieval"])
 
+    def test_request_logs_are_redacted_and_traceable(self):
+        events = []
+        client = TestClient(create_app(event_sink=events))
+        client.post("/api/answer", json={"question": "thử việc private", "legal_date": "2024-01-01"})
+        self.assertTrue(events and events[0]["trace_id"])
+        self.assertNotIn("private", str(events))
+        self.assertEqual(events[0]["provenance"]["prompt_version"], "synthetic-v1")
+
     def test_demo_states_are_explicit(self):
         body = self.client.post("/chat", json={"question": "", "legal_date": "2024-01-01"}).json()
         self.assertEqual(body["state"], "clarify")

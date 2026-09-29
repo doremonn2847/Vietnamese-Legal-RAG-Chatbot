@@ -1,10 +1,13 @@
 """Offline-only FastAPI demo. Its evidence is fictional and never legal advice."""
 from datetime import date, datetime
+import time
+import uuid
 from zoneinfo import ZoneInfo
 
 from answer_contract import validate_citations
 from bm25 import BM25Index
 from retrieval import rrf_fuse, rerank_candidates, select_evidence
+from safe_log import event
 
 
 DEMO_BANNER = "DỮ LIỆU HƯ CẤU CHỈ DÙNG ĐỂ KIỂM THỬ — KHÔNG PHẢI VĂN BẢN PHÁP LUẬT"
@@ -61,7 +64,7 @@ class MockProvider:
         return answer
 
 
-def create_app(provider=None):
+def create_app(provider=None, event_sink=None):
     try:
         from fastapi import FastAPI, HTTPException
         from fastapi.responses import HTMLResponse, JSONResponse
@@ -74,7 +77,9 @@ def create_app(provider=None):
         legal_date: str | None = None
 
     provider = provider or MockProvider()
+    event_sink = event_sink if event_sink is not None else []
     app = FastAPI(title="Vietnamese Legal RAG synthetic demo")
+    app.state.events = event_sink
 
     def resolve_legal_date(value):
         if value is None:
@@ -85,20 +90,27 @@ def create_app(provider=None):
             raise HTTPException(status_code=422, detail="legal_date must be ISO YYYY-MM-DD") from error
 
     def response_for(request):
+        trace_id = str(uuid.uuid4())
+        started = time.perf_counter_ns()
         legal_date = resolve_legal_date(request.legal_date)
         retrieval = synthetic_retrieve(request.question)
         selected_evidence = {evidence_id: DEMO_EVIDENCE[evidence_id] for evidence_id in retrieval["selected_evidence_ids"]}
+        event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance={"prompt_version": "synthetic-v1", "index_version": "fictional-only", "model_version": type(provider).__name__}))
         try:
             answer = provider.answer(request.question, legal_date, selected_evidence)
         except TimeoutError:
+            event_sink.append(event("provider", trace_id=trace_id, outcome="timeout", reason="provider_timeout", provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo quá thời gian chờ.")})
         except Exception:
+            event_sink.append(event("provider", trace_id=trace_id, outcome="error", reason="provider_error", provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo không khả dụng.")})
         if not isinstance(answer, dict):
             return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp trả về dữ liệu không hợp lệ.")})
         validation = validate_citations(answer, selected_evidence, requested_legal_date=legal_date)
         if not validation["valid"]:
+            event_sink.append(event("validate", trace_id=trace_id, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__}))
             return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Đầu ra bản demo không vượt qua kiểm tra bằng chứng."), "validation": {"valid": False, "reason": "invalid_provider_output"}})
+        event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, provenance={"model_version": type(provider).__name__, "prompt_version": "synthetic-v1", "index_version": "fictional-only"}, reason=answer.get("reason")))
         return {"demo": True, "banner": DEMO_BANNER, "state": answer["state"], "answer": answer, "validation": validation, "retrieval": retrieval}
 
     @app.get("/api/health")

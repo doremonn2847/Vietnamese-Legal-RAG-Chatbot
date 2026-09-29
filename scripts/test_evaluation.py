@@ -28,7 +28,7 @@ class EvaluationTest(unittest.TestCase):
             output = Path(directory) / "report.json"
             write_evaluation(report, output)
             self.assertTrue(output.exists())
-        row = event("retrieve", query="private question", duration_ms=1.0)
+        row = event("retrieve", trace_id="t1", query="private question", duration_ms=1.0)
         self.assertNotIn("private question", str(row))
         self.assertIn("query_sha256", row)
 
