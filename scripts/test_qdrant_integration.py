@@ -37,6 +37,7 @@ class QdrantIntegrationTest(unittest.TestCase):
                 api.upsert(collection, [{"id": "contradictory-open-ended", "vector": [1.0, 0.0, 0.0], "payload": {**payloads[0], "reviewed_open_ended": True}}])
             api.upsert(collection, points)
             api.transport("PUT", f"/collections/{collection}/points?wait=true", {"points": [{"id": stable_point_id("article", "version", "contradictory_preexisting"), "vector": [1.0, 0.0, 0.0], "payload": {**payloads[0], "effective_to_day": day, "reviewed_open_ended": True, "child_id": "contradictory_preexisting"}}]})
+            api.transport("PUT", f"/collections/{collection}/points?wait=true", {"points": [{"id": stable_point_id("article", "version", "contradictory_future"), "vector": [1.0, 0.0, 0.0], "payload": {**payloads[0], "effective_to_day": day + 100, "reviewed_open_ended": True, "child_id": "contradictory_future"}}]})
             api.upsert(collection, points)
             v2_points = [{**point, "payload": {**point["payload"], "child_id": "v2-only"}} for point in points]
             api.upsert(collection_v2, v2_points)
@@ -47,6 +48,7 @@ class QdrantIntegrationTest(unittest.TestCase):
             self.assertIn("reviewed_open", {point["payload"]["child_id"] for point in open_result["result"]})
             self.assertNotIn("unknown_open", {point["payload"]["child_id"] for point in open_result["result"]})
             self.assertNotIn("contradictory_preexisting", {point["payload"]["child_id"] for point in open_result["result"]})
+            self.assertNotIn("contradictory_future", {point["payload"]["child_id"] for point in open_result["result"]})
             api.activate_alias(alias, collection)
             api.activate_alias(alias, collection_v2, previous_collection=collection)
             v2_alias_result = fresh.search(alias, [1.0, 0.0, 0.0], legal_filter(legal_date="2024-01-01", provision="probation"), limit=10)

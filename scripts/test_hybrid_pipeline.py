@@ -49,6 +49,8 @@ class HybridPipelineTest(unittest.TestCase):
         self.assertFalse(_eligible({**base, "effective_to_day": None, "reviewed_open_ended": True}, day, "probation"))
         self.assertTrue(_eligible({**base, "effective_to_day": None, "reviewed_open_ended": True}, day, "probation", include_open_ended=True))
         self.assertFalse(_eligible({**base, "effective_to_day": day}, day, "probation"))
+        self.assertFalse(_eligible({**base, "reviewed_open_ended": True}, day, "probation"))
+        self.assertFalse(_eligible({**base, "effective_to_day": None}, day, "probation"))
         self.assertFalse(_eligible({**base, "effective_from_day": day + 1}, day, "probation"))
         self.assertFalse(_eligible({**base, "reviewed_status": "unreviewed"}, day, "probation"))
         self.assertFalse(_eligible({**base, "provision": "leave"}, day, "probation"))

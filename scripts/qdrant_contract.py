@@ -118,7 +118,7 @@ def legal_filter(*, legal_date, pham_vi="Trung ương", provision=None, include_
     ]
     if provision is not None:
         must.append({"key": "provision", "match": {"value": provision}})
-    finite = {"must": must + [{"key": "effective_to_day", "range": {"gt": legal_day}}]}
+    finite = {"must": must + [{"key": "effective_to_day", "range": {"gt": legal_day}}], "must_not": [{"key": "reviewed_open_ended", "match": {"value": True}}]}
     if include_open_ended:
         return [finite, {"must": must + [{"key": "reviewed_open_ended", "match": {"value": True}}, {"is_null": {"key": "effective_to_day"}}]}]
     return finite

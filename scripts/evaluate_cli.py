@@ -1,7 +1,9 @@
 """Run a reviewed benchmark through an injected retriever, or inspect a draft."""
 import argparse
+import hashlib
 import importlib
 import json
+from datetime import date
 from pathlib import Path
 
 from evaluation import evaluate_retrieval, write_evaluation
@@ -14,9 +16,12 @@ def main():
     parser.add_argument("--retriever", help="module:function returning a configured retriever")
     parser.add_argument("--output")
     args = parser.parse_args()
-    cases = json.loads(Path(args.cases).read_text(encoding="utf-8"))
+    source = Path(args.cases)
+    source_bytes = source.read_bytes()
+    cases = json.loads(source_bytes.decode("utf-8"))
     if not isinstance(cases, list):
         raise SystemExit("benchmark cases must be a JSON array")
+    validate_split_separation(cases)
     cases = [case for case in cases if args.split is None or case["split"] == args.split]
     if not cases:
         raise SystemExit("no benchmark cases selected")
@@ -35,18 +40,36 @@ def main():
         raise SystemExit("--retriever must be module:function")
     module, name = args.retriever.split(":", 1)
     retriever = getattr(importlib.import_module(module), name)()
-    report = evaluate_retrieval(cases, retriever, {"benchmark": str(Path(args.cases)), "split": args.split or "all"})
+    report = evaluate_retrieval(cases, retriever, {"benchmark": str(source), "benchmark_sha256": hashlib.sha256(source_bytes).hexdigest(), "split": args.split or "all"})
     write_evaluation(report, args.output)
 
 
 def validate_measurement_cases(cases):
-    required = {"case_id", "scenario_family_id", "family", "query", "legal_date", "reference_status", "expected_answer_state", "relevant_article_ids", "reference_required_fields"}
+    allowed_states = {"answer", "partial", "clarify", "unavailable", "abstain_conflict", "abstain_insufficient_evidence"}
+    required = {"case_id", "scenario_family_id", "family", "query", "legal_date", "reference_status", "expected_answer_state", "relevant_article_ids", "reference_required_fields", "references"}
     for case in cases:
-        if required - set(case) or case["reference_status"] != "reviewed":
+        if required - set(case) or not all(isinstance(case[field], str) and case[field].strip() for field in ("case_id", "scenario_family_id", "family", "query")) or case["reference_status"] != "reviewed" or case["expected_answer_state"] not in allowed_states or not isinstance(case["relevant_article_ids"], list) or len(set(case["relevant_article_ids"])) != len(case["relevant_article_ids"]) or any(not isinstance(value, str) or not value.strip() for value in case["relevant_article_ids"]) or not isinstance(case["reference_required_fields"], list) or not case["reference_required_fields"] or not isinstance(case["references"], list):
             raise ValueError("all measured cases require a reviewed benchmark schema")
+        try:
+            date.fromisoformat(case["legal_date"])
+        except (TypeError, ValueError) as error:
+            raise ValueError("benchmark legal_date must be ISO YYYY-MM-DD") from error
         positive = case["expected_answer_state"] in {"answer", "partial"}
-        if positive and not case["relevant_article_ids"]:
+        if positive and (not case["relevant_article_ids"] or not case["references"]):
             raise ValueError("reviewed answerable cases require reference article IDs")
+        for reference in case["references"]:
+            if not isinstance(reference, dict) or any(field not in reference for field in case["reference_required_fields"]) or not isinstance(reference.get("document_version_id"), str) or not isinstance(reference.get("article_id"), str) or reference.get("article_id") not in case["relevant_article_ids"] or not isinstance(reference.get("quote"), str) or not reference["quote"].strip() or type(reference.get("span_start")) is not int or type(reference.get("span_end")) is not int or reference["span_start"] < 0 or reference["span_end"] <= reference["span_start"] or reference.get("applicable_on_requested_date") is not True:
+                raise ValueError("reviewed reference is incomplete")
+
+
+def validate_split_separation(cases):
+    splits = {}
+    for case in cases:
+        if not isinstance(case, dict) or not isinstance(case.get("scenario_family_id"), str) or not isinstance(case.get("split"), str):
+            raise ValueError("benchmark split schema is invalid")
+        splits.setdefault(case["scenario_family_id"], set()).add(case["split"])
+    if any(len(values) > 1 for values in splits.values()):
+        raise ValueError("scenario families cannot cross dev and heldout")
 
 
 if __name__ == "__main__":

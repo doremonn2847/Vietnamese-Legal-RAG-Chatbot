@@ -42,4 +42,5 @@ def _eligible(hit, legal_day, provision, include_open_ended=False):
     effective_from, effective_to, reviewed_through = hit.get("effective_from_day"), hit.get("effective_to_day"), hit.get("reviewed_through_day")
     open_ended = effective_to is None and hit.get("reviewed_open_ended") is True
     dates_are_valid = type(effective_from) is int and type(reviewed_through) is int and (open_ended or type(effective_to) is int)
-    return dates_are_valid and hit.get("pham_vi") == "Trung ương" and hit.get("reviewed_status") == "reviewed" and hit.get("central_eligible") is True and effective_from <= legal_day and reviewed_through >= legal_day and ((include_open_ended and open_ended) or (type(effective_to) is int and effective_to > legal_day)) and (provision is None or hit.get("provision") == provision)
+    contradictory_open_marker = hit.get("reviewed_open_ended") is True and effective_to is not None
+    return not contradictory_open_marker and dates_are_valid and hit.get("pham_vi") == "Trung ương" and hit.get("reviewed_status") == "reviewed" and hit.get("central_eligible") is True and effective_from <= legal_day and reviewed_through >= legal_day and ((include_open_ended and open_ended) or (type(effective_to) is int and effective_to > legal_day)) and (provision is None or hit.get("provision") == provision)

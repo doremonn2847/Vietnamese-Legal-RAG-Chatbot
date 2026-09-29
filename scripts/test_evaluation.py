@@ -19,6 +19,9 @@ class EvaluationTest(unittest.TestCase):
         self.assertEqual(retriever.kwargs["evidence_cap"], 3)
         with self.assertRaises(ValueError):
             evaluate_retrieval([], retriever, {}, k=0)
+        negative = evaluate_retrieval([{"case_id": "n", "query": "x", "legal_date": "2024-01-01", "relevant_article_ids": []}], retriever, {})
+        self.assertEqual(negative["cases"][0]["retrieval_status"], "not_applicable_no_reference")
+        self.assertIsNone(negative["summary"]["mean_evidence_recall"])
         self.assertIn("stage_timings_ms", report["cases"][0])
         self.assertEqual(evaluate_grid([], Retriever(), {}, [{"k": 10, "evidence_cap": 10}])[0]["report"]["evidence_cap"], 10)
         with tempfile.TemporaryDirectory() as directory:
