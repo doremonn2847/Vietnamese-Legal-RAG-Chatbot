@@ -92,6 +92,14 @@ class AppTest(unittest.TestCase):
         self.assertEqual(_safe_sources(answer, {"e":{**source, "source_url":"https:///missing"}})[0]["source_url"], None)
         self.assertEqual(_safe_sources(answer, {"e":{**source, "source_url":"https://example.invalid"}})[0]["source_url"], "https://example.invalid")
 
+    def test_inline_ui_contract_covers_safe_states_and_lifecycle(self):
+        page = self.client.get("/").text
+        for state in ("answer", "partial", "clarify", "abstain_conflict", "abstain_insufficient_evidence", "unavailable"):
+            self.assertIn(state, page)
+        for token in ("r.textContent=''", "s.textContent=''", "b.disabled=true", "finally{b.disabled=false}", "textContent", "Hiệu lực:", "Rà soát:", "source_url", "z.demo", "banner.hidden"):
+            self.assertIn(token, page)
+        self.assertNotIn("innerHTML=", page)
+
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
         day = 738886
         class Retriever:
