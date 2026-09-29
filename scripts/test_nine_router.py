@@ -59,6 +59,30 @@ class NineRouterTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     answer_for(content)
 
+    def test_answer_repairs_only_unique_exact_citation_span(self):
+        quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
+
+        def content(evidence_id, citation_quote, start, end):
+            return {"state": "answer", "legal_date": "2024-01-01", "text": citation_quote, "claims": [{"claim_id": "c1", "text": citation_quote, "evidence_ids": [evidence_id]}], "citations": [{"evidence_id": evidence_id, "quote": citation_quote, "span_start": start, "span_end": end, "reviewed_version_id": "fiction-v1"}]}
+
+        def client_for(answer, retriever=None):
+            provider = NineRouterProvider(NineRouterConfig(base_url="https://example.invalid", route="chat", model="free-test", enabled=True), transport=lambda *args: {"choices": [{"message": {"content": json.dumps(answer)}}]})
+            from fastapi.testclient import TestClient
+            return TestClient(create_app(provider, retriever=retriever))
+
+        unique = client_for(content("fiction-e1", quote, 0, len(quote) - 1)).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        self.assertEqual(unique.status_code, 200)
+        self.assertEqual(unique.json()["answer"]["citations"][0]["span_end"], len(quote))
+
+        for answer in (content("fiction-e1", quote[:-1] + "X", 0, len(quote)), content("unknown", quote, 0, len(quote))):
+            with self.subTest(rejected=answer["citations"][0]["evidence_id"]):
+                self.assertEqual(client_for(answer).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"}).status_code, 502)
+
+        repeated = {**DEMO_EVIDENCE["fiction-e1"], "article_id": "repeated", "document_version_id": "fiction-v1", "canonical_text": "đoạn lặp; đoạn lặp", "pham_vi": "Trung ương"}
+        retriever = type("Retriever", (), {"search": lambda *_: {"evidence": [repeated]}})()
+        ambiguous = content("repeated:fiction-v1", "đoạn lặp", 1, 9)
+        self.assertEqual(client_for(ambiguous, retriever).post("/api/answer", json={"question": "x", "legal_date": "2024-01-01"}).status_code, 502)
+
     def test_malformed_usage_cannot_break_the_app(self):
         quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
         answer = {"state": "answer", "legal_date": "2024-01-01", "text": quote, "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": quote, "span_start": 0, "span_end": len(quote), "reviewed_version_id": "fiction-v1"}]}

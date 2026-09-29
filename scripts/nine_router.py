@@ -83,5 +83,14 @@ class NineRouterProvider:
             raise ValueError("provider returned malformed JSON") from error
         if not isinstance(answer, dict):
             raise ValueError("provider JSON must be an object")
+        if isinstance(selected_evidence, dict) and isinstance(answer.get("citations"), list):
+            for citation in answer["citations"]:
+                if not isinstance(citation, dict) or not isinstance(citation.get("evidence_id"), str) or not citation["evidence_id"].strip() or not isinstance(citation.get("quote"), str) or not citation["quote"] or type(citation.get("span_start")) is not int or type(citation.get("span_end")) is not int or not isinstance(citation.get("reviewed_version_id"), str) or not citation["reviewed_version_id"].strip():
+                    continue
+                source = selected_evidence.get(citation["evidence_id"])
+                canonical = source.get("canonical_text") if isinstance(source, dict) else None
+                start = canonical.find(citation["quote"]) if isinstance(canonical, str) else -1
+                if start >= 0 and canonical.find(citation["quote"], start + 1) < 0:
+                    citation["span_start"], citation["span_end"] = start, start + len(citation["quote"])
         answer["_usage"] = result["usage"]
         return answer
