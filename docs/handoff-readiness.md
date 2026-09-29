@@ -9,7 +9,7 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 0. Audit | Strict central-only ledgers and source hashes | Unit tests | Pinned local data outputs | Legal authority, relevance, validity |
 | 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
-| 3. Dense/retrieval | E5/reranker loaders, Qdrant adapter, hybrid/RRF contracts | Injected encoder/reranker tests | Qdrant 1.13 synthetic points | Real model vectors, import, activation, quality |
+| 3. Dense/retrieval | E5/reranker loaders, Qdrant adapter, hybrid/RRF contracts, synthetic artifact-import rehearsal | Injected encoder/reranker/import tests | Qdrant 1.13 synthetic points; rehearsal default is injected | Real model vectors, reviewed-corpus import, activation, quality |
 | 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled 9Router bridge, redacted trace events | FastAPI and mocked HTTP | No provider call | App connected to real hybrid retrieval/provider |
 | 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
 
@@ -23,6 +23,12 @@ $env:PYTHONPATH='scripts'
 $env:RUN_QDRANT_INTEGRATION='1'
 $env:QDRANT_API_KEY='<local-key>'
 .\.venv\Scripts\python.exe -m unittest scripts.test_qdrant_integration -q
+
+# Fictional reviewed fixture only; injected Qdrant transport by default.
+.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --output data/embeddings/synthetic-artifact-rehearsal
+
+# Optional local Qdrant rehearsal; uses a unique synthetic collection and deletes it.
+.\.venv\Scripts\python.exe scripts/rehearse_artifact_import.py --local-qdrant --output data/embeddings/synthetic-artifact-rehearsal
 
 # Synthetic UI only; no legal corpus or provider request.
 .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts
@@ -41,22 +47,33 @@ embeddings, models, logs, and local secrets are ignored. No remote is configured
 `scripts/kaggle_batch.py` accepts only reviewed, central-eligible article input
 with immutable model/tokenizer revisions, finite vectors, shard checksums, and
 ordered child IDs. Its manifest must match the corpus input and embedding spec.
-`scripts/qdrant_contract.py` requires matching vector dimensions and preserves
-versioned collection/alias operations. Run a local synthetic import before any
-artifact is activated. Do not activate an artifact until the returned manifest,
-collection dimension, and reviewed benchmark provenance agree.
+The synthetic rehearsal also binds corpus revision and parent-lookup version,
+rejecting recipe, dimension, hash, corpus, or parent-lookup mismatches before
+Qdrant writes. It accepts only `synthetic_` collections and never changes an
+alias. `scripts/qdrant_contract.py` requires matching vector dimensions and
+preserves versioned collection/alias operations. Do not activate an artifact
+until the returned manifest, collection dimension, and reviewed benchmark
+provenance agree.
 
 ## Remaining work
 
-The next unblocked engineering slice is a manifest-only artifact import rehearsal:
-read a reviewed fixture, produce/check a shard manifest, import synthetic vectors,
-and compare the collection/benchmark provenance without alias activation. It must
-leave real corpus activation off and pass default plus opt-in Qdrant tests.
+The manifest-only synthetic artifact import rehearsal is complete. It reads a
+fictional reviewed fixture, produces/checks a shard manifest, validates it before
+synthetic staging writes, and never activates an alias or a real collection.
+
+Remaining independent engineering tasks:
+
+- Write the reproducible local CPU `torch`/`transformers` dependency and local
+  artifact-path recipe; do not download models as part of the recipe.
+- Add a configured actual HTTP transport path for the already-disabled provider
+  bridge, with its existing injected tests retained and no provider probe.
+- Connect the existing hybrid retriever to the app behind reviewed-corpus
+  activation, preserving the synthetic demo until that gate is passed.
 
 Owner/resource work:
 
-- Obtain and pin local E5 and reranker files, install compatible CPU `torch` and
-  `transformers`, then run bounded CPU encoding/reranking measurements.
+- Obtain and pin local E5 and reranker files, then run bounded CPU
+  encoding/reranking measurements using the documented recipe.
 - Confirm a no-cost 9Router route, explicit base URL/route/model, and usage terms
   before enabling its configuration. The adapter has no default route or fallback.
 - Review `owner_review_packet.csv`, authoritative source/version identity,

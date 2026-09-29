@@ -100,6 +100,24 @@ class OfflineMilestoneTest(unittest.TestCase):
         self.assertEqual(adapter.token_count("query: thử việc"), 5)
         self.assertEqual(len(adapter.encode_queries(["thử việc"])[0]), 384)
 
+    def test_partial_batch_rejects_changed_artifact_context(self):
+        spec = E5ArtifactSpec.pinned_small()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "articles.jsonl"
+            source.write_text(json.dumps({"article_id": "a", "document_version_id": "v", "canonical_text": "Điều 1", "children": [{"child_id": "c1", "canonical_text": "Điều 1"}, {"child_id": "c2", "canonical_text": "Khoản 1"}], "pham_vi": "Trung ương", "provision": "probation", "effective_from_day": 737425, "effective_to_day": 741077, "reviewed_status": "reviewed", "central_eligible": True, "reviewed_open_ended": False, "reviewed_through_day": 739888}) + "\n", encoding="utf-8")
+            class FailingEncoder:
+                def __init__(self): self.calls = 0
+                def token_count(self, text): return len(text.split()) + 2
+                def __call__(self, texts):
+                    self.calls += 1
+                    if self.calls == 2: raise RuntimeError("interrupted")
+                    return [[0.0] * 384 for _ in texts]
+            output = Path(directory) / "vectors"
+            with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                build_embedding_batch(source, output, spec, FailingEncoder(), shard_size=1, artifact_context={"corpus_revision": "fictional-r1", "parent_lookup_version": "parents-v1"})
+            with self.assertRaises(ValueError):
+                build_embedding_batch(source, output, spec, FailingEncoder(), shard_size=1, artifact_context={"corpus_revision": "fictional-r2", "parent_lookup_version": "parents-v1"})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,10 +14,11 @@ def build_batch_plan(articles_path, spec=None):
     return {"input": str(articles_path), "input_sha256": _sha256(Path(articles_path)), "records": len(records), "ordered_chunk_ids": ordered_ids, "model_id": spec.model_id, "model_revision": spec.revision, "dimension": spec.dimension, "executed": False, "execution_status": "plan_only"}
 
 
-def build_embedding_batch(articles_path, output_dir, spec, encoder, shard_size=1000):
+def build_embedding_batch(articles_path, output_dir, spec, encoder, shard_size=1000, artifact_context=None):
     if shard_size <= 0:
         raise ValueError("shard_size must be positive")
     spec.validate_execution()
+    artifact_context = _artifact_context(artifact_context)
     records, ordered_ids = _records(articles_path)
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -27,17 +28,17 @@ def build_embedding_batch(articles_path, output_dir, spec, encoder, shard_size=1
     existing_path = output / "embedding_manifest.json"
     if existing_path.exists():
         existing = json.loads(existing_path.read_text(encoding="utf-8"))
-        if existing.get("input_sha256") == input_sha and existing.get("spec_sha256") == spec_sha:
+        if existing.get("input_sha256") == input_sha and existing.get("spec_sha256") == spec_sha and existing.get("artifact_context") == artifact_context:
             if existing.get("shard_size") != shard_size:
                 raise ValueError("completed manifest has incompatible shard_size")
             _verify_manifest(output, existing, records, spec, shard_size, require_complete=True)
             return existing
         raise ValueError("output directory contains an incompatible completed manifest")
-    manifest = {"input": str(articles_path), "input_sha256": input_sha, "spec_sha256": spec_sha, "model": spec_manifest, "records": len(records), "ordered_chunk_ids": ordered_ids, "shard_size": shard_size, "shards": []}
+    manifest = {"input": str(articles_path), "input_sha256": input_sha, "spec_sha256": spec_sha, "model": spec_manifest, "records": len(records), "ordered_chunk_ids": ordered_ids, "shard_size": shard_size, "artifact_context": artifact_context, "shards": []}
     progress_path = output / "embedding_progress.json"
     if progress_path.exists():
         progress = json.loads(progress_path.read_text(encoding="utf-8"))
-        if progress.get("input_sha256") != input_sha or progress.get("spec_sha256") != spec_sha:
+        if progress.get("input_sha256") != input_sha or progress.get("spec_sha256") != spec_sha or progress.get("artifact_context") != artifact_context:
             raise ValueError("output directory contains incompatible embedding progress")
         if progress.get("shard_size") != shard_size:
             raise ValueError("embedding progress has incompatible shard_size")
@@ -74,6 +75,15 @@ def build_embedding_batch(articles_path, output_dir, spec, encoder, shard_size=1
     if progress_path.exists():
         progress_path.unlink()
     return manifest
+
+
+def _artifact_context(context):
+    if context is None:
+        return None
+    required = {"corpus_revision", "parent_lookup_version"}
+    if not isinstance(context, dict) or set(context) != required or any(not isinstance(context[key], str) or not context[key].strip() for key in required):
+        raise ValueError("artifact context requires corpus_revision and parent_lookup_version")
+    return {key: context[key] for key in sorted(required)}
 
 
 def _records(path):
