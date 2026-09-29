@@ -8,7 +8,11 @@ expected answer state.
 
 Annotators keep `dev` cases for iteration and do not inspect `heldout` cases
 while changing retrieval or prompts. For each case, label one family: answerable,
-ambiguous, temporal, conflicting, or unanswerable. Record only evidence that
+ambiguous, temporal, conflicting, unanswerable, or adversarial. `family` is an
+answer-behavior category; `scenario_family_id` groups comparable fact patterns.
+Every reviewed record must carry document version, article ID, exact quote/span,
+and requested-date applicability fields before a measurement run can construct a
+retriever. Record only evidence that
 supports the requested date and mark conflicting or insufficient evidence rather
 than forcing an answer. The present employment scope remains probation,
 contracts, working time, and leave; insurance/public employment/special

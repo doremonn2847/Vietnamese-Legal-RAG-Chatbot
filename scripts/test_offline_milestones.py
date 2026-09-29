@@ -34,7 +34,9 @@ class OfflineMilestoneTest(unittest.TestCase):
             self.assertEqual({item["key"] for item in checked["must"]}, {"pham_vi", "provision", "effective_from_day", "effective_to_day", "reviewed_through_day", "reviewed_status", "central_eligible"})
             with self.assertRaises(ValueError):
                 legal_filter(legal_date="2024-01-01", extra="bad")
-            self.assertTrue(legal_filter(legal_date="2024-01-01", include_open_ended=True)["should"])
+            open_filters = legal_filter(legal_date="2024-01-01", include_open_ended=True)
+            self.assertEqual(len(open_filters), 2)
+            self.assertTrue(any(condition.get("is_null") for condition in open_filters[1]["must"]))
             with self.assertRaises(ValueError):
                 adapter.search("v1", [float("nan"), 0], 2)
             adapter.create_collection("v2", 2)

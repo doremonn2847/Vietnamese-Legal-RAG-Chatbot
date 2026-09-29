@@ -58,6 +58,12 @@ class QdrantRestAdapter:
         _validate_vector(values, self._dimension_for(collection))
         if limit <= 0:
             raise ValueError("limit must be positive")
+        if isinstance(filters, list):
+            points = {}
+            for filter_part in filters:
+                for point in self.search(collection, values, filter_part, limit)["result"]:
+                    points[str(point["id"])] = point
+            return {"result": sorted(points.values(), key=lambda point: (-point["score"], str(point["id"])))[:limit]}
         return self.transport("POST", f"/collections/{collection}/points/search", {"vector": values, "filter": filters or {}, "limit": limit, "with_payload": True})
 
     def delete_collection(self, collection):
@@ -112,10 +118,10 @@ def legal_filter(*, legal_date, pham_vi="Trung ương", provision=None, include_
     ]
     if provision is not None:
         must.append({"key": "provision", "match": {"value": provision}})
+    finite = {"must": must + [{"key": "effective_to_day", "range": {"gt": legal_day}}]}
     if include_open_ended:
-        return {"must": must, "should": [{"key": "effective_to_day", "range": {"gt": legal_day}}, {"key": "reviewed_open_ended", "match": {"value": True}}]}
-    must.append({"key": "effective_to_day", "range": {"gt": legal_day}})
-    return {"must": must}
+        return [finite, {"must": must + [{"key": "reviewed_open_ended", "match": {"value": True}}, {"is_null": {"key": "effective_to_day"}}]}]
+    return finite
 
 
 def _validate_vector(vector, dimension=None):
