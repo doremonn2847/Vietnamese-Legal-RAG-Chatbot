@@ -47,7 +47,9 @@ class QdrantRestAdapter:
             point_id = str(point["id"])
             if point_id in seen:
                 continue
-            normalized.append({"id": point_id, "vector": _validate_vector(point["vector"], dimension), "payload": dict(point.get("payload", {}))})
+            payload = dict(point.get("payload", {}))
+            _validate_payload_validity(payload)
+            normalized.append({"id": point_id, "vector": _validate_vector(point["vector"], dimension), "payload": payload})
             seen.add(point_id)
         return self.transport("PUT", f"/collections/{collection}/points?wait=true", {"points": normalized})
 
@@ -123,3 +125,8 @@ def _validate_vector(vector, dimension=None):
     if dimension is not None and len(values) != dimension:
         raise ValueError("vector dimension mismatch")
     return values
+
+
+def _validate_payload_validity(payload):
+    if payload.get("reviewed_open_ended") is True and payload.get("effective_to_day") is not None:
+        raise ValueError("reviewed_open_ended requires effective_to_day to be null")

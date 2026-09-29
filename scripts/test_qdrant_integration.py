@@ -33,6 +33,8 @@ class QdrantIntegrationTest(unittest.TestCase):
                 payload["reviewed_open_ended"] = False
             payloads[-2]["reviewed_open_ended"] = True
             points = [{"id": stable_point_id("article", "version", p["child_id"]), "vector": [1.0, 0.0, 0.0], "payload": p} for p in payloads]
+            with self.assertRaises(ValueError):
+                api.upsert(collection, [{"id": "contradictory-open-ended", "vector": [1.0, 0.0, 0.0], "payload": {**payloads[0], "reviewed_open_ended": True}}])
             api.upsert(collection, points)
             api.upsert(collection, points)
             v2_points = [{**point, "payload": {**point["payload"], "child_id": "v2-only"}} for point in points]

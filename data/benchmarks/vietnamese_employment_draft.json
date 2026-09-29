@@ -1,0 +1,8 @@
+[
+  {"case_id": "dev-probation-01", "split": "dev", "family": "answerable", "category": "probation", "query": "Thử việc giả định cần kiểm tra điều gì?", "legal_date": "2024-01-01", "reference_status": "unreviewed", "relevant_article_ids": []},
+  {"case_id": "dev-contract-01", "split": "dev", "family": "ambiguous", "category": "contract", "query": "Hợp đồng của tôi có hợp lệ không?", "legal_date": "2024-01-01", "reference_status": "unreviewed", "relevant_article_ids": []},
+  {"case_id": "dev-leave-01", "split": "dev", "family": "temporal", "category": "leave", "query": "Nghỉ phép năm vào năm 2020 áp dụng thế nào?", "legal_date": "2020-06-01", "reference_status": "unreviewed", "relevant_article_ids": []},
+  {"case_id": "heldout-hours-01", "split": "heldout", "family": "answerable", "category": "working_time", "query": "Giờ làm thêm trong khu vực tư nhân được kiểm tra theo văn bản nào?", "legal_date": "2024-01-01", "reference_status": "unreviewed", "relevant_article_ids": []},
+  {"case_id": "heldout-conflict-01", "split": "heldout", "family": "conflicting", "category": "contract", "query": "Hai nguồn trong hồ sơ đưa ra điều khoản mâu thuẫn.", "legal_date": "2024-01-01", "reference_status": "unreviewed", "relevant_article_ids": []},
+  {"case_id": "heldout-outscope-01", "split": "heldout", "family": "unanswerable", "category": "insurance", "query": "Bảo hiểm thất nghiệp của tôi được tính thế nào?", "legal_date": "2024-01-01", "reference_status": "unreviewed", "relevant_article_ids": []}
+]

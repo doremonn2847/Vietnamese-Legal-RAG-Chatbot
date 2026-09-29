@@ -17,6 +17,8 @@ class EvaluationTest(unittest.TestCase):
         self.assertEqual(report["summary"]["mean_evidence_recall"], 1.0)
         self.assertEqual(report["metric_depths"]["evidence"], 3)
         self.assertEqual(retriever.kwargs["evidence_cap"], 3)
+        with self.assertRaises(ValueError):
+            evaluate_retrieval([], retriever, {}, k=0)
         self.assertIn("stage_timings_ms", report["cases"][0])
         self.assertEqual(evaluate_grid([], Retriever(), {}, [{"k": 10, "evidence_cap": 10}])[0]["report"]["evidence_cap"], 10)
         with tempfile.TemporaryDirectory() as directory:

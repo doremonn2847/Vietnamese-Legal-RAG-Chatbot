@@ -7,7 +7,9 @@ from metrics import mrr_at_k, recall_at_k
 
 
 def evaluate_retrieval(cases, retriever, provenance, k=5, evidence_cap=None):
-    evidence_cap = evidence_cap or k
+    evidence_cap = k if evidence_cap is None else evidence_cap
+    if type(k) is not int or type(evidence_cap) is not int or k <= 0 or evidence_cap <= 0:
+        raise ValueError("k and evidence_cap must be positive integers")
     rows = []
     for case in cases:
         started = time.perf_counter_ns()

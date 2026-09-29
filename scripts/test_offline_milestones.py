@@ -24,6 +24,8 @@ class OfflineMilestoneTest(unittest.TestCase):
         adapter.upsert("v1", points)
         self.assertEqual(len({row["id"] for row in requests[-1][2]["points"]}), 2)
         self.assertEqual(requests[-1][1], "/collections/v1/points?wait=true")
+        with self.assertRaises(ValueError):
+            adapter.upsert("v1", [{"id": "bad", "vector": [1.0, 0.0, 0.0], "payload": {"reviewed_open_ended": True, "effective_to_day": 1}}])
 
     def test_filters_and_version_activation_rollback_are_persistent(self):
         with tempfile.TemporaryDirectory() as directory:
