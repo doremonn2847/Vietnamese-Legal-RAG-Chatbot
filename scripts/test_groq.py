@@ -1,9 +1,10 @@
+import io
 import json
 import unittest
 from urllib.error import HTTPError
 
 from app import DEMO_EVIDENCE, create_app
-from groq import GroqConfig, GroqProvider, http_transport
+from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
 
 
 class GroqTest(unittest.TestCase):
@@ -59,6 +60,13 @@ class GroqTest(unittest.TestCase):
             http_transport(timeout_seconds=1, max_response_bytes=8, opener=lambda *_, **__: Response(b"x" * 9))("POST", "https://api.groq.com", {}, {})
         with self.assertRaises(ValueError):
             http_transport(timeout_seconds=1, opener=lambda *_, **__: Response(b"not-json"))("POST", "https://api.groq.com", {}, {})
+
+    def test_http_status_is_safe_to_classify_without_response_details(self):
+        error = HTTPError("https://api.groq.com/secret", 429, "secret-message", None, io.BytesIO(b"secret-body"))
+        with self.assertRaises(ProviderHTTPError) as caught:
+            http_transport(timeout_seconds=1, opener=lambda *_, **__: (_ for _ in ()).throw(error))("POST", "https://api.groq.com", {}, {})
+        self.assertEqual(caught.exception.status, 429)
+        self.assertNotIn("secret", str(caught.exception))
 
     def test_provider_error_is_an_unavailable_app_response(self):
         provider = GroqProvider(self.config, lambda *args: (_ for _ in ()).throw(RuntimeError("provider HTTP request failed")), "key")

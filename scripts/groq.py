@@ -19,6 +19,12 @@ class NoRedirect(HTTPRedirectHandler):
         return None
 
 
+class ProviderHTTPError(RuntimeError):
+    def __init__(self, status):
+        self.status = status
+        super().__init__("provider HTTP request failed")
+
+
 def http_transport(timeout_seconds=10, opener=None, max_response_bytes=1_000_000):
     if type(timeout_seconds) not in (int, float) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0 or type(max_response_bytes) is not int or max_response_bytes <= 0:
         raise ValueError("HTTP transport requires positive timeout and response limit")
@@ -28,9 +34,12 @@ def http_transport(timeout_seconds=10, opener=None, max_response_bytes=1_000_000
         try:
             with opener(request, timeout=timeout_seconds) as response:
                 raw = response.read(max_response_bytes + 1)
-        except (HTTPError, URLError, TimeoutError) as error:
-            if isinstance(error, HTTPError): error.close()
-            raise RuntimeError("provider HTTP request failed") from error
+        except HTTPError as error:
+            status = error.code if type(error.code) is int else None
+            error.close()
+            raise ProviderHTTPError(status) from None
+        except (URLError, TimeoutError) as error:
+            raise RuntimeError("provider HTTP request failed") from None
         if len(raw) > max_response_bytes: raise ValueError("provider response exceeds size limit")
         try: parsed = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error: raise ValueError("provider response is not JSON") from error
