@@ -1,5 +1,6 @@
 """Offline-only FastAPI demo. Its evidence is fictional and never legal advice."""
 from datetime import date, datetime
+import math
 import time
 import uuid
 from collections import deque
@@ -47,10 +48,14 @@ def _empty(state, reason):
 
 def _configured_evidence(rows, legal_date):
     day, selected = date.fromisoformat(legal_date).toordinal(), {}
-    for row in rows or []:
+    if not isinstance(rows, list):
+        return {}
+    for row in rows:
+        if not isinstance(row, dict):
+            return {}
         article_id, version = row.get("article_id"), row.get("document_version_id")
         text = row.get("canonical_text", row.get("text"))
-        if not isinstance(article_id, str) or not isinstance(version, str) or not isinstance(text, str) or not text.strip() or row.get("reviewed_version_id") != version or row.get("pham_vi") != "Trung ương" or row.get("reviewed_status") != "reviewed" or row.get("central_eligible") is not True or not all(type(row.get(key)) is int for key in ("effective_from_day", "effective_to_day", "reviewed_through_day")) or not row["effective_from_day"] <= day < row["effective_to_day"] <= row["reviewed_through_day"]:
+        if not isinstance(article_id, str) or not article_id.strip() or not isinstance(version, str) or not version.strip() or not isinstance(text, str) or not text.strip() or row.get("reviewed_version_id") != version or row.get("reviewed_open_ended") is True or row.get("pham_vi") != "Trung ương" or row.get("reviewed_status") != "reviewed" or row.get("central_eligible") is not True or not all(type(row.get(key)) is int for key in ("effective_from_day", "effective_to_day", "reviewed_through_day")) or not row["effective_from_day"] <= day < row["effective_to_day"] or row["reviewed_through_day"] < day:
             return {}
         selected[f"{article_id}:{version}"] = {**row, "canonical_text": text, "reviewed_version_id": version}
     return selected
@@ -94,6 +99,12 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None):
     app = FastAPI(title="Vietnamese Legal RAG synthetic demo")
     app.state.events = event_sink
 
+    def unavailable(status, message, **extra):
+        content = {"demo": retriever is None, "state": "unavailable", "answer": _empty("unavailable", message), **extra}
+        if retriever is None:
+            content["banner"] = DEMO_BANNER
+        return JSONResponse(status_code=status, content=content)
+
     def resolve_legal_date(value):
         if value is None:
             return datetime.now(ZoneInfo("Asia/Bangkok")).date().isoformat()
@@ -115,7 +126,8 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None):
                 selected_evidence = _configured_evidence(retrieval.get("evidence", []), legal_date) if isinstance(retrieval, dict) else {}
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}
-            retrieval["selected_evidence_ids"] = list(selected_evidence)
+            timings = retrieval.get("timings_ms", {}) if isinstance(retrieval, dict) else {}
+            retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if isinstance(key, str) and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
             if not selected_evidence:
                 event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="empty", reason="unavailable", provenance=provenance))
                 return {"demo": False, "state": "unavailable", "answer": _empty("unavailable", "Không có bằng chứng đã xét duyệt phù hợp."), "retrieval": retrieval}
@@ -125,23 +137,23 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None):
             answer = provider.answer(request.question, legal_date, selected_evidence)
         except TimeoutError:
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="timeout", reason="provider_timeout", provenance=provenance))
-            return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo quá thời gian chờ.")})
+            return unavailable(503, "Nhà cung cấp quá thời gian chờ.")
         except ValueError:
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance=provenance))
-            return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo trả về dữ liệu không hợp lệ.")})
+            return unavailable(502, "Nhà cung cấp trả về dữ liệu không hợp lệ.")
         except Exception:
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="error", reason="provider_error", provenance=provenance))
-            return JSONResponse(status_code=503, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp bản demo không khả dụng.")})
+            return unavailable(503, "Nhà cung cấp không khả dụng.")
         if not isinstance(answer, dict):
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance=provenance))
-            return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Nhà cung cấp trả về dữ liệu không hợp lệ.")})
+            return unavailable(502, "Nhà cung cấp trả về dữ liệu không hợp lệ.")
         usage = answer.pop("_usage", None)
         event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, usage=usage, provenance=provenance))
         validation_started = time.perf_counter_ns()
         validation = validate_citations(answer, selected_evidence, requested_legal_date=legal_date)
         if not validation["valid"]:
             event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance=provenance))
-            return JSONResponse(status_code=502, content={"demo": True, "banner": DEMO_BANNER, "state": "unavailable", "answer": _empty("unavailable", "Đầu ra bản demo không vượt qua kiểm tra bằng chứng."), "validation": {"valid": False, "reason": "invalid_provider_output"}})
+            return unavailable(502, "Đầu ra không vượt qua kiểm tra bằng chứng.", validation={"valid": False, "reason": "invalid_provider_output"})
         event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance))
         event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, usage=usage, provenance=provenance, reason=answer["state"]))
         return {"demo": retriever is None, "banner": DEMO_BANNER if retriever is None else None, "state": answer["state"], "answer": answer, "validation": validation, "retrieval": retrieval}

@@ -127,6 +127,22 @@ class AppTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["validation"]["valid"])
 
+    def test_configured_mode_fails_closed_without_leaking_or_demo_metadata(self):
+        day = 738886
+        class Provider:
+            def answer(self, *args): raise TimeoutError()
+        class BoundaryRetriever:
+            def search(self, *args): return {"evidence": [{"article_id": "a", "document_version_id": "v", "reviewed_version_id": "v", "text": "safe", "pham_vi": "Trung ương", "reviewed_status": "reviewed", "central_eligible": True, "effective_from_day": day - 1, "effective_to_day": day + 100, "reviewed_through_day": day + 1}]}
+        response = TestClient(create_app(Provider(), retriever=BoundaryRetriever())).post("/api/answer", json={"question": "q", "legal_date": "2024-01-01"})
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(response.json()["demo"])
+        self.assertNotIn("DỮ LIỆU HƯ CẤU", response.text)
+        class MalformedRetriever:
+            def search(self, *args): return []
+        response = TestClient(create_app(Provider(), retriever=MalformedRetriever())).post("/api/answer", json={"question": "secret", "legal_date": "2024-01-01"})
+        self.assertEqual(response.json()["state"], "unavailable")
+        self.assertNotIn("secret", response.text)
+
 
 if __name__ == "__main__":
     unittest.main()
