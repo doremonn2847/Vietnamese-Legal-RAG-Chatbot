@@ -21,6 +21,8 @@ class GroqTest(unittest.TestCase):
         method, url, body, headers = calls[0]
         self.assertEqual((method, url), ("POST", "https://api.groq.com/openai/v1/chat/completions"))
         self.assertTrue(headers["Authorization"].startswith("Bearer "))
+        self.assertEqual(headers["User-Agent"], "LegalRAGChatbot/0.1")
+        self.assertEqual(headers["Accept"], "application/json")
         self.assertNotIn("not-logged", str(body))
         self.assertEqual((body["model"], body["stream"], body["response_format"]["type"], body["response_format"]["json_schema"]["strict"]), ("openai/gpt-oss-20b", False, "json_schema", True))
         schema = body["response_format"]["json_schema"]["schema"]

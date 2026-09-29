@@ -66,7 +66,7 @@ class GroqProvider:
 
     def generate(self, messages):
         if not self.config.enabled: raise RuntimeError("Groq is disabled")
-        response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "response_format": RESPONSE_FORMAT}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key})
+        response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "response_format": RESPONSE_FORMAT}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key, "User-Agent": "LegalRAGChatbot/0.1", "Accept": "application/json"})
         return {"content": response["choices"][0]["message"]["content"], "usage": response.get("usage")}
 
     def answer(self, question, legal_date, selected_evidence):
