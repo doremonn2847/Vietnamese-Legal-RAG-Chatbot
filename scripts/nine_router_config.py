@@ -29,8 +29,9 @@ def _dotenv(path):
     for line in file.read_text(encoding="utf-8").splitlines():
         if not line or line.lstrip().startswith("#"): continue
         if "=" not in line: raise ValueError("invalid dotenv line")
-        key, value = line.split("=", 1)
+        key, value = (part.strip() for part in line.split("=", 1))
         if key not in {"NINE_ROUTER_API_KEY", "NINE_ROUTER_ENABLED", "NINE_ROUTER_BASE_URL", "NINE_ROUTER_ROUTE", "NINE_ROUTER_MODEL"}: continue
         if key in values: raise ValueError("duplicate dotenv key")
+        if value.startswith(("'", '"')) or value.endswith(("'", '"')): raise ValueError("quoted dotenv values are unsupported")
         values[key] = value
     return values

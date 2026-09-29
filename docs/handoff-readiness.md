@@ -33,6 +33,9 @@ $env:QDRANT_API_KEY='<local-key>'
 # Synthetic UI only; no legal corpus or provider request.
 .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts
 
+# Explicit provider factory; remains fictional retrieval until corpus activation.
+.\.venv\Scripts\python.exe -m uvicorn nine_router_config:create_runtime_app --factory --app-dir scripts
+
 # Draft inspection only. It refuses unreviewed cases in measurement mode.
 .\.venv\Scripts\python.exe scripts/evaluate_cli.py data/benchmarks/vietnamese_employment_draft.json
 ```

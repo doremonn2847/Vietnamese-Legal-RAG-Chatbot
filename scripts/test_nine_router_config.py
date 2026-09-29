@@ -1,6 +1,8 @@
 import unittest
 import tempfile
 from pathlib import Path
+from fastapi.testclient import TestClient
+from nine_router_config import create_runtime_app
 from nine_router_config import load_config
 
 
@@ -18,3 +20,10 @@ class ConfigTest(unittest.TestCase):
             self.assertTrue(load_config({"NINE_ROUTER_ENABLED":"true","NINE_ROUTER_API_KEY":"x","NINE_ROUTER_BASE_URL":"http://127.0.0.1:20128/v1","NINE_ROUTER_ROUTE":"chat/completions","NINE_ROUTER_MODEL":"ragchatbot"}, path)[0].enabled)
             path.write_text("bad\n", encoding="utf-8")
             with self.assertRaises(ValueError): load_config({}, path)
+
+    def test_runtime_factory_is_safe_at_startup(self):
+        disabled = TestClient(create_runtime_app({"NINE_ROUTER_ENABLED":"false"}, "missing.env"))
+        self.assertTrue(disabled.get("/health").json()["demo"])
+        env = {"NINE_ROUTER_ENABLED":"true","NINE_ROUTER_API_KEY":"x","NINE_ROUTER_BASE_URL":"http://127.0.0.1:20128/v1","NINE_ROUTER_ROUTE":"chat/completions","NINE_ROUTER_MODEL":"ragchatbot"}
+        self.assertNotIn("x", str(TestClient(create_runtime_app(env, "missing.env")).get("/health").json()))
+        with self.assertRaises(ValueError): create_runtime_app({"NINE_ROUTER_ENABLED":"true"}, "missing.env")
