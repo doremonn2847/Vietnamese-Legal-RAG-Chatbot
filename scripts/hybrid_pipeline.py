@@ -31,7 +31,7 @@ class HybridRetriever:
             source = self.article_lookup.get(row["article_id"])
             if not source:
                 continue
-            candidates.append({**row, "text": source["canonical_text"], "document_version_id": source["document_version_id"], "source_start": source["source_start"], "source_end": source["source_end"], "matched_child_ids": sorted(matched_children.get(row["article_id"], set()))})
+            candidates.append({**row, **source, "text": source["canonical_text"], "document_version_id": source["document_version_id"], "source_start": source["source_start"], "source_end": source["source_end"], "matched_child_ids": sorted(matched_children.get(row["article_id"], set()))})
         if self.reranker:
             candidates = rerank_candidates(candidates, self.reranker.score(query, candidates))
         evidence = select_evidence(candidates, evidence_cap)

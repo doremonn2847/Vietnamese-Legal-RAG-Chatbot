@@ -82,6 +82,51 @@ class AppTest(unittest.TestCase):
         self.assertIn("text/html", page.headers["content-type"])
         self.assertIn("DỮ LIỆU HƯ CẤU", page.text)
 
+    def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
+        day = 738886
+        class Retriever:
+            def search(self, *args):
+                return {"evidence": [{"article_id": "a1", "text": "Nguồn đã xét duyệt.", "document_version_id": "v1", "reviewed_version_id": "v1", "pham_vi": "Trung ương", "reviewed_status": "reviewed", "central_eligible": True, "effective_from_day": day - 1, "effective_to_day": day + 1, "reviewed_through_day": day + 1}], "timings_ms": {}}
+        class Provider:
+            def answer(self, question, legal_date, evidence):
+                source = evidence["a1:v1"]
+                quote = source["canonical_text"]
+                return {"state": "answer", "legal_date": legal_date, "text": quote, "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["a1:v1"]}], "citations": [{"evidence_id": "a1:v1", "quote": quote, "span_start": 0, "span_end": len(quote), "reviewed_version_id": "v1"}]}
+        events = []
+        response = TestClient(create_app(Provider(), events, retriever=Retriever(), provenance={"model_version": "fake-provider", "prompt_version": "test-v1", "index_version": "test-index"})).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["demo"])
+        self.assertEqual(response.json()["answer"]["citations"][0]["evidence_id"], "a1:v1")
+        self.assertEqual(events[0]["provenance"]["index_version"], "test-index")
+
+    def test_injected_retrieval_rejects_invalid_parent_before_provider(self):
+        called = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [{"article_id": "a1", "text": "bad", "document_version_id": "v1", "reviewed_version_id": "v2"}]}
+        class Provider:
+            def answer(self, *args): called.append(True)
+        response = TestClient(create_app(Provider(), retriever=Retriever())).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        self.assertEqual(response.json()["state"], "unavailable")
+        self.assertEqual(called, [])
+
+    def test_hybrid_and_injected_http_provider_complete_the_configured_route(self):
+        from bm25 import BM25Index
+        from hybrid_pipeline import HybridRetriever
+        from nine_router import NineRouterConfig, NineRouterProvider
+        day = 738886
+        parent = {"article_id": "a1", "canonical_text": "Reviewed source.", "document_version_id": "v1", "reviewed_version_id": "v1", "source_start": 0, "source_end": 16, "pham_vi": "Trung ương", "provision": "probation", "reviewed_status": "reviewed", "central_eligible": True, "effective_from_day": day - 1, "effective_to_day": day + 1, "reviewed_through_day": day + 1}
+        class Encoder:
+            def encode_queries(self, queries): return [[1.0]]
+        class Qdrant:
+            def search(self, *args, **kwargs): return {"result": [{"score": 1.0, "payload": {"article_id": "a1", "child_id": "c1"}}]}
+        class Reranker:
+            def score(self, query, candidates): return {candidate["article_id"]: 1.0 for candidate in candidates}
+        provider = NineRouterProvider(NineRouterConfig("https://example.invalid", "chat", "fake", True), lambda *args: {"choices": [{"message": {"content": '{"state":"answer","legal_date":"2024-01-01","text":"Reviewed source.","claims":[{"claim_id":"c1","text":"Reviewed source.","evidence_ids":["a1:v1"]}],"citations":[{"evidence_id":"a1:v1","quote":"Reviewed source.","span_start":0,"span_end":16,"reviewed_version_id":"v1"}]}'}}], "usage": {}})
+        retriever = HybridRetriever(BM25Index([{**parent, "evidence_id": "x", "child_id": "c1", "text": parent["canonical_text"]}]), Encoder(), Qdrant(), "synthetic_test", {"a1": parent}, Reranker())
+        response = TestClient(create_app(provider, retriever=retriever, provenance={"model_version": "fake", "prompt_version": "p1", "index_version": "i1"})).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["validation"]["valid"])
+
 
 if __name__ == "__main__":
     unittest.main()
