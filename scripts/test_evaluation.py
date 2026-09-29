@@ -2,18 +2,19 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from evaluation import evaluate_retrieval, write_evaluation
+from evaluation import evaluate_grid, evaluate_retrieval, write_evaluation
 from safe_log import event
 
 
 class EvaluationTest(unittest.TestCase):
     def test_report_has_provenance_and_timing(self):
         class Retriever:
-            def search(self, query, legal_date):
-                return {"evidence": [{"article_id": "a1"}]}
+            def search(self, query, legal_date, **kwargs):
+                return {"sparse": [{"article_id": "a1"}], "dense": [{"article_id": "a1"}], "fused": [{"article_id": "a1"}], "evidence": [{"article_id": "a1"}], "timings_ms": {"sparse": 1.0}}
         report = evaluate_retrieval([{"case_id": "q1", "query": "thử việc", "legal_date": "2024-01-01", "relevant_article_ids": ["a1"]}], Retriever(), {"corpus_revision": "test", "embedding_revision": "fake"})
         self.assertEqual(report["summary"]["mean_recall_at_k"], 1.0)
-        self.assertIn("latency_ms", report["cases"][0])
+        self.assertIn("stage_timings_ms", report["cases"][0])
+        self.assertEqual(evaluate_grid([], Retriever(), {}, [{"k": 10, "evidence_cap": 10}])[0]["report"]["evidence_cap"], 10)
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "report.json"
             write_evaluation(report, output)

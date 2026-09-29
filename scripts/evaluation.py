@@ -6,16 +6,26 @@ from pathlib import Path
 from metrics import mrr_at_k, recall_at_k
 
 
-def evaluate_retrieval(cases, retriever, provenance, k=5):
+def evaluate_retrieval(cases, retriever, provenance, k=5, evidence_cap=None):
+    evidence_cap = max(k, evidence_cap or k)
     rows = []
     for case in cases:
         started = time.perf_counter_ns()
-        result = retriever.search(case["query"], case["legal_date"])
+        result = retriever.search(case["query"], case["legal_date"], evidence_cap=evidence_cap)
         elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
-        hits = result["evidence"]
         relevant = case["relevant_article_ids"]
-        rows.append({"case_id": case["case_id"], "recall_at_k": recall_at_k(hits, relevant, k), "mrr_at_k": mrr_at_k(hits, relevant, k), "latency_ms": elapsed_ms, "evidence_article_ids": [hit["article_id"] for hit in hits]})
-    return {"provenance": dict(provenance), "k": k, "cases": rows, "summary": {"cases": len(rows), "mean_recall_at_k": sum(row["recall_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_mrr_at_k": sum(row["mrr_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_latency_ms": sum(row["latency_ms"] for row in rows) / len(rows) if rows else 0.0}}
+        branches = {name: {"recall_at_k": recall_at_k(hits, relevant, k), "mrr_at_k": mrr_at_k(hits, relevant, k)} for name, hits in result.items() if name in {"sparse", "dense", "fused", "evidence"}}
+        rows.append({"case_id": case["case_id"], "branches": branches, "latency_ms": elapsed_ms, "stage_timings_ms": dict(result.get("timings_ms", {})), "evidence_article_ids": [hit["article_id"] for hit in result["evidence"]]})
+    return {"provenance": dict(provenance), "k": k, "evidence_cap": evidence_cap, "cases": rows, "summary": {"cases": len(rows), "mean_recall_at_k": sum(row["branches"]["evidence"]["recall_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_mrr_at_k": sum(row["branches"]["evidence"]["mrr_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_latency_ms": sum(row["latency_ms"] for row in rows) / len(rows) if rows else 0.0}}
+
+
+def evaluate_grid(cases, retriever, provenance, configs):
+    return [{"config": dict(config), "report": evaluate_retrieval(cases, _ConfiguredRetriever(retriever, config), {**provenance, "retrieval_config": dict(config)}, k=config["k"], evidence_cap=config.get("evidence_cap"))} for config in configs]
+
+
+class _ConfiguredRetriever:
+    def __init__(self, retriever, config): self.retriever, self.config = retriever, config
+    def search(self, query, legal_date, **kwargs): return self.retriever.search(query, legal_date, **({key: value for key, value in self.config.items() if key != "k"} | kwargs))
 
 
 def write_evaluation(report, output_path):
