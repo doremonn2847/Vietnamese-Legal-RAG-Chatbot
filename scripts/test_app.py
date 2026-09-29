@@ -88,8 +88,9 @@ class AppTest(unittest.TestCase):
     def test_source_projection_allows_only_http_urls(self):
         from app import _safe_sources
         answer = {"citations":[{"evidence_id":"e","quote":"q","reviewed_version_id":"v"}]}
-        self.assertEqual(_safe_sources(answer, {"e":{"source_url":"javascript:bad"}})[0]["source_url"], None)
-        self.assertEqual(_safe_sources(answer, {"e":{"source_url":"https://example.invalid"}})[0]["source_url"], "https://example.invalid")
+        source = {"effective_from_day": 737425, "effective_to_day": 741077, "reviewed_through_day": 741077}
+        self.assertEqual(_safe_sources(answer, {"e":{**source, "source_url":"https:///missing"}})[0]["source_url"], None)
+        self.assertEqual(_safe_sources(answer, {"e":{**source, "source_url":"https://example.invalid"}})[0]["source_url"], "https://example.invalid")
 
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
         day = 738886
