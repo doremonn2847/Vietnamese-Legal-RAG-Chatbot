@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+data/raw/
+data/audit/
+data/staging/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+data/qdrant/
+data/embeddings/
+data/models/
+data/logs/

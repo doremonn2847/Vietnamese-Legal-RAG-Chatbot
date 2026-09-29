@@ -1,0 +1,18 @@
+{
+  "models": {
+    "intfloat/multilingual-e5-small": {
+      "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "tokenizer_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "dimension": 384,
+      "source": "https://huggingface.co/api/models/intfloat/multilingual-e5-small"
+    },
+    "intfloat/multilingual-e5-base": {
+      "model_revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "tokenizer_revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "dimension": 768,
+      "source": "https://huggingface.co/api/models/intfloat/multilingual-e5-base"
+    }
+  },
+  "resolved_by": "read-only Hugging Face model metadata lookup",
+  "execution": "opt-in; local cache/path required by default"
+}
