@@ -10,8 +10,23 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
 | 3. Dense/retrieval | E5/reranker loaders, Qdrant adapter, hybrid/RRF contracts, synthetic artifact-import rehearsal | Injected encoder/reranker/import tests | Qdrant 1.13 synthetic points; rehearsal default is injected | Real model vectors, reviewed-corpus import, activation, quality |
-| 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled 9Router bridge, redacted trace events | FastAPI and mocked HTTP | No provider call | App connected to real hybrid retrieval/provider |
+| 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled 9Router bridge, redacted trace events, and accepted UI state/citation presentation contract | FastAPI, mocked HTTP, and static UI contract tests | Offline acceptance at 9f7d75b; provider remains disabled | App connected to reviewed hybrid retrieval and a working provider contract |
 | 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
+
+## Verified Stage 4 state
+
+Stage 4 is accepted offline at commit `9f7d75b`. The focused UI/API suite
+passed 12 tests; the full offline suite passed 64 tests with 1 opt-in Qdrant
+skip; `git diff --check` and the working tree were clean. This does not verify
+a legal corpus, hybrid retrieval, or a provider response.
+
+`NINE_ROUTER_ENABLED` remains `false`. Earlier bounded 9Router checks recorded
+route failures with HTTP 402, 503, 410, 404, and 400. In the revised
+`ragchatbot` combo, OpenRouter Nemotron 550B and 120B members recorded upstream
+success in about 1.128 s and 1.603 s, but the local combo response did not
+complete within bounded client deadlines; the 550B output also failed the
+structured answer contract. No provider is currently eligible for activation.
+No legal corpus is activated.
 
 ## Reproducible commands
 
@@ -66,9 +81,10 @@ synthetic staging writes, and never activates an alias or a real collection.
 
 Remaining independent engineering tasks:
 
-- Use the opt-in 9Router stdlib HTTP transport only with an explicit enabled
-  route/model/base URL; it has a finite timeout, 1 MB response limit, no retry,
-  and no fallback. Confirm a free route before configuring it.
+- Keep the opt-in 9Router stdlib transport disabled until a no-cost route,
+  explicit base URL/route/model, bounded local completion, and the structured
+  answer contract are all verified. It has a finite timeout, 1 MB response
+  limit, no retry, and no fallback.
 - For local CPU measurements, install compatible `torch` and `transformers` in
   the virtual environment only after owner approval: `python -m pip install torch transformers`.
   Place owner-supplied files under `data/models/e5-small/` and invoke
@@ -78,17 +94,22 @@ Remaining independent engineering tasks:
   Compatible dependency versions and real measurements remain unverified. The BGE reranker remains optional and is not a
   default dependency. Do not download or run weights until the owner supplies
   local artifacts.
-- Connect the existing hybrid retriever to the app behind reviewed-corpus
-  activation, preserving the synthetic demo until that gate is passed.
+- Connect the existing hybrid retriever to the app only after reviewed-corpus
+  embedding/import/activation, preserving the synthetic demo until that gate is
+  passed.
 
 Owner/resource work:
 
-- Obtain and pin local E5 and reranker files, then run bounded CPU
+- Obtain compatible local E5 and reranker artifacts, then run bounded CPU
   encoding/reranking measurements using the documented recipe.
-- Confirm a no-cost 9Router route, explicit base URL/route/model, and usage terms
-  before enabling its configuration. The adapter has no default route or fallback.
+- Repair/save a no-cost 9Router combo and verify its bounded completion,
+  structured-answer contract, explicit base URL/route/model, and usage terms
+  before enabling configuration. The adapter has no default route or fallback.
 - Review `owner_review_packet.csv`, authoritative source/version identity,
   applicability dates, employment relevance, and benchmark references.
+- Review the benchmark, then run held-out evaluation after reviewed corpus
+  embedding/import/activation.
+- Run hosted CI and retain remote evidence after the offline gates pass.
 
 The benchmark at `data/benchmarks/vietnamese_employment_draft.json` is unreviewed
 scaffolding. It cannot generate retrieval-quality or legal-correctness claims.
