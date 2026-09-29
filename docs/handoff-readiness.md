@@ -10,23 +10,25 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
 | 3. Dense/retrieval | E5/reranker loaders, Qdrant adapter, hybrid/RRF contracts, synthetic artifact-import rehearsal | Injected encoder/reranker/import tests | Qdrant 1.13 synthetic points; rehearsal default is injected | Real model vectors, reviewed-corpus import, activation, quality |
-| 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled 9Router bridge, redacted trace events, and accepted UI state/citation presentation contract | FastAPI, mocked HTTP, and static UI contract tests | Offline acceptance at 9f7d75b; provider remains disabled | App connected to reviewed hybrid retrieval and a working provider contract |
+| 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled direct Groq bridge, redacted trace events, and accepted UI state/citation presentation contract | FastAPI, mocked HTTP, and static UI contract tests | Offline acceptance at 9f7d75b; provider remains disabled | App connected to reviewed hybrid retrieval and a working provider contract |
 | 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
 
 ## Verified Stage 4 state
 
-Stage 4 is accepted offline at commit `9f7d75b`. The focused UI/API suite
-passed 12 tests; the full offline suite passed 64 tests with 1 opt-in Qdrant
-skip; `git diff --check` and the working tree were clean. This does not verify
-a legal corpus, hybrid retrieval, or a provider response.
+Stage 4 is accepted offline. The direct Groq runtime is disabled by default and
+uses only `https://api.groq.com/openai/v1`, `chat/completions`, and
+`openai/gpt-oss-20b`; it uses non-streaming strict JSON Schema responses, a
+finite timeout, a 1 MB response limit, no redirect, retry, fallback, tools, or
+browser search. It has not made a Groq request, and no legal corpus is active.
 
-`NINE_ROUTER_ENABLED` remains `false`. Earlier bounded 9Router checks recorded
-route failures with HTTP 402, 503, 410, 404, and 400. In the revised
-`ragchatbot` combo, OpenRouter Nemotron 550B and 120B members recorded upstream
-success in about 1.128 s and 1.603 s, but the local combo response did not
-complete within bounded client deadlines; the 550B output also failed the
-structured answer contract. No provider is currently eligible for activation.
-No legal corpus is activated.
+Official references: [overview](https://console.groq.com/docs/overview),
+[structured outputs](https://console.groq.com/docs/structured-outputs),
+[rate limits](https://console.groq.com/docs/rate-limits),
+[your data](https://console.groq.com/docs/your-data),
+[billing FAQs](https://console.groq.com/docs/billing-faqs), and
+[openai/gpt-oss-20b](https://console.groq.com/docs/model/openai/gpt-oss-20b).
+The published Free Plan table is not proof of this account's available quota;
+account limits remain authoritative. Live provider validation remains pending.
 
 ## Reproducible commands
 
@@ -49,7 +51,7 @@ $env:QDRANT_API_KEY='<local-key>'
 .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts
 
 # Explicit provider factory; remains fictional retrieval until corpus activation.
-.\.venv\Scripts\python.exe -m uvicorn nine_router_config:create_runtime_app --factory --app-dir scripts
+.\.venv\Scripts\python.exe -m uvicorn groq_config:create_runtime_app --factory --app-dir scripts
 
 # Draft inspection only. It refuses unreviewed cases in measurement mode.
 .\.venv\Scripts\python.exe scripts/evaluate_cli.py data/benchmarks/vietnamese_employment_draft.json
@@ -81,10 +83,10 @@ synthetic staging writes, and never activates an alias or a real collection.
 
 Remaining independent engineering tasks:
 
-- Keep the opt-in 9Router stdlib transport disabled until a no-cost route,
-  explicit base URL/route/model, bounded local completion, and the structured
-  answer contract are all verified. It has a finite timeout, 1 MB response
-  limit, no retry, and no fallback.
+- Keep the direct Groq transport disabled until the owner supplies a key and
+  authorizes a bounded live check. The fixed free-only route uses non-streaming
+  strict JSON Schema, a finite timeout, a 1 MB response limit, no redirect,
+  retry, fallback, batch, tools, or browser search.
 - For local CPU measurements, install compatible `torch` and `transformers` in
   the virtual environment only after owner approval: `python -m pip install torch transformers`.
   Place owner-supplied files under `data/models/e5-small/` and invoke
@@ -102,9 +104,9 @@ Owner/resource work:
 
 - Obtain compatible local E5 and reranker artifacts, then run bounded CPU
   encoding/reranking measurements using the documented recipe.
-- Repair/save a no-cost 9Router combo and verify its bounded completion,
-  structured-answer contract, explicit base URL/route/model, and usage terms
-  before enabling configuration. The adapter has no default route or fallback.
+- Supply a Groq key only when ready, confirm actual account limits and usage
+  terms, then authorize one bounded non-streaming contract check. No paid
+  fallback is configured.
 - Review `owner_review_packet.csv`, authoritative source/version identity,
   applicability dates, employment relevance, and benchmark references.
 - Review the benchmark, then run held-out evaluation after reviewed corpus

@@ -124,7 +124,7 @@ Remaining implementation milestones:
 - [x] Pinned local Transformers E5 loader contract; model loading remains opt-in and requires local artifacts.
 - [x] Hybrid retrieval, CPU reranker, evaluation, and privacy-safe logging contracts with injected offline tests. Synthetic branches are not quality measurements.
 - [x] Offline GitHub Actions unit-test workflow; live Qdrant remains opt-in.
-- [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked 9Router transport.
+- [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked direct Groq transport.
 - [x] Synthetic manifest/shard import rehearsal with pre-write compatibility checks and no alias activation.
 - [ ] Owner review of employment relevance, duplicates, dependencies, and validity.
 - [ ] Real E5 document/query execution, verified artifact import, Qdrant activation, and measured hybrid/reranker quality.
