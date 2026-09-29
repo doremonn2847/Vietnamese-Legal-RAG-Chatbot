@@ -2,11 +2,7 @@
 import os
 from pathlib import Path
 
-from groq import GroqConfig, GroqProvider, http_transport
-
-GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-GROQ_ROUTE = "chat/completions"
-GROQ_MODEL = "openai/gpt-oss-20b"
+from groq import GROQ_BASE_URL, GROQ_MODEL, GROQ_ROUTE, GroqConfig, GroqProvider, http_transport
 _KEYS = {"GROQ_API_KEY", "GROQ_ENABLED", "GROQ_BASE_URL", "GROQ_ROUTE", "GROQ_MODEL"}
 
 
@@ -14,8 +10,7 @@ def load_config(env=None, dotenv_path=".env"):
     values = {**_dotenv(dotenv_path), **(dict(env) if env is not None else os.environ)}
     config = GroqConfig(values.get("GROQ_BASE_URL"), values.get("GROQ_ROUTE"), values.get("GROQ_MODEL"), values.get("GROQ_ENABLED", "").casefold() == "true")
     if not config.enabled: return config, None
-    if config.base_url != GROQ_BASE_URL or config.route != GROQ_ROUTE or config.model != GROQ_MODEL or not values.get("GROQ_API_KEY", "").strip(): raise ValueError("invalid enabled Groq configuration")
-    config.validate()
+    config.validate(values.get("GROQ_API_KEY"))
     return config, values["GROQ_API_KEY"]
 
 

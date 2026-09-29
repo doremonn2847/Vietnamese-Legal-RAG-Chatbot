@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GROQ_ROUTE = "chat/completions"
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 ANSWER_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["state", "legal_date", "text", "claims", "citations", "reason", "unanswered"], "properties": {"state": {"type": "string", "enum": ["answer", "partial", "clarify", "unavailable", "abstain_conflict", "abstain_insufficient_evidence"]}, "legal_date": {"type": ["string", "null"]}, "text": {"type": "string"}, "claims": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["claim_id", "text", "evidence_ids"], "properties": {"claim_id": {"type": "string"}, "text": {"type": "string"}, "evidence_ids": {"type": "array", "items": {"type": "string"}}}}}, "citations": {"type": "array", "items": {"type": "object", "additionalProperties": False, "required": ["evidence_id", "quote", "span_start", "span_end", "reviewed_version_id"], "properties": {"evidence_id": {"type": "string"}, "quote": {"type": "string"}, "span_start": {"type": "integer"}, "span_end": {"type": "integer"}, "reviewed_version_id": {"type": "string"}}}}, "reason": {"type": "string"}, "unanswered": {"type": "string"}}}
 RESPONSE_FORMAT = {"type": "json_schema", "json_schema": {"name": "legal_answer", "strict": True, "schema": ANSWER_SCHEMA}}
@@ -43,13 +46,13 @@ class GroqConfig:
     model: str | None = None
     enabled: bool = False
 
-    def validate(self):
-        if self.enabled and (not self.base_url or not self.route or not self.model): raise ValueError("enabled Groq requires explicit base_url, route, and model")
+    def validate(self, api_key=None):
+        if self.enabled and (self.base_url != GROQ_BASE_URL or self.route != GROQ_ROUTE or self.model != GROQ_MODEL or not isinstance(api_key, str) or not api_key.strip()): raise ValueError("invalid enabled Groq configuration")
 
 
 class GroqProvider:
     def __init__(self, config, transport, api_key=None):
-        config.validate()
+        config.validate(api_key)
         self.config, self.transport, self.api_key = config, transport, api_key
 
     def generate(self, messages):

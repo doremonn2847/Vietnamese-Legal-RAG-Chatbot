@@ -28,6 +28,11 @@ class GroqTest(unittest.TestCase):
         self.assertFalse(schema["properties"]["claims"]["items"]["additionalProperties"])
         self.assertFalse(schema["properties"]["citations"]["items"]["additionalProperties"])
 
+    def test_direct_enabled_provider_rejects_nonallowlisted_or_missing_key(self):
+        for config, key in ((GroqConfig("https://other.invalid", "chat/completions", "openai/gpt-oss-20b", True), "key"), (GroqConfig("https://api.groq.com/openai/v1", "chat/completions", "other", True), "key"), (self.config, None), (self.config, " ")):
+            with self.subTest(config=config, key=key), self.assertRaises(ValueError):
+                GroqProvider(config, lambda *args: None, key)
+
     def test_unique_span_repair_and_malformed_output_fail_closed(self):
         bad_span = {**self.answer, "citations": [{**self.answer["citations"][0], "span_end": len(self.quote) - 1}]}
         provider = GroqProvider(self.config, lambda *args: {"choices": [{"message": {"content": json.dumps(bad_span)}}]}, "key")
