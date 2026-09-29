@@ -2,7 +2,7 @@ import unittest
 import json
 
 from app import DEMO_EVIDENCE, create_app
-from nine_router import NineRouterConfig, NineRouterProvider
+from nine_router import NineRouterConfig, NineRouterProvider, http_transport
 
 
 class NineRouterTest(unittest.TestCase):
@@ -41,6 +41,13 @@ class NineRouterTest(unittest.TestCase):
         provider = NineRouterProvider(NineRouterConfig(base_url="https://example.invalid", route="chat", model="free-test", enabled=True), transport=lambda *args: {"choices": [{"message": {"content": json.dumps(answer)}}], "usage": "bad"})
         from fastapi.testclient import TestClient
         self.assertEqual(TestClient(create_app(provider)).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"}).status_code, 200)
+
+    def test_opt_in_http_transport_is_bounded_and_never_called_while_disabled(self):
+        calls = []
+        transport = http_transport(timeout_seconds=3, opener=lambda request, timeout: calls.append((request, timeout)) or (_ for _ in ()).throw(AssertionError("disabled")))
+        with self.assertRaises(RuntimeError):
+            NineRouterProvider(NineRouterConfig(), transport).generate([])
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

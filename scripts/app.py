@@ -127,7 +127,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None):
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}
             timings = retrieval.get("timings_ms", {}) if isinstance(retrieval, dict) else {}
-            retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if isinstance(key, str) and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
+            retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if key in {"sparse", "dense", "rerank_and_evidence"} and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
             if not selected_evidence:
                 event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="empty", reason="unavailable", provenance=provenance))
                 return {"demo": False, "state": "unavailable", "answer": _empty("unavailable", "Không có bằng chứng đã xét duyệt phù hợp."), "retrieval": retrieval}

@@ -63,10 +63,16 @@ synthetic staging writes, and never activates an alias or a real collection.
 
 Remaining independent engineering tasks:
 
-- Write the reproducible local CPU `torch`/`transformers` dependency and local
-  artifact-path recipe; do not download models as part of the recipe.
-- Add a configured actual HTTP transport path for the already-disabled provider
-  bridge, with its existing injected tests retained and no provider probe.
+- Use the opt-in 9Router stdlib HTTP transport only with an explicit enabled
+  route/model/base URL; it has a finite timeout, 1 MB response limit, no retry,
+  and no fallback. Confirm a free route before configuring it.
+- For local CPU measurements, install compatible `torch` and `transformers` in
+  the virtual environment, then pass existing local paths to
+  `load_transformers_encoder(model_path=..., tokenizer_path=..., local_files_only=True)`.
+  Use `data/config/e5_revisions.json` for the pinned small E5 revision; run one
+  bounded synthetic batch first. The BGE reranker remains optional and is not a
+  default dependency. Do not download or run weights until the owner supplies
+  local artifacts.
 - Connect the existing hybrid retriever to the app behind reviewed-corpus
   activation, preserving the synthetic demo until that gate is passed.
 
