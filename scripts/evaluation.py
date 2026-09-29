@@ -7,16 +7,16 @@ from metrics import mrr_at_k, recall_at_k
 
 
 def evaluate_retrieval(cases, retriever, provenance, k=5, evidence_cap=None):
-    evidence_cap = max(k, evidence_cap or k)
+    evidence_cap = evidence_cap or k
     rows = []
     for case in cases:
         started = time.perf_counter_ns()
         result = retriever.search(case["query"], case["legal_date"], evidence_cap=evidence_cap)
         elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
         relevant = case["relevant_article_ids"]
-        branches = {name: {"recall_at_k": recall_at_k(hits, relevant, k), "mrr_at_k": mrr_at_k(hits, relevant, k)} for name, hits in result.items() if name in {"sparse", "dense", "fused", "evidence"}}
+        branches = {name: {"recall_at_k": recall_at_k(hits, relevant, min(k, evidence_cap) if name == "evidence" else k), "mrr_at_k": mrr_at_k(hits, relevant, min(k, evidence_cap) if name == "evidence" else k)} for name, hits in result.items() if name in {"sparse", "dense", "fused", "evidence"}}
         rows.append({"case_id": case["case_id"], "branches": branches, "latency_ms": elapsed_ms, "stage_timings_ms": dict(result.get("timings_ms", {})), "evidence_article_ids": [hit["article_id"] for hit in result["evidence"]]})
-    return {"provenance": dict(provenance), "k": k, "evidence_cap": evidence_cap, "cases": rows, "summary": {"cases": len(rows), "mean_recall_at_k": sum(row["branches"]["evidence"]["recall_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_mrr_at_k": sum(row["branches"]["evidence"]["mrr_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_latency_ms": sum(row["latency_ms"] for row in rows) / len(rows) if rows else 0.0}}
+    return {"provenance": dict(provenance), "k": k, "evidence_cap": evidence_cap, "metric_depths": {"branches": k, "evidence": min(k, evidence_cap)}, "cases": rows, "summary": {"cases": len(rows), "mean_evidence_recall": sum(row["branches"]["evidence"]["recall_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_evidence_mrr": sum(row["branches"]["evidence"]["mrr_at_k"] for row in rows) / len(rows) if rows else 0.0, "mean_latency_ms": sum(row["latency_ms"] for row in rows) / len(rows) if rows else 0.0}}
 
 
 def evaluate_grid(cases, retriever, provenance, configs):
