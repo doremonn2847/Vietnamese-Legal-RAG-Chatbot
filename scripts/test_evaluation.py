@@ -34,6 +34,7 @@ class EvaluationTest(unittest.TestCase):
         hostile = event("answer", trace_id="t2", reason="private question", usage={"total_tokens": 1, "secret": "x"}, provenance={"model_version": "m", "secret": "x"})
         self.assertIsNone(hostile["reason"])
         self.assertNotIn("secret", str(hostile))
+        self.assertIsNone(event("provider", trace_id="t3", usage=[1])["usage"])
 
 
 if __name__ == "__main__":
