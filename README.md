@@ -124,7 +124,10 @@ Remaining implementation milestones:
 - [x] Pinned local Transformers E5 loader contract; model loading remains opt-in and requires local artifacts.
 - [x] Hybrid retrieval, CPU reranker, evaluation, and privacy-safe logging contracts with injected offline tests. Synthetic branches are not quality measurements.
 - [x] Offline GitHub Actions unit-test workflow; live Qdrant remains opt-in.
+- [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked 9Router transport.
 - [ ] Owner review of employment relevance, duplicates, dependencies, and validity.
-- [ ] Compatible E5 document/query embeddings, verified artifact import, and Qdrant activation/rollback.
-- [ ] Article-level BM25+dense RRF, distinct CPU reranking, evidence caps, and measured k sweeps.
-- [ ] FastAPI/UI, citations, clarification/abstention states, 9Router integration, benchmark, and observability.
+- [ ] Real E5 document/query execution, verified artifact import, Qdrant activation, and measured hybrid/reranker quality.
+- [ ] Connect the app to real reviewed retrieval and a user-configured provider; run hosted CI and reviewed benchmark evaluation.
+
+See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
+runnable commands, artifact paths, and owner/resource gates.
