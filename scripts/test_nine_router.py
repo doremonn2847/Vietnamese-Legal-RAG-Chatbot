@@ -36,6 +36,29 @@ class NineRouterTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             malformed.answer("q", "2024-01-01", selected)
 
+    def test_answer_accepts_only_a_single_json_fence(self):
+        quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
+        expected = {"state": "answer", "legal_date": "2024-01-01", "text": quote, "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": quote, "span_start": 0, "span_end": len(quote), "reviewed_version_id": "fiction-v1"}]}
+        selected = {"fiction-e1": DEMO_EVIDENCE["fiction-e1"]}
+
+        def answer_for(content):
+            return NineRouterProvider(NineRouterConfig(base_url="https://example.invalid", route="chat", model="free-test", enabled=True), transport=lambda *args: {"choices": [{"message": {"content": content}}], "usage": {"total_tokens": 2}}).answer("q", "2024-01-01", selected)
+
+        for content in (json.dumps(expected), "\n```json\n" + json.dumps(expected) + "\n```\n"):
+            with self.subTest(accepted=content.startswith("\n```")):
+                self.assertEqual(answer_for(content)["citations"], expected["citations"])
+        for content in (
+            "```\n" + json.dumps(expected) + "\n```",
+            "Kết quả:\n```json\n" + json.dumps(expected) + "\n```",
+            "```json\n{}\n```\n```json\n{}\n```",
+            "```json\n\n```",
+            "```json\n{not-json}\n```",
+            "[]",
+        ):
+            with self.subTest(rejected=content):
+                with self.assertRaises(ValueError):
+                    answer_for(content)
+
     def test_malformed_usage_cannot_break_the_app(self):
         quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
         answer = {"state": "answer", "legal_date": "2024-01-01", "text": quote, "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": quote, "span_start": 0, "span_end": len(quote), "reviewed_version_id": "fiction-v1"}]}

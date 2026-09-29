@@ -69,8 +69,16 @@ class NineRouterProvider:
         evidence = [{"evidence_id": evidence_id, "canonical_text": source["canonical_text"], "reviewed_version_id": source["reviewed_version_id"]} for evidence_id, source in selected_evidence.items()]
         messages = [{"role": "system", "content": SYSTEM_CONTRACT}, {"role": "user", "content": json.dumps({"question": question, "legal_date": legal_date, "selected_evidence": evidence}, ensure_ascii=False)}]
         result = self.generate(messages)
+        content = result["content"]
+        if isinstance(content, str):
+            payload = content.strip()
+            if payload.startswith("```"):
+                lines = payload.splitlines()
+                if len(lines) < 3 or lines[0] != "```json" or lines[-1] != "```" or "```" in "\n".join(lines[1:-1]):
+                    raise ValueError("provider returned malformed JSON")
+                content = "\n".join(lines[1:-1]).strip()
         try:
-            answer = json.loads(result["content"])
+            answer = json.loads(content)
         except (TypeError, json.JSONDecodeError) as error:
             raise ValueError("provider returned malformed JSON") from error
         if not isinstance(answer, dict):
