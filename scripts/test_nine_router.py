@@ -1,8 +1,9 @@
 import unittest
 import json
+from urllib.error import HTTPError
 
 from app import DEMO_EVIDENCE, create_app
-from nine_router import NineRouterConfig, NineRouterProvider, http_transport
+from nine_router import NineRouterConfig, NineRouterProvider, NoRedirect, http_transport
 
 
 class NineRouterTest(unittest.TestCase):
@@ -48,6 +49,25 @@ class NineRouterTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             NineRouterProvider(NineRouterConfig(), transport).generate([])
         self.assertEqual(calls, [])
+
+    def test_http_transport_validates_injected_responses_and_limits(self):
+        class Response:
+            def __init__(self, body): self.body = body
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self, size): return self.body
+        opener = lambda request, timeout: Response(b'{"choices":[]}')
+        self.assertEqual(http_transport(timeout_seconds=1, opener=opener)("POST", "https://example.invalid", {}, {})["choices"], [])
+        for body in (b"not-json", b"[]", b"x" * 9):
+            with self.subTest(body=body), self.assertRaises(ValueError):
+                http_transport(timeout_seconds=1, max_response_bytes=8, opener=lambda request, timeout: Response(body))("POST", "https://example.invalid", {}, {})
+        for timeout in (True, float("nan"), float("inf"), 0):
+            with self.subTest(timeout=timeout), self.assertRaises(ValueError):
+                http_transport(timeout_seconds=timeout)
+        for error in (HTTPError("https://example.invalid", 500, "bad", None, None), TimeoutError()):
+            with self.subTest(error=type(error)), self.assertRaises(RuntimeError):
+                http_transport(timeout_seconds=1, opener=lambda request, timeout: (_ for _ in ()).throw(error))("POST", "https://example.invalid", {}, {})
+        self.assertIsNone(NoRedirect().redirect_request(None, None, 302, "x", {}, None))
 
 
 if __name__ == "__main__":

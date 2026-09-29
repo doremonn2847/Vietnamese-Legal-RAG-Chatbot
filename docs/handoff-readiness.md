@@ -67,10 +67,12 @@ Remaining independent engineering tasks:
   route/model/base URL; it has a finite timeout, 1 MB response limit, no retry,
   and no fallback. Confirm a free route before configuring it.
 - For local CPU measurements, install compatible `torch` and `transformers` in
-  the virtual environment, then pass existing local paths to
-  `load_transformers_encoder(model_path=..., tokenizer_path=..., local_files_only=True)`.
-  Use `data/config/e5_revisions.json` for the pinned small E5 revision; run one
-  bounded synthetic batch first. The BGE reranker remains optional and is not a
+  the virtual environment only after owner approval: `python -m pip install torch transformers`.
+  Place owner-supplied files under `data/models/e5-small/` and invoke
+  `load_transformers_encoder(model_path="data/models/e5-small", tokenizer_path="data/models/e5-small", local_files_only=True)`.
+  The loader uses the immutable small-E5 revisions in `data/config/e5_revisions.json`.
+  No CPU benchmark runner exists yet; its command and compatible dependency
+  versions remain unverified. The BGE reranker remains optional and is not a
   default dependency. Do not download or run weights until the owner supplies
   local artifacts.
 - Connect the existing hybrid retriever to the app behind reviewed-corpus
