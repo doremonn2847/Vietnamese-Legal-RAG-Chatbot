@@ -1,21 +1,24 @@
 """Opt-in local CPU benchmark; factories keep tests and default use offline."""
 import hashlib
 import json
+import math
 import platform
 import re
 import statistics
 import time
 from importlib.metadata import version
 from pathlib import Path
+from e5_artifacts import E5ArtifactSpec
 
 
-def run_benchmark(model_path, output_path, *, encoder_factory, repeats=5, documents=("Điều hư cấu.",), queries=("thử việc",), reranker_factory=None):
-    if repeats <= 0 or not documents or not queries:
+def run_benchmark(model_path, output_path, *, encoder_factory, repeats=5, documents=("Điều hư cấu.",), queries=("thử việc",), reranker_factory=None, spec=None):
+    spec = spec or E5ArtifactSpec.pinned_small(); spec.validate_execution()
+    if type(repeats) is not int or not 0 < repeats <= 20 or not documents or not queries or any(not isinstance(value, str) or not value.strip() for value in documents + queries):
         raise ValueError("benchmark requires positive repeats and nonempty inputs")
-    manifest = _manifest(Path(model_path))
+    manifest = _manifest(Path(model_path), spec)
     encoder = encoder_factory(Path(model_path))
-    encoder.encode_documents(documents)
-    encoder.encode_queries(queries)
+    _vectors(encoder.encode_documents(documents), len(documents), spec.dimension)
+    _vectors(encoder.encode_queries(queries), len(queries), spec.dimension)
     timings = {"documents": _measure(lambda: encoder.encode_documents(documents), repeats), "queries": _measure(lambda: encoder.encode_queries(queries), repeats)}
     if reranker_factory:
         reranker = reranker_factory(Path(model_path))
@@ -29,18 +32,19 @@ def run_benchmark(model_path, output_path, *, encoder_factory, repeats=5, docume
     return report
 
 
-def _manifest(path):
+def _manifest(path, spec):
     if not path.is_dir():
         raise ValueError("local model path is required")
     manifest_path = path / "artifact_manifest.json"
     if not manifest_path.is_file():
         raise ValueError("local artifact manifest is required")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if not all(isinstance(manifest.get(key), str) and re.fullmatch(r"[0-9a-f]{40}", manifest[key]) for key in ("model_revision", "tokenizer_revision")) or manifest.get("recipe") != {"document_prefix": "passage: ", "query_prefix": "query: "} or not isinstance(manifest.get("files"), dict):
+    expected = spec.manifest(); expected_sha = hashlib.sha256(json.dumps(expected, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    if manifest.get("spec") != expected or manifest.get("spec_sha256") != expected_sha or not isinstance(manifest.get("files"), dict) or not manifest["files"]:
         raise ValueError("invalid local artifact manifest")
     for name, expected in manifest["files"].items():
         file = (path / name).resolve()
-        if path.resolve() not in file.parents or not isinstance(expected, str) or _sha(file) != expected:
+        if path.resolve() not in file.parents or not file.is_file() or not isinstance(expected, str) or _sha(file) != expected:
             raise ValueError("local artifact hash mismatch")
     return manifest
 
@@ -50,6 +54,11 @@ def _measure(action, repeats):
     for _ in range(repeats):
         started = time.perf_counter_ns(); action(); samples.append((time.perf_counter_ns() - started) / 1_000_000)
     return {"p50": statistics.median(samples), "p95": sorted(samples)[max(0, round(.95 * len(samples)) - 1)], "wall": sum(samples)}
+
+
+def _vectors(vectors, count, dimension):
+    if not isinstance(vectors, list) or len(vectors) != count or any(not isinstance(row, list) or len(row) != dimension or any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in row) for row in vectors):
+        raise ValueError("encoder returned incompatible vectors")
 
 
 def _sha(path):
@@ -69,4 +78,5 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--repeats", type=int, default=5)
     args = parser.parse_args()
-    run_benchmark(args.model_path, args.output, encoder_factory=lambda path: load_transformers_encoder(model_path=path, tokenizer_path=path, local_files_only=True), repeats=args.repeats)
+    spec = E5ArtifactSpec.pinned_small()
+    run_benchmark(args.model_path, args.output, encoder_factory=lambda path: load_transformers_encoder(spec, model_path=path, tokenizer_path=path, local_files_only=True), repeats=args.repeats, spec=spec)
