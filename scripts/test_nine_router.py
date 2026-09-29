@@ -44,13 +44,13 @@ class NineRouterTest(unittest.TestCase):
         def answer_for(content):
             return NineRouterProvider(NineRouterConfig(base_url="https://example.invalid", route="chat", model="free-test", enabled=True), transport=lambda *args: {"choices": [{"message": {"content": content}}], "usage": {"total_tokens": 2}}).answer("q", "2024-01-01", selected)
 
-        for content in (json.dumps(expected), "\n```json\n" + json.dumps(expected) + "\n```\n"):
-            with self.subTest(accepted=content.startswith("\n```")):
+        for content in (json.dumps(expected), "\n```json\n" + json.dumps(expected) + "\n```\n", "Kết quả:\n```json\n" + json.dumps(expected) + "\n```\nGhi chú."):
+            with self.subTest(accepted=content.startswith("\n```") or content.startswith("Kết quả:")):
                 self.assertEqual(answer_for(content)["citations"], expected["citations"])
         for content in (
             "```\n" + json.dumps(expected) + "\n```",
-            "Kết quả:\n```json\n" + json.dumps(expected) + "\n```",
             "```json\n{}\n```\n```json\n{}\n```",
+            "```json\n{}",
             "```json\n\n```",
             "```json\n{not-json}\n```",
             "[]",
