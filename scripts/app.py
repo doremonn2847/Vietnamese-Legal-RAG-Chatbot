@@ -80,26 +80,30 @@ def _safe_sources(answer, evidence):
     return sources
 
 
-def _provisional_evidence(rows, question, requested_as_of_date):
+def _provisional_evidence(rows, question, requested_as_of_date, source_catalog=None):
     decision = decide_provisional_eligibility(question, rows, requested_as_of_date=requested_as_of_date)
     if not decision["allowed"]:
         return decision, {}
-    requested_numbers = set(re.findall(r"\b(?:điều|article)\s+(\d+[a-z]?)\b", question, re.IGNORECASE))
-    if requested_numbers:
+    references = list(re.finditer(r"\b(?:điều|article)\s+(\d+[a-z]?)\b|\btrích\s+(?:nguyên văn\s+)?(?:điều\s+)?(\d+[a-z]?)\b", question, re.IGNORECASE))
+    if references:
+        requested_numbers = {next(group for group in match.groups() if group).casefold() for match in references}
         if len(requested_numbers) != 1:
             return _article_request_denial("requested_article_ambiguous"), {}
         number = next(iter(requested_numbers)).casefold()
-        matching = [row for row in rows if _article_number(row) == number]
-        matching = list({(row.get("article_id"), row.get("document_version_id")): row for row in matching}.values())
-        if len(matching) > 1:
-            named = [row for row in matching if any(
-                isinstance(row.get(field), str) and row[field].strip().casefold() in question.casefold()
-                for field in ("so_ky_hieu", "title")
-            )]
-            matching = named if len(named) == 1 else []
-        if len(matching) != 1:
+        catalog_rows = source_catalog.values() if isinstance(source_catalog, dict) else source_catalog
+        catalog_rows = list(catalog_rows) if catalog_rows is not None else rows
+        possible_sources = [row for row in catalog_rows if _article_number(row) == number and _metadata(row, "pham_vi") == "Trung ương" and _metadata(row, "retrieval_index_candidate") is True]
+        qualifier = re.search(r"\b(?:trong|của)\s+(?:bộ luật|nghị định|thông tư)(?:\s+(?:lao\s+động|số\s+\d+[\w/-]*)){1,2}", question, re.IGNORECASE)
+        if qualifier:
+            requested_document = re.sub(r"^(?:trong|của)\s+", "", qualifier.group(0), flags=re.IGNORECASE).casefold()
+            possible_sources = [row for row in possible_sources if requested_document in _document_identity(row)]
+        possible_sources = list({(row.get("article_id"), row.get("document_version_id")): row for row in possible_sources}.values())
+        if len(possible_sources) != 1:
             return _article_request_denial("requested_article_not_unambiguous"), {}
-        rows = matching
+        source_id = (possible_sources[0].get("article_id"), possible_sources[0].get("document_version_id"))
+        rows = [row for row in rows if _article_number(row) == number and (row.get("article_id"), row.get("document_version_id")) == source_id]
+        if len(rows) != 1:
+            return _article_request_denial("requested_article_not_unambiguous"), {}
     selected = {}
     for row in rows:
         article_id, version = row["article_id"], row["document_version_id"]
@@ -115,6 +119,17 @@ def _article_number(row):
         label = row.get("canonical_text", row.get("text", ""))
     match = re.match(r"\s*(?:điều|article)\s+(\d+[a-z]?)\b", label, re.IGNORECASE)
     return match.group(1).casefold() if match else None
+
+
+def _metadata(row, key):
+    value = row.get(key)
+    if value is None and isinstance(row.get("document_metadata"), dict):
+        value = row["document_metadata"].get(key)
+    return value
+
+
+def _document_identity(row):
+    return " ".join(str(_metadata(row, key) or "") for key in ("title", "so_ky_hieu")).casefold()
 
 
 def _article_request_denial(reason):
@@ -194,7 +209,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 retrieval = retriever.search(request.question, legal_date)
                 selected_evidence = _configured_evidence(retrieval.get("evidence", []), legal_date) if isinstance(retrieval, dict) else {}
                 if not selected_evidence and provisional_snapshot_enabled and isinstance(retrieval, dict):
-                    policy_decision, selected_evidence = _provisional_evidence(retrieval.get("evidence", []), request.question, request.legal_date is not None)
+                    policy_decision, selected_evidence = _provisional_evidence(retrieval.get("evidence", []), request.question, request.legal_date is not None, getattr(retriever, "articles", None))
                     provisional = bool(selected_evidence)
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}

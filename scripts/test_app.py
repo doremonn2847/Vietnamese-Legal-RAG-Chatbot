@@ -243,6 +243,48 @@ class AppTest(unittest.TestCase):
         response = client.post("/api/answer", json={"question": "Trích Điều 24 trong Nghị định số 145/2020/NĐ-CP"})
         self.assertEqual(response.json()["answer"]["text"], right["canonical_text"])
 
+    def test_provisional_document_qualifier_must_match_even_with_one_top_hit(self):
+        evidence = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
+                    "document_version_id": "labor-v1", "canonical_text": "Điều 24. Wrong document.",
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True,
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        expected = {**evidence, "article_id": "a24-decree", "title": "Nghị định số 145/2020/NĐ-CP",
+                    "document_version_id": "decree-v1", "canonical_text": "Điều 24. Requested but not retrieved."}
+        class Retriever:
+            articles = {evidence["article_id"]: evidence, expected["article_id"]: expected}
+            def search(self, *args): return {"evidence": [evidence]}
+        response = TestClient(create_app(retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Trích Điều 24 trong Nghị định số 145/2020/NĐ-CP"})
+        self.assertNotEqual(response.json()["state"], "provisional")
+
+    def test_short_trich_number_is_bound_to_requested_article(self):
+        evidence = {"article_id": "a25", "label": "Điều 25", "document_version_id": "v1",
+                    "canonical_text": "Điều 25. Wrong number.", "pham_vi": "Trung ương",
+                    "retrieval_index_candidate": True, "current_validity": "unverified",
+                    "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                    "source_dataset_revision": "r1", "content_sha256": "hash"}
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence]}
+        response = TestClient(create_app(retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Trích 24"})
+        self.assertNotEqual(response.json()["state"], "provisional")
+
+    def test_full_catalog_detects_same_numbered_article_outside_top_k(self):
+        def row(article_id, version, title):
+            return {"article_id": article_id, "label": "Điều 24", "document_version_id": version,
+                    "canonical_text": "Điều 24.", "document_metadata": {"title": title, "pham_vi": "Trung ương", "retrieval_index_candidate": True},
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        hit = row("a24-law", "v1", "Bộ luật Lao động")
+        hidden = row("a24-decree", "v2", "Nghị định số 145/2020/NĐ-CP")
+        class Retriever:
+            articles = {hit["article_id"]: hit, hidden["article_id"]: hidden}
+            def search(self, *args): return {"evidence": [hit]}
+        response = TestClient(create_app(retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        self.assertNotEqual(response.json()["state"], "provisional")
+
     def test_applicability_question_is_abstained_without_provider_call(self):
         text = "Điều 24. Thử việc tối đa 60 ngày."
         evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": text,

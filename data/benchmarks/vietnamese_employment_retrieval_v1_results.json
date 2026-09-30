@@ -297,4 +297,4 @@
   },
   "claims": "retrieval-ranking engineering measurement only; labels are manually assigned section-heading relevance, not legal validity or advice",
   "retrieval_mode": "real pinned corpus and vectors, local exact dot-product dense search (no Qdrant request)"
-}\n
+}

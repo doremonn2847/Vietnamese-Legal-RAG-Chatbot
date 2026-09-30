@@ -25,7 +25,8 @@ query dev set. Its manually chosen relevant article IDs follow the curated
 section headings; they are not an independent legal review or an applicability
 label. `scripts/evaluate_core_reranker.py` compares the real local BM25 + exact
 vector + RRF baseline with the pinned BGE cross-encoder on at most 20 fused
-candidates and retains both rankings and scores. Run `scripts/fetch_reranker.py`
+candidates and retains the top article-ID rankings and Recall/MRR metrics (not
+raw per-candidate model scores). Run `scripts/fetch_reranker.py`
 once to fetch the immutable CPU model, then use the command in
 `docs/handoff-readiness.md`. Results are exploratory because this small set has
 no held-out cases; they do not establish legal correctness or justify activating
