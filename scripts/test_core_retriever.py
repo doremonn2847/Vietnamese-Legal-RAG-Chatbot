@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from core_retriever import CoreCorpusRetriever
-from core_app import validate_qdrant_collection
+from core_app import REVISION, _pinned_dataset_revision, validate_qdrant_collection
 from e5_artifacts import E5ArtifactSpec
 from qdrant_contract import stable_point_id
 
@@ -86,6 +86,13 @@ class CoreRetrieverTest(unittest.TestCase):
             with self.subTest(changed=changed):
                 with self.assertRaises(ValueError):
                     validate_qdrant_collection(changed, artifact)
+
+    def test_core_app_pins_the_snapshot_revision_from_manifest(self):
+        self.corpus_path.write_text(json.dumps({"dataset_revision": REVISION}), encoding="utf-8")
+        self.assertEqual(_pinned_dataset_revision(self.root), REVISION)
+        self.corpus_path.write_text(json.dumps({"dataset_revision": "other-revision"}), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "pinned dataset revision"):
+            _pinned_dataset_revision(self.root)
 
 
 if __name__ == "__main__":

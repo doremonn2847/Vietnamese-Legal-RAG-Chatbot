@@ -14,8 +14,8 @@ from qdrant_contract import QdrantLocalConfig, QdrantRestAdapter
 
 
 def create_core_app(*, provider=None, corpus_root=None, artifact_dir=None, model_dir="data/models/e5-small", env=None, dotenv_path=".env"):
-    revision = REVISION
-    corpus_root = Path(corpus_root or Path("data/curated") / revision / "core-employment-portfolio-v1")
+    corpus_root = Path(corpus_root or Path("data/curated") / REVISION / "core-employment-portfolio-v1")
+    revision = _pinned_dataset_revision(corpus_root)
     artifact_dir = Path(artifact_dir or "data/embeddings/core-employment-portfolio-v1-e5-small-provisional-v4")
     model_dir = Path(model_dir)
     encoder = load_transformers_encoder(model_path=model_dir, tokenizer_path=model_dir, local_files_only=True)
@@ -34,8 +34,17 @@ def create_core_app(*, provider=None, corpus_root=None, artifact_dir=None, model
         "prompt_version": "provisional-snapshot-v1",
         "index_version": retriever.index_version,
         "corpus": "pinned-central-employment-prototype",
+        "dataset_revision": revision,
     }
     return create_app(provider=provider, retriever=retriever, provenance=provenance, provisional_snapshot_enabled=True)
+
+
+def _pinned_dataset_revision(corpus_root):
+    manifest = json.loads((Path(corpus_root) / "corpus_manifest.json").read_text(encoding="utf-8"))
+    revision = manifest.get("dataset_revision")
+    if revision != REVISION:
+        raise ValueError("corpus manifest does not match the pinned dataset revision")
+    return revision
 
 
 def _qdrant_api_key(env, dotenv_path):
