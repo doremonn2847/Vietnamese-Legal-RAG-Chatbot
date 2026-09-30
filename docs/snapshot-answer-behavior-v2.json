@@ -1,6 +1,6 @@
 {
   "evaluation": "snapshot-answer-behavior-v2",
-  "generated_at_utc": "2026-09-30T15:30:07.260728+00:00",
+  "generated_at_utc": "2026-09-30T15:38:38.628187+00:00",
   "interpretation": "Frozen engineering expectations for a non-activated snapshot. These labels, evidence matches, and outputs do not determine legal validity or legal correctness.",
   "execution": {
     "mode": "real pinned corpus + local Qdrant retrieval; injected provider that fails if called",
@@ -71,9 +71,9 @@
   "expected_state_mismatches": [],
   "latency_ms": {
     "n": 16,
-    "median_end_to_end": 2141.5,
-    "max_end_to_end": 2289.43,
-    "median_search_endpoint": 2151.28
+    "median_end_to_end": 2124.68,
+    "max_end_to_end": 2738.34,
+    "median_search_endpoint": 2134.12
   },
   "cases": [
     {
@@ -88,11 +88,11 @@
       "state_matches_expected": true,
       "reason": "",
       "retrieval_timings_ms": {
-        "sparse": 2.7137,
-        "dense": 2186.6157,
-        "fusion_and_evidence": 0.5364
+        "sparse": 3.8487,
+        "dense": 2151.8139,
+        "fusion_and_evidence": 0.504
       },
-      "search_endpoint_ms": 4712.11,
+      "search_endpoint_ms": 4526.41,
       "retrieved_candidates": [
         {
           "article_id": "1b20253b-b817-5392-abf1-83385d1b82d7",
@@ -140,7 +140,7 @@
       "source_validity": [
         "unverified"
       ],
-      "end_to_end_ms": 2202.09
+      "end_to_end_ms": 2167.0
     },
     {
       "id": "extract_contract",
@@ -154,11 +154,11 @@
       "state_matches_expected": true,
       "reason": "",
       "retrieval_timings_ms": {
-        "sparse": 3.4255,
-        "dense": 2191.2619,
-        "fusion_and_evidence": 3.3084
+        "sparse": 3.908,
+        "dense": 2721.7956,
+        "fusion_and_evidence": 0.6939
       },
-      "search_endpoint_ms": 2224.38,
+      "search_endpoint_ms": 2229.56,
       "retrieved_candidates": [
         {
           "article_id": "98d8e71d-815e-55cc-b303-0919d1ed0019",
@@ -206,7 +206,7 @@
       "source_validity": [
         "unverified"
       ],
-      "end_to_end_ms": 2209.19
+      "end_to_end_ms": 2738.34
     },
     {
       "id": "extract_contract_low_recall",
@@ -220,11 +220,11 @@
       "state_matches_expected": true,
       "reason": "",
       "retrieval_timings_ms": {
-        "sparse": 3.0851,
-        "dense": 2170.252,
-        "fusion_and_evidence": 1.2236
+        "sparse": 3.0177,
+        "dense": 2180.2101,
+        "fusion_and_evidence": 0.7573
       },
-      "search_endpoint_ms": 2356.66,
+      "search_endpoint_ms": 3213.45,
       "retrieved_candidates": [
         {
           "article_id": "98d8e71d-815e-55cc-b303-0919d1ed0019",
@@ -272,7 +272,7 @@
       "source_validity": [
         "unverified"
       ],
-      "end_to_end_ms": 2187.21
+      "end_to_end_ms": 2193.01
     },
     {
       "id": "extract_working_time",
@@ -286,11 +286,11 @@
       "state_matches_expected": true,
       "reason": "",
       "retrieval_timings_ms": {
-        "sparse": 1.9889,
-        "dense": 2146.9614,
-        "fusion_and_evidence": 0.9227
+        "sparse": 4.0695,
+        "dense": 2186.5484,
+        "fusion_and_evidence": 0.636
       },
-      "search_endpoint_ms": 2208.9,
+      "search_endpoint_ms": 2202.71,
       "retrieved_candidates": [
         {
           "article_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e",
@@ -338,7 +338,7 @@
       "source_validity": [
         "unverified"
       ],
-      "end_to_end_ms": 2158.91
+      "end_to_end_ms": 2200.44
     },
     {
       "id": "extract_leave",
@@ -352,11 +352,11 @@
       "state_matches_expected": true,
       "reason": "",
       "retrieval_timings_ms": {
-        "sparse": 2.5476,
-        "dense": 2143.313,
-        "fusion_and_evidence": 0.4821
+        "sparse": 2.6223,
+        "dense": 2123.7798,
+        "fusion_and_evidence": 0.4758
       },
-      "search_endpoint_ms": 2165.7,
+      "search_endpoint_ms": 2170.64,
       "retrieved_candidates": [
         {
           "article_id": "267dc82e-753a-5183-8bd6-81603d3ab746",
@@ -404,7 +404,7 @@
       "source_validity": [
         "unverified"
       ],
-      "end_to_end_ms": 2154.58
+      "end_to_end_ms": 2134.15
     },
     {
       "id": "natural_probation",
@@ -416,11 +416,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 8.326,
-        "dense": 2143.4943,
-        "fusion_and_evidence": 0.9939
+        "sparse": 1.749,
+        "dense": 2104.4698,
+        "fusion_and_evidence": 0.5882
       },
-      "search_endpoint_ms": 2169.8,
+      "search_endpoint_ms": 2138.56,
       "retrieved_candidates": [
         {
           "article_id": "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
@@ -455,7 +455,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2161.86
+      "end_to_end_ms": 2114.05
     },
     {
       "id": "natural_contract",
@@ -467,11 +467,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 3.6448,
-        "dense": 2277.0589,
-        "fusion_and_evidence": 0.6557
+        "sparse": 3.7127,
+        "dense": 2113.5409,
+        "fusion_and_evidence": 0.2865
       },
-      "search_endpoint_ms": 2149.42,
+      "search_endpoint_ms": 2185.78,
       "retrieved_candidates": [
         {
           "article_id": "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
@@ -506,7 +506,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2289.43
+      "end_to_end_ms": 2124.65
     },
     {
       "id": "natural_working_time",
@@ -518,11 +518,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 3.609,
-        "dense": 2135.6864,
-        "fusion_and_evidence": 0.5692
+        "sparse": 1.9007,
+        "dense": 2226.9204,
+        "fusion_and_evidence": 0.266
       },
-      "search_endpoint_ms": 2155.75,
+      "search_endpoint_ms": 2129.69,
       "retrieved_candidates": [
         {
           "article_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e",
@@ -557,7 +557,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2146.55
+      "end_to_end_ms": 2235.58
     },
     {
       "id": "natural_leave",
@@ -569,11 +569,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 2.6817,
-        "dense": 2113.8048,
-        "fusion_and_evidence": 0.4315
+        "sparse": 2.8527,
+        "dense": 2103.9989,
+        "fusion_and_evidence": 0.535
       },
-      "search_endpoint_ms": 2146.68,
+      "search_endpoint_ms": 2101.79,
       "retrieved_candidates": [
         {
           "article_id": "267dc82e-753a-5183-8bd6-81603d3ab746",
@@ -608,7 +608,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2124.76
+      "end_to_end_ms": 2113.98
     },
     {
       "id": "date_specific",
@@ -620,11 +620,11 @@
       "state_matches_expected": true,
       "reason": "Bản dữ liệu chưa đủ thông tin để xác nhận quy định áp dụng vào ngày yêu cầu.",
       "retrieval_timings_ms": {
-        "sparse": 2.873,
-        "dense": 2102.2467,
-        "fusion_and_evidence": 1.1568
+        "sparse": 1.7173,
+        "dense": 2095.7628,
+        "fusion_and_evidence": 0.4678
       },
-      "search_endpoint_ms": 2135.51,
+      "search_endpoint_ms": 2139.73,
       "retrieved_candidates": [
         {
           "article_id": "375749b3-e300-57e9-a4fb-abcafabd9616",
@@ -659,7 +659,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2115.13
+      "end_to_end_ms": 2104.85
     },
     {
       "id": "current_validity",
@@ -671,11 +671,11 @@
       "state_matches_expected": true,
       "reason": "Tình trạng hiệu lực trong các bản ghi xung đột; chưa thể xác nhận câu trả lời theo thời điểm yêu cầu.",
       "retrieval_timings_ms": {
-        "sparse": 2.9512,
-        "dense": 2088.0784,
-        "fusion_and_evidence": 0.3675
+        "sparse": 1.954,
+        "dense": 2087.3104,
+        "fusion_and_evidence": 0.4444
       },
-      "search_endpoint_ms": 2128.27,
+      "search_endpoint_ms": 2109.57,
       "retrieved_candidates": [
         {
           "article_id": "98d8e71d-815e-55cc-b303-0919d1ed0019",
@@ -710,7 +710,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2098.91
+      "end_to_end_ms": 2098.73
     },
     {
       "id": "amendments",
@@ -722,11 +722,11 @@
       "state_matches_expected": true,
       "reason": "Các quan hệ sửa đổi/hợp nhất chưa được xác minh; bản trích chỉ thể hiện nội dung của nguồn đã ghim.",
       "retrieval_timings_ms": {
-        "sparse": 2.2491,
-        "dense": 2106.6684,
-        "fusion_and_evidence": 0.6612
+        "sparse": 2.3806,
+        "dense": 2121.1527,
+        "fusion_and_evidence": 0.6475
       },
-      "search_endpoint_ms": 2133.13,
+      "search_endpoint_ms": 2111.01,
       "retrieved_candidates": [
         {
           "article_id": "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
@@ -761,7 +761,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2118.83
+      "end_to_end_ms": 2130.81
     },
     {
       "id": "wrong_article",
@@ -773,11 +773,11 @@
       "state_matches_expected": true,
       "reason": "Không thể xác định duy nhất đúng điều khoản và văn bản được yêu cầu.",
       "retrieval_timings_ms": {
-        "sparse": 4.6704,
-        "dense": 2120.5724,
-        "fusion_and_evidence": 1.1752
+        "sparse": 2.2331,
+        "dense": 2082.651,
+        "fusion_and_evidence": 0.3982
       },
-      "search_endpoint_ms": 2140.01,
+      "search_endpoint_ms": 2085.28,
       "retrieved_candidates": [
         {
           "article_id": "79e65373-1b20-564b-8ba9-5c40f5eb16df",
@@ -812,7 +812,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2136.45
+      "end_to_end_ms": 2091.66
     },
     {
       "id": "ambiguous_article",
@@ -824,11 +824,11 @@
       "state_matches_expected": true,
       "reason": "Không thể xác định duy nhất đúng điều khoản và văn bản được yêu cầu.",
       "retrieval_timings_ms": {
-        "sparse": 4.9498,
-        "dense": 2104.7432,
-        "fusion_and_evidence": 1.8655
+        "sparse": 1.1724,
+        "dense": 2078.142,
+        "fusion_and_evidence": 0.425
       },
-      "search_endpoint_ms": 2128.33,
+      "search_endpoint_ms": 2082.87,
       "retrieved_candidates": [
         {
           "article_id": "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
@@ -863,7 +863,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2122.73
+      "end_to_end_ms": 2088.64
     },
     {
       "id": "out_of_scope",
@@ -875,11 +875,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 5.792,
-        "dense": 2107.6767,
-        "fusion_and_evidence": 0.5962
+        "sparse": 1.5261,
+        "dense": 2113.6641,
+        "fusion_and_evidence": 0.4213
       },
-      "search_endpoint_ms": 2153.14,
+      "search_endpoint_ms": 2095.63,
       "retrieved_candidates": [
         {
           "article_id": "a71d875b-87a6-5bde-ab83-042475c5b6ea",
@@ -914,7 +914,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2119.79
+      "end_to_end_ms": 2124.7
     },
     {
       "id": "adversarial",
@@ -926,11 +926,11 @@
       "state_matches_expected": true,
       "reason": "Chỉ có thể trích nội dung nguồn khi câu hỏi yêu cầu rõ văn bản; câu hỏi áp dụng pháp luật cần được xác minh riêng.",
       "retrieval_timings_ms": {
-        "sparse": 1.8217,
-        "dense": 2077.0263,
-        "fusion_and_evidence": 0.3564
+        "sparse": 2.6907,
+        "dense": 2088.7957,
+        "fusion_and_evidence": 0.8041
       },
-      "search_endpoint_ms": 2114.31,
+      "search_endpoint_ms": 2110.23,
       "retrieved_candidates": [
         {
           "article_id": "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
@@ -965,7 +965,7 @@
       "citation_matches_requested_article": null,
       "citation_matches_reference_evidence": null,
       "source_validity": [],
-      "end_to_end_ms": 2084.74
+      "end_to_end_ms": 2097.76
     }
   ],
   "mocked_failure_checks": {
