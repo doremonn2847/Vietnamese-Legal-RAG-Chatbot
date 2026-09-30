@@ -181,7 +181,7 @@ class AppTest(unittest.TestCase):
         text = "Điều 24. Thử việc tối đa 60 ngày. Thời hạn này áp dụng theo nội dung của bản snapshot."
         article = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
                    "document_version_id": "v1", "canonical_text": text, "pham_vi": "Trung ương",
-                   "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                   "retrieval_index_candidate": True, "topic_candidates": ["probation", "contracts"],
                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
                    "reported_status_conflict": False, "source_dataset_revision": "pinned-r1",
                    "content_sha256": "catalog-hash"}
@@ -242,7 +242,7 @@ class AppTest(unittest.TestCase):
     def test_experimental_snapshot_excerpt_retains_temporal_personal_and_scope_gates(self):
         article = {"article_id": "a24", "label": "Điều 24", "document_version_id": "v1",
                    "canonical_text": "Điều 24. Thử việc tối đa 60 ngày.", "pham_vi": "Trung ương",
-                   "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                   "retrieval_index_candidate": True, "topic_candidates": ["probation", "contracts"],
                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
                    "reported_status_conflict": False, "source_dataset_revision": "pinned-r1", "content_sha256": "hash"}
         class Retriever:
@@ -255,10 +255,13 @@ class AppTest(unittest.TestCase):
         for question in ("Thời gian thử việc tối đa bao nhiêu ngày vào năm 2024?",
                          "Hiện nay thử việc còn hiệu lực không?", "Điều khoản thử việc có sửa đổi mới nhất không?",
                          "Tôi có được thử việc 60 ngày không?", "Quy định nghỉ phép thế nào?",
-                         "Quy định thử việc áp dụng cho ai?", "Nếu doanh nghiệp kéo dài thời gian thử việc thì sao?"):
+                         "Quy định thử việc áp dụng cho ai?", "Nếu doanh nghiệp kéo dài thời gian thử việc thì sao?",
+                         "Quy định thuế thu nhập cá nhân trong hợp đồng lao động thế nào?",
+                         "Bảo hiểm xã hội trong hợp đồng lao động thế nào?",
+                         "Tranh chấp hợp đồng lao động giải quyết thế nào?"):
             with self.subTest(question=question):
                 response = client.post("/api/answer", json={"question": question}).json()
-                self.assertNotEqual(response["answer"]["state"], "provisional")
+                self.assertEqual(response["answer"]["state"], "abstain_insufficient_evidence")
 
         conflicted = {**article, "reported_status_conflict": True}
         class ConflictedRetriever:

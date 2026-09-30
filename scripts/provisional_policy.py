@@ -20,6 +20,7 @@ _TOPICS = {
 _PERSONAL_OR_APPLICABILITY = re.compile(r"\b(tôi|của tôi|trường hợp của (?:tôi|em)|nếu|em có|doanh nghiệp tôi|công ty tôi|được phép|có được|được không|nên làm gì|tôi phải)\b", re.IGNORECASE)
 _APPLICABILITY_QUERY = re.compile(r"\b(áp dụng cho ai|đối tượng áp dụng|đối tượng nào|ai được áp dụng|trường hợp nào áp dụng|có áp dụng cho)\b", re.IGNORECASE)
 _ARTICLE_REFERENCE = re.compile(r"\b(?:điều|article)\s+\d+[a-z]?\b|\btrích\s+(?:nguyên văn\s+)?(?:điều\s+)?\d+\b", re.IGNORECASE)
+_OUT_OF_SCOPE_QUERY = re.compile(r"\b(thuế|tax(?:ation)?|bảo hiểm xã hội|bảo hiểm y tế|insurance|tranh chấp|disputes?|hình sự|criminal|immigration|visa|đất đai)\b", re.IGNORECASE)
 _MESSAGES = {
     "conflicting_status": "Tình trạng hiệu lực trong các bản ghi xung đột; chưa thể xác nhận câu trả lời theo thời điểm yêu cầu.",
     "validity_unverified": "Bản dữ liệu chưa xác minh hiệu lực hiện tại hoặc tình trạng áp dụng.",
@@ -71,6 +72,8 @@ def decide_snapshot_excerpt_eligibility(question, evidence, *, requested_as_of_d
         return _deny("conflicting_status" if conflict else "requested_date_unverified")
     if _AMENDMENT_QUERY.search(query):
         return _deny("amendments_unverified")
+    if _OUT_OF_SCOPE_QUERY.search(query):
+        return _deny("out_of_scope")
     if _ARTICLE_REFERENCE.search(query):
         return _deny("source_text_request_required")
     if _PERSONAL_OR_APPLICABILITY.search(query) or _APPLICABILITY_QUERY.search(query):
