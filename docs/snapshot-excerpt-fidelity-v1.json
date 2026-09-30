@@ -2,19 +2,19 @@
   "evaluation": "snapshot-excerpt-fidelity-v1",
   "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
   "implementation_sha256": {
-    "scripts/app.py": "a6e86a4a2648ee3d40a07a1e9336fe0142bd90b82f9399eefe9c203ebae6dcb6",
+    "scripts/app.py": "a19e50d0c63c4cbc93e962c5276ed3d78132eaaa0af32e50b9a9fd0e237f968e",
     "scripts/core_app.py": "f30c17f7e850f0ce2be8395fbfd9377d0cfb5907815f178ffb0c096a4baddc22",
     "scripts/provisional_policy.py": "29494aa7be492499d0f198301b357a7a9bb763d9c544a68e5b43b4bfec3a6530",
     "scripts/answer_contract.py": "6c248ecf77cafbf540a37064b19416a8f05078d7012d192354a41bf29002513e",
     "scripts/core_retriever.py": "9c941db6d6af5d7ff5b9153a2948d7ed3f34fe77af020bd5f18277df61d42065",
-    "scripts/eval_snapshot_excerpt.py": "f26c1cc88da2ab962742785fb1f7626d6bf241c46eef1e291db614744ad126f7"
+    "scripts/eval_snapshot_excerpt.py": "3600ed5d4c53e4d3ec9c622d253fb14cce67a91bf968d1bc75f0d4601f31d0fa"
   },
   "interpretation": "Uses pinned corpus and local Qdrant retrieval plus an injected deterministic provider that selects only frozen reference evidence; checks target retrieval and exact citation fidelity, not model quality, legal correctness, or legal validity.",
   "candidate_depth": {
     "default_evidence_cap": 5,
-    "experimental_evidence_cap": 12,
+    "experimental_retrieval_candidate_cap": 12,
     "per_source_prompt_char_cap": 2400,
-    "max_sources_to_provider": 12,
+    "max_sources_to_provider": 3,
     "prior_frozen_miss_trace": {
       "case_id": "contract_contents",
       "target_article_id": "3f2b3e90-453c-527c-ade0-11e72029d715",
@@ -34,20 +34,20 @@
       "document_version_id": "8a5e1a1b-899c-5bab-8287-6b9754fcea5a",
       "expected_evidence_id": "3f2b3e90-453c-527c-ade0-11e72029d715:8a5e1a1b-899c-5bab-8287-6b9754fcea5a",
       "status_code": 200,
-      "state": "provisional",
+      "state": "abstain_insufficient_evidence",
       "citation_valid": true,
-      "retrieval_contains_reference": true,
-      "evidence_matches_reference": true,
-      "safe_abstention": false,
-      "provider_evidence_count": 5,
-      "end_to_end_ms": 4297.65,
+      "retrieval_contains_reference": false,
+      "evidence_matches_reference": false,
+      "safe_abstention": true,
+      "provider_evidence_count": 3,
+      "end_to_end_ms": 4250.26,
       "retrieval_timings_ms": {
-        "sparse": 4.6606,
-        "dense": 4249.214,
-        "fusion_and_evidence": 0.7135
+        "sparse": 5.0899,
+        "dense": 4204.5952,
+        "fusion_and_evidence": 0.6575
       },
-      "quote_sha256": "3f2c9c0e4f204f2a7717e161422b9c8c1f3bdf20e3e8d55c596a0d2e110da5c5",
-      "quote_length_chars": 299,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "quote_length_chars": 0,
       "provider": "injected deterministic source-span selector"
     },
     {
@@ -64,11 +64,11 @@
       "evidence_matches_reference": true,
       "safe_abstention": false,
       "provider_evidence_count": 3,
-      "end_to_end_ms": 2173.54,
+      "end_to_end_ms": 2133.53,
       "retrieval_timings_ms": {
-        "sparse": 2.156,
-        "dense": 2158.5455,
-        "fusion_and_evidence": 0.829
+        "sparse": 5.0293,
+        "dense": 2115.0644,
+        "fusion_and_evidence": 0.6718
       },
       "quote_sha256": "1ce53e753c2cc94bbfa35e8a2fe021216bfef4cb12b2b2330ad1efabafe9ee94",
       "quote_length_chars": 297,
@@ -88,11 +88,11 @@
       "evidence_matches_reference": true,
       "safe_abstention": false,
       "provider_evidence_count": 3,
-      "end_to_end_ms": 2172.12,
+      "end_to_end_ms": 2156.66,
       "retrieval_timings_ms": {
-        "sparse": 4.3878,
-        "dense": 2153.2691,
-        "fusion_and_evidence": 0.4822
+        "sparse": 3.1857,
+        "dense": 2136.7698,
+        "fusion_and_evidence": 1.6285
       },
       "quote_sha256": "00618224fe2e015f8b172d3ef63b1dc1fa66c62f433f3a998c6a8507ed85a54d",
       "quote_length_chars": 298,
@@ -101,16 +101,16 @@
   ],
   "coverage": {
     "cases": 3,
-    "passed": 3,
-    "safe_abstentions": 0,
-    "reference_retrieval_hits": 3,
+    "passed": 2,
+    "safe_abstentions": 1,
+    "reference_retrieval_hits": 2,
     "development": 2,
     "held_out": 1
   },
   "latency_ms": {
     "n": 3,
-    "median_end_to_end": 2173.54,
-    "max_end_to_end": 4297.65
+    "median_end_to_end": 2156.66,
+    "max_end_to_end": 4250.26
   },
   "manual_relevance_review": "Article labels and frozen questions were inspected for topic match; excerpt selection is deterministic and cannot establish broader semantic relevance."
 }

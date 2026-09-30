@@ -316,7 +316,8 @@ class AppTest(unittest.TestCase):
         self.assertEqual(retriever.snapshot_calls, 1)
         self.assertEqual(body["answer"]["state"], "provisional")
         self.assertTrue(body["validation"]["valid"])
-        self.assertEqual(provider.seen, 12)
+        self.assertEqual(provider.seen, 3)
+        self.assertEqual(body["retrieval"]["evidence_count"], 3)
         self.assertLessEqual(provider.max_text, 2400)
 
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):

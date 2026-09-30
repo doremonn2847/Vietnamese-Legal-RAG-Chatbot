@@ -276,6 +276,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                         provisional = experimental_excerpt
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}
+            selected_evidence = dict(list(selected_evidence.items())[:3])
             timings = retrieval.get("timings_ms", {}) if isinstance(retrieval, dict) else {}
             retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if key in {"sparse", "dense", "fusion_and_evidence"} and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
             if not selected_evidence:
