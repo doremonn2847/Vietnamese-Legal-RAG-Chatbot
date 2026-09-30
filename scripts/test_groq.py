@@ -61,6 +61,23 @@ class GroqTest(unittest.TestCase):
         self.assertIsNone(request["legal_date"])
         self.assertTrue(request["selected_evidence"][0]["provisional_snapshot_only"])
 
+    def test_experimental_snapshot_prompt_uses_bounded_source_text(self):
+        quote = "Điều 24. Trích nguyên văn."
+        answer = {"state": "provisional", "legal_date": None, "text": quote,
+                  "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": ["a1:v1"]}],
+                  "citations": [{"evidence_id": "a1:v1", "quote": quote, "span_start": 0,
+                                 "span_end": len(quote), "document_version_id": "v1"}],
+                  "reason": "", "unanswered": ""}
+        calls = []
+        provider = GroqProvider(self.config, lambda *args: calls.append(args) or {
+            "choices": [{"message": {"content": json.dumps(answer)}}], "usage": {}}, "key")
+        full_text = "x" * 7000
+        provider.answer("q", None, {"a1:v1": {"canonical_text": full_text, "snapshot_excerpt_text": quote,
+                                               "document_version_id": "v1", "provisional_snapshot_eligible": True}})
+        request = json.loads(calls[0][2]["messages"][1]["content"])
+        self.assertEqual(request["selected_evidence"][0]["canonical_text"], quote)
+        self.assertNotIn(full_text, str(calls[0][2]))
+
     def test_http_transport_is_bounded_and_does_not_retry(self):
         class Response:
             def __init__(self, body): self.body = body

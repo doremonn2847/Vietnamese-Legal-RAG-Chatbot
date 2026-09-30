@@ -13,7 +13,7 @@ from import_core_corpus_qdrant import versioned_collection_name
 from qdrant_contract import QdrantLocalConfig, QdrantRestAdapter
 
 
-def create_core_app(*, provider=None, corpus_root=None, artifact_dir=None, model_dir="data/models/e5-small", env=None, dotenv_path=".env"):
+def create_core_app(*, provider=None, corpus_root=None, artifact_dir=None, model_dir="data/models/e5-small", env=None, dotenv_path=".env", experimental_snapshot_excerpt_enabled=False):
     corpus_root = Path(corpus_root or Path("data/curated") / REVISION / "core-employment-portfolio-v1")
     revision = _pinned_dataset_revision(corpus_root)
     artifact_dir = Path(artifact_dir or "data/embeddings/core-employment-portfolio-v1-e5-small-provisional-v4")
@@ -31,12 +31,13 @@ def create_core_app(*, provider=None, corpus_root=None, artifact_dir=None, model
         provider = GroqProvider(config, http_transport(), key)
     provenance = {
         "model_version": artifact["model"]["model_id"] + "@" + artifact["model"]["revision"],
-        "prompt_version": "provisional-snapshot-v1",
+        "prompt_version": "experimental-snapshot-excerpt-v1" if experimental_snapshot_excerpt_enabled else "provisional-snapshot-v1",
         "index_version": retriever.index_version,
         "corpus": "pinned-central-employment-prototype",
         "dataset_revision": revision,
     }
-    return create_app(provider=provider, retriever=retriever, provenance=provenance, provisional_snapshot_enabled=True)
+    return create_app(provider=provider, retriever=retriever, provenance=provenance, provisional_snapshot_enabled=True,
+                      experimental_snapshot_excerpt_enabled=experimental_snapshot_excerpt_enabled)
 
 
 def _pinned_dataset_revision(corpus_root):

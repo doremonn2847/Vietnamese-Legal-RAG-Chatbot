@@ -11,7 +11,7 @@ from answer_contract import validate_citations
 from bm25 import BM25Index
 from retrieval import rrf_fuse, rerank_candidates, select_evidence
 from safe_log import event
-from provisional_policy import PROVISIONAL_CAVEAT, decide_provisional_eligibility
+from provisional_policy import PROVISIONAL_CAVEAT, decide_provisional_eligibility, decide_snapshot_excerpt_eligibility
 
 
 DEMO_BANNER = "DỮ LIỆU HƯ CẤU CHỈ DÙNG ĐỂ KIỂM THỬ — KHÔNG PHẢI VĂN BẢN PHÁP LUẬT"
@@ -147,6 +147,52 @@ def _article_request_denial(reason):
             "caveat": PROVISIONAL_CAVEAT}
 
 
+def _snapshot_excerpt_evidence(retrieved_rows, source_catalog, question, requested_as_of_date):
+    if not isinstance(source_catalog, dict) or not isinstance(retrieved_rows, list):
+        return {"allowed": False, "reason": "no_evidence", "message": "Không tìm thấy đoạn văn bản phù hợp trong phạm vi dữ liệu này.", "caveat": PROVISIONAL_CAVEAT}, {}
+    by_version = {}
+    for row in source_catalog.values():
+        if not isinstance(row, dict):
+            continue
+        metadata = row.get("document_metadata") if isinstance(row.get("document_metadata"), dict) else {}
+        merged = {**metadata, **row}
+        key = (merged.get("article_id"), merged.get("document_version_id"))
+        if all(isinstance(value, str) and value for value in key):
+            by_version.setdefault(key, []).append(merged)
+    selected, first_denial = {}, None
+    for hit in retrieved_rows:
+        if not isinstance(hit, dict):
+            continue
+        key = (hit.get("article_id"), hit.get("document_version_id"))
+        catalog_matches = by_version.get(key, [])
+        if len(catalog_matches) != 1:
+            continue
+        row = catalog_matches[0]
+        text = row.get("canonical_text", row.get("text"))
+        if not isinstance(text, str) or not text.strip():
+            continue
+        excerpt_text = text[:6000]
+        if len(text) > len(excerpt_text):
+            boundary = excerpt_text.rfind(" ")
+            if boundary > 0:
+                excerpt_text = excerpt_text[:boundary]
+        evidence_id = f"{key[0]}:{key[1]}"
+        candidate = {**row, "canonical_text": text, "document_version_id": key[1],
+                     "provisional_snapshot_eligible": True, "snapshot_excerpt_experimental": True,
+                     "snapshot_excerpt_text": excerpt_text}
+        decision = decide_snapshot_excerpt_eligibility(question, [candidate], requested_as_of_date=requested_as_of_date)
+        if decision["allowed"]:
+            selected[evidence_id] = candidate
+        elif not selected:
+            first_denial = first_denial or decision
+        if len(selected) == 3:
+            break
+    if not selected:
+        return (first_denial or decide_snapshot_excerpt_eligibility(
+            question, [], requested_as_of_date=requested_as_of_date)), {}
+    return decide_snapshot_excerpt_eligibility(question, list(selected.values()), requested_as_of_date=requested_as_of_date), selected
+
+
 class MockProvider:
     def answer(self, question, legal_date, selected_evidence):
         if not question.strip():
@@ -172,7 +218,7 @@ class DisabledProvider:
         return _empty("unavailable", "Mô hình trả lời chưa được bật.")
 
 
-def create_app(provider=None, event_sink=None, retriever=None, provenance=None, provisional_snapshot_enabled=False):
+def create_app(provider=None, event_sink=None, retriever=None, provenance=None, provisional_snapshot_enabled=False, experimental_snapshot_excerpt_enabled=False):
     try:
         from fastapi import FastAPI, HTTPException
         from fastapi.responses import HTMLResponse, JSONResponse
@@ -184,7 +230,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
         question: str
         legal_date: str | None = None
 
-    provider = provider or (DisabledProvider() if provisional_snapshot_enabled else MockProvider())
+    provider = provider or (DisabledProvider() if provisional_snapshot_enabled or experimental_snapshot_excerpt_enabled else MockProvider())
     provenance = provenance or {"model_version": type(provider).__name__, "prompt_version": "synthetic-v1" if retriever is None else "configured-v1", "index_version": "fictional-only" if retriever is None else "injected"}
     event_sink = event_sink if event_sink is not None else deque(maxlen=100)
     app = FastAPI(title="Vietnamese Legal RAG synthetic demo")
@@ -209,6 +255,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
         started = time.perf_counter_ns()
         legal_date = resolve_legal_date(request.legal_date)
         provisional = False
+        experimental_excerpt = False
         policy_decision = None
         if retriever is None:
             retrieval = synthetic_retrieve(request.question)
@@ -217,9 +264,15 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
             try:
                 retrieval = retriever.search(request.question, legal_date)
                 selected_evidence = _configured_evidence(retrieval.get("evidence", []), legal_date) if isinstance(retrieval, dict) else {}
-                if not selected_evidence and provisional_snapshot_enabled and isinstance(retrieval, dict):
+                if not selected_evidence and (provisional_snapshot_enabled or experimental_snapshot_excerpt_enabled) and isinstance(retrieval, dict):
                     policy_decision, selected_evidence = _provisional_evidence(retrieval.get("evidence", []), request.question, request.legal_date is not None, getattr(retriever, "articles", None))
                     provisional = bool(selected_evidence)
+                    if not provisional and experimental_snapshot_excerpt_enabled:
+                        policy_decision, selected_evidence = _snapshot_excerpt_evidence(
+                            retrieval.get("evidence", []), getattr(retriever, "articles", None), request.question,
+                            request.legal_date is not None)
+                        experimental_excerpt = bool(selected_evidence)
+                        provisional = experimental_excerpt
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}
             timings = retrieval.get("timings_ms", {}) if isinstance(retrieval, dict) else {}
@@ -234,7 +287,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="empty", reason="unavailable", provenance=provenance))
                 return {"demo": False, "state": "unavailable", "answer": _empty("unavailable", "Không có bằng chứng đã xét duyệt phù hợp."), "retrieval": retrieval}
         event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance))
-        if provisional:
+        if provisional and not experimental_excerpt:
             evidence_id, source = next(iter(selected_evidence.items()))
             quote = source["canonical_text"]
             answer = {"state": "provisional", "legal_date": None, "text": quote,
@@ -250,7 +303,11 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                     "validation": validation, "retrieval": retrieval}
         provider_started = time.perf_counter_ns()
         try:
-            answer = provider.answer(request.question, None if provisional else legal_date, selected_evidence)
+            provider_evidence = selected_evidence
+            if experimental_excerpt:
+                provider_evidence = {key: {**source, "canonical_text": source["snapshot_excerpt_text"]}
+                                     for key, source in selected_evidence.items()}
+            answer = provider.answer(request.question, None if provisional else legal_date, provider_evidence)
         except TimeoutError:
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="timeout", reason="provider_timeout", provenance=provenance))
             return unavailable(503, "Nhà cung cấp quá thời gian chờ.")
@@ -266,6 +323,13 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
         usage = answer.pop("_usage", None)
         event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, usage=usage, provenance=provenance))
         validation_started = time.perf_counter_ns()
+        if experimental_excerpt and (answer.get("state") not in {
+                "provisional", "abstain_conflict", "abstain_insufficient_evidence", "clarify", "unavailable"}
+                or answer.get("state") == "provisional" and (
+                    not isinstance(answer.get("citations"), list) or not 1 <= len(answer["citations"]) <= 3
+                    or any(not isinstance(citation, dict) or not isinstance(citation.get("quote"), str)
+                           or len(citation["quote"]) > 500 for citation in answer["citations"]))):
+            return unavailable(502, "Đoạn trích thử nghiệm vượt quá giới hạn hoặc không đúng trạng thái.")
         validation = validate_citations(answer, selected_evidence, requested_legal_date=None if provisional else legal_date)
         if not validation["valid"]:
             event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance=provenance))
@@ -283,7 +347,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
     def corpus():
         demo = retriever is None
         revision = provenance.get("dataset_revision")
-        return {"demo": demo, "banner": DEMO_BANNER if demo else None, "corpus": "fictional-only" if demo else provenance.get("corpus", "configured"), "snapshot_revision": revision, "snapshot_verified": demo or isinstance(revision, str) and bool(re.fullmatch(r"[0-9a-f]{40}", revision)), "legal_corpus_activated": False, "answer_mode": "provisional_snapshot" if provisional_snapshot_enabled else "reviewed_only", "current_validity": "unverified"}
+        return {"demo": demo, "banner": DEMO_BANNER if demo else None, "corpus": "fictional-only" if demo else provenance.get("corpus", "configured"), "snapshot_revision": revision, "snapshot_verified": demo or isinstance(revision, str) and bool(re.fullmatch(r"[0-9a-f]{40}", revision)), "legal_corpus_activated": False, "answer_mode": "experimental_snapshot_excerpt" if experimental_snapshot_excerpt_enabled else "provisional_snapshot" if provisional_snapshot_enabled else "reviewed_only", "current_validity": "unverified"}
 
     @app.get("/api/search")
     def search(question: str):
@@ -333,7 +397,7 @@ details{border-top:1px solid var(--line);padding-top:1rem}summary{cursor:pointer
 <label for="legal-date">Ngày cần tra cứu (không bắt buộc)<input id="legal-date" name="legal_date" type="date"></label><button type="submit" disabled>Gửi câu hỏi</button></form>
 <section aria-live="polite" aria-atomic="false"><h2 id="state">Sẵn sàng</h2><pre id="result"></pre>
 <details><summary>Nguồn và trích đoạn</summary><div id="sources">Chưa có kết quả.</div></details></section></div></main>
-<script>const f=document.querySelector('#chat'),mode=document.querySelector('#mode'),banner=document.querySelector('#banner'),caveat=document.querySelector('#caveat'),b=f.querySelector('button'),state=document.querySelector('#state'),r=document.querySelector('#result'),s=document.querySelector('#sources'),revision=document.querySelector('#revision');const labels={answer:'Trả lời',partial:'Trả lời một phần',provisional:'Trích đoạn nguyên văn từ bản dữ liệu — hiệu lực chưa xác minh',clarify:'Cần làm rõ',abstain_conflict:'Bằng chứng xung đột',abstain_insufficient_evidence:'Chưa đủ bằng chứng',unavailable:'Dịch vụ hiện không khả dụng'};async function loadCorpus(){try{let x=await fetch('/api/corpus'),z=await x.json();if(!x.ok||typeof z.demo!=='boolean'||!z.answer_mode||z.legal_corpus_activated!==false||z.current_validity!=='unverified'||(!z.demo&&z.snapshot_verified!==true))throw Error('invalid corpus status');mode.textContent=z.demo?'Chế độ dữ liệu hư cấu':(z.answer_mode==='provisional_snapshot'?'Trích đoạn từ snapshot; hiệu lực chưa xác minh':'Chế độ dữ liệu cấu hình');banner.hidden=!z.demo;revision.textContent=z.snapshot_revision||'không được cung cấp';b.disabled=false}catch(_){mode.textContent='Không thể xác minh chế độ dữ liệu; tra cứu bị khóa.';banner.textContent='Cấu hình dữ liệu chưa được xác minh. Không gửi câu hỏi.';banner.hidden=false;b.disabled=true}}loadCorpus();f.onsubmit=async e=>{e.preventDefault();b.disabled=true;state.textContent='Đang xử lý';r.textContent='';s.textContent='';caveat.textContent='';let d=Object.fromEntries(new FormData(f));if(!d.legal_date)delete d.legal_date;try{let x=await fetch('/api/answer',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)}),z=await x.json(),a=z.answer||{};mode.textContent=z.demo?'Chế độ dữ liệu hư cấu':(a.state==='provisional'?'Trích đoạn tạm thời từ bản dữ liệu':'Chế độ dữ liệu cấu hình');banner.hidden=!z.demo;caveat.textContent=z.caveat||'';caveat.hidden=!z.caveat;state.textContent=labels[a.state]||'Không khả dụng';r.textContent=a.text||a.reason||'Không có kết quả.';(z.sources||[]).forEach(c=>{let p=document.createElement('div');p.className='source';let m=document.createElement('p');m.textContent=c.current_validity==='unverified'?`${c.evidence_id||''} · ${c.document_version_id||''} · ${c.so_ky_hieu||''} · Hiệu lực chưa xác minh`:`${c.evidence_id||''} · ${c.document_version_id||''} · Hiệu lực: ${c.effective_from_day||''}–${c.effective_to_day||''}; Rà soát: ${c.reviewed_through_day||''}`;p.append(m);let q=document.createElement('blockquote');q.className='quote';q.textContent=c.quote||'';p.append(q);if(c.source_url){let a=document.createElement('a');a.href=c.source_url;a.textContent='Mở nguồn';a.rel='noopener noreferrer';a.target='_blank';p.append(a)}s.append(p)});if(!s.textContent)s.textContent='Không có trích đoạn.'}catch(_){state.textContent='Không khả dụng';r.textContent='Không thể kết nối dịch vụ.';s.textContent='Không có trích đoạn.'}finally{b.disabled=false}}</script></body></html>"""
+<script>const f=document.querySelector('#chat'),mode=document.querySelector('#mode'),banner=document.querySelector('#banner'),caveat=document.querySelector('#caveat'),b=f.querySelector('button'),state=document.querySelector('#state'),r=document.querySelector('#result'),s=document.querySelector('#sources'),revision=document.querySelector('#revision');let answerMode='reviewed_only';const labels={answer:'Trả lời',partial:'Trả lời một phần',provisional:'Trích đoạn nguyên văn từ bản dữ liệu — hiệu lực chưa xác minh',clarify:'Cần làm rõ',abstain_conflict:'Bằng chứng xung đột',abstain_insufficient_evidence:'Chưa đủ bằng chứng',unavailable:'Dịch vụ hiện không khả dụng'};async function loadCorpus(){try{let x=await fetch('/api/corpus'),z=await x.json();if(!x.ok||typeof z.demo!=='boolean'||!z.answer_mode||z.legal_corpus_activated!==false||z.current_validity!=='unverified'||(!z.demo&&z.snapshot_verified!==true))throw Error('invalid corpus status');answerMode=z.answer_mode;mode.textContent=z.demo?'Chế độ dữ liệu hư cấu':(z.answer_mode==='experimental_snapshot_excerpt'?'Thử nghiệm trích đoạn snapshot — hiệu lực chưa xác minh':z.answer_mode==='provisional_snapshot'?'Trích đoạn từ snapshot; hiệu lực chưa xác minh':'Chế độ dữ liệu cấu hình');banner.hidden=!z.demo;revision.textContent=z.snapshot_revision||'không được cung cấp';b.disabled=false}catch(_){mode.textContent='Không thể xác minh chế độ dữ liệu; tra cứu bị khóa.';banner.textContent='Cấu hình dữ liệu chưa được xác minh. Không gửi câu hỏi.';banner.hidden=false;b.disabled=true}}loadCorpus();f.onsubmit=async e=>{e.preventDefault();b.disabled=true;state.textContent='Đang xử lý';r.textContent='';s.textContent='';caveat.textContent='';let d=Object.fromEntries(new FormData(f));if(!d.legal_date)delete d.legal_date;try{let x=await fetch('/api/answer',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)}),z=await x.json(),a=z.answer||{};mode.textContent=z.demo?'Chế độ dữ liệu hư cấu':(answerMode==='experimental_snapshot_excerpt'?'Thử nghiệm trích đoạn snapshot — hiệu lực chưa xác minh':a.state==='provisional'?'Trích đoạn tạm thời từ bản dữ liệu':'Chế độ dữ liệu cấu hình');banner.hidden=!z.demo;caveat.textContent=z.caveat||'';caveat.hidden=!z.caveat;state.textContent=labels[a.state]||'Không khả dụng';r.textContent=a.text||a.reason||'Không có kết quả.';(z.sources||[]).forEach(c=>{let p=document.createElement('div');p.className='source';let m=document.createElement('p');m.textContent=c.current_validity==='unverified'?`${c.evidence_id||''} · ${c.document_version_id||''} · ${c.so_ky_hieu||''} · Hiệu lực chưa xác minh`:`${c.evidence_id||''} · ${c.document_version_id||''} · Hiệu lực: ${c.effective_from_day||''}–${c.effective_to_day||''}; Rà soát: ${c.reviewed_through_day||''}`;p.append(m);let q=document.createElement('blockquote');q.className='quote';q.textContent=c.quote||'';p.append(q);if(c.source_url){let a=document.createElement('a');a.href=c.source_url;a.textContent='Mở nguồn';a.rel='noopener noreferrer';a.target='_blank';p.append(a)}s.append(p)});if(!s.textContent)s.textContent='Không có trích đoạn.'}catch(_){state.textContent='Không khả dụng';r.textContent='Không thể kết nối dịch vụ.';s.textContent='Không có trích đoạn.'}finally{b.disabled=false}}</script></body></html>"""
 try:
     app = create_app() if __name__ != "__main__" else None
 except RuntimeError:

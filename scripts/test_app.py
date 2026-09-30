@@ -177,6 +177,98 @@ class AppTest(unittest.TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["state"], "unavailable")
 
+    def test_experimental_snapshot_excerpt_is_opt_in_quote_only_and_fails_closed(self):
+        text = "Điều 24. Thử việc tối đa 60 ngày. Thời hạn này áp dụng theo nội dung của bản snapshot."
+        article = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
+                   "document_version_id": "v1", "canonical_text": text, "pham_vi": "Trung ương",
+                   "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                   "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                   "reported_status_conflict": False, "source_dataset_revision": "pinned-r1",
+                   "content_sha256": "catalog-hash"}
+        retrieved = {**article, "canonical_text": "Điều 24. Altered retrieval copy.", "content_sha256": "wrong-hash"}
+        class Retriever:
+            articles = {"a24": article}
+            def search(self, *args): return {"evidence": [retrieved]}
+        calls = []
+        class QuoteProvider:
+            def answer(self, question, legal_date, evidence):
+                calls.append((question, legal_date, evidence))
+                evidence_id, source = next(iter(evidence.items()))
+                quote = text[:len("Điều 24. Thử việc tối đa 60 ngày.")]
+                return {"state": "provisional", "legal_date": None, "text": quote,
+                        "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                        "reason": "", "unanswered": ""}
+
+        ordinary = {"question": "Thời gian thử việc tối đa bao nhiêu ngày?"}
+        off = TestClient(create_app(QuoteProvider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post("/api/answer", json=ordinary)
+        self.assertNotEqual(off.json()["answer"]["state"], "provisional")
+        self.assertEqual(calls, [])
+        client = TestClient(create_app(QuoteProvider(), retriever=Retriever(),
+                                       experimental_snapshot_excerpt_enabled=True))
+        body = client.post("/api/answer", json=ordinary).json()
+        self.assertEqual(body["answer"]["state"], "provisional")
+        self.assertEqual(body["answer"]["text"], text[:len("Điều 24. Thử việc tối đa 60 ngày.")])
+        self.assertTrue(body["validation"]["valid"])
+        self.assertEqual(calls[0][1], None)
+        self.assertEqual(next(iter(calls[0][2].values()))["canonical_text"], text)
+        self.assertEqual(client.get("/api/corpus").json()["answer_mode"], "experimental_snapshot_excerpt")
+        self.assertIn("Thử nghiệm trích đoạn snapshot", client.get("/").text)
+
+        class ParaphraseProvider:
+            def answer(self, question, legal_date, evidence):
+                return {"state": "provisional", "legal_date": None, "text": "Tối đa là 60 ngày.",
+                        "claims": [{"claim_id": "q1", "text": "Tối đa là 60 ngày.", "evidence_ids": ["a24:v1"]}],
+                        "citations": [{"evidence_id": "a24:v1", "quote": text[:10], "span_start": 0,
+                                       "span_end": 10, "document_version_id": "v1"}], "reason": "", "unanswered": ""}
+        rejected = TestClient(create_app(ParaphraseProvider(), retriever=Retriever(), provisional_snapshot_enabled=True,
+                                         experimental_snapshot_excerpt_enabled=True)).post("/api/answer", json=ordinary)
+        self.assertEqual(rejected.status_code, 502)
+
+        class OversizeQuoteProvider:
+            def answer(self, question, legal_date, evidence):
+                evidence_id, source = next(iter(evidence.items()))
+                quote = "x" * 501
+                return {"state": "provisional", "legal_date": None, "text": quote,
+                        "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                        "reason": "", "unanswered": ""}
+        too_long = TestClient(create_app(OversizeQuoteProvider(), retriever=Retriever(), provisional_snapshot_enabled=True,
+                                         experimental_snapshot_excerpt_enabled=True)).post("/api/answer", json=ordinary)
+        self.assertEqual(too_long.status_code, 502)
+
+    def test_experimental_snapshot_excerpt_retains_temporal_personal_and_scope_gates(self):
+        article = {"article_id": "a24", "label": "Điều 24", "document_version_id": "v1",
+                   "canonical_text": "Điều 24. Thử việc tối đa 60 ngày.", "pham_vi": "Trung ương",
+                   "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                   "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                   "reported_status_conflict": False, "source_dataset_revision": "pinned-r1", "content_sha256": "hash"}
+        class Retriever:
+            articles = {"a24": article}
+            def search(self, *args): return {"evidence": [article]}
+        class ForbiddenProvider:
+            def answer(self, *args): raise AssertionError("gated snapshot query reached provider")
+        client = TestClient(create_app(ForbiddenProvider(), retriever=Retriever(),
+                                       experimental_snapshot_excerpt_enabled=True))
+        for question in ("Thời gian thử việc tối đa bao nhiêu ngày vào năm 2024?",
+                         "Hiện nay thử việc còn hiệu lực không?", "Điều khoản thử việc có sửa đổi mới nhất không?",
+                         "Tôi có được thử việc 60 ngày không?", "Quy định nghỉ phép thế nào?",
+                         "Quy định thử việc áp dụng cho ai?", "Nếu doanh nghiệp kéo dài thời gian thử việc thì sao?"):
+            with self.subTest(question=question):
+                response = client.post("/api/answer", json={"question": question}).json()
+                self.assertNotEqual(response["answer"]["state"], "provisional")
+
+        conflicted = {**article, "reported_status_conflict": True}
+        class ConflictedRetriever:
+            articles = {"a24": conflicted}
+            def search(self, *args): return {"evidence": [conflicted]}
+        response = TestClient(create_app(ForbiddenProvider(), retriever=ConflictedRetriever(), provisional_snapshot_enabled=True,
+                                         experimental_snapshot_excerpt_enabled=True)).post(
+                                             "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
+        self.assertNotEqual(response.json()["answer"]["state"], "provisional")
+
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
         day = 738886
         class Retriever:
