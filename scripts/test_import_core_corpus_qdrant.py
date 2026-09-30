@@ -1,5 +1,6 @@
 import hashlib
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -76,6 +77,31 @@ class CoreCorpusQdrantTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "shard hash"):
             import_collection(self.artifact, self.corpus_path, adapter)
         self.assertEqual(requests, [])
+
+    def test_collection_identity_changes_with_the_exact_embedding_artifact(self):
+        second_artifact = self.root / "artifact-second"
+        shutil.copytree(self.artifact, second_artifact)
+        shard_path = second_artifact / "vectors-00000.jsonl"
+        row = json.loads(shard_path.read_text(encoding="utf-8"))
+        row["payload"]["child_id"] = "chunk-1"
+        row["id"] = stable_point_id("article-id", "document-version", "chunk-1")
+        row["payload"]["canonical_text"] = "a different point set"
+        shard_path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        manifest_path = second_artifact / "embedding_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ordered_point_ids"] = [row["id"]]
+        manifest["shards"][0]["sha256"] = self.sha(shard_path)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+        def transport(method, path, body):
+            if method == "GET":
+                raise HTTPError("http://localhost" + path, 404, "missing", {}, None)
+            return {"result": True}
+        first = import_collection(self.artifact, self.corpus_path, QdrantRestAdapter(QdrantLocalConfig(), transport=transport))
+        changed = import_collection(second_artifact, self.corpus_path, QdrantRestAdapter(QdrantLocalConfig(), transport=transport))
+        repeat = import_collection(self.artifact, self.corpus_path, QdrantRestAdapter(QdrantLocalConfig(), transport=transport))
+        self.assertNotEqual(first["collection"], changed["collection"])
+        self.assertEqual(first["collection"], repeat["collection"])
 
 
 if __name__ == "__main__":

@@ -64,8 +64,9 @@ def import_collection(artifact_dir, corpus_manifest_path, qdrant, config=None):
     config = config or QdrantLocalConfig()
     manifest, points = validate_artifact(artifact_dir, corpus_manifest_path)
     context = manifest["context"]
+    artifact_manifest_sha256 = _sha(Path(artifact_dir) / "embedding_manifest.json")
     revision = re.sub(r"[^A-Za-z0-9_.-]", "_", context["corpus_id"])
-    revision = f"{revision}_{context['corpus_manifest_sha256'][:12]}"
+    revision = f"{revision}_{context['corpus_manifest_sha256'][:12]}_{artifact_manifest_sha256[:12]}"
     collection = config.collection_name(revision, manifest["context"].get("embedding_spec_sha256") or hashlib.sha256(json.dumps(manifest["model"], sort_keys=True).encode()).hexdigest())
     created = False
     try:
@@ -81,7 +82,7 @@ def import_collection(artifact_dir, corpus_manifest_path, qdrant, config=None):
             raise ValueError("existing versioned collection has incompatible vector dimension")
     for start in range(0, len(points), 128):
         qdrant.upsert(collection, points[start:start + 128])
-    return {"collection": collection, "created": created, "points": len(points), "activated": False, "answer_evidence_enabled": False}
+    return {"collection": collection, "created": created, "points": len(points), "artifact_manifest_sha256": artifact_manifest_sha256, "activated": False, "answer_evidence_enabled": False}
 
 
 if __name__ == "__main__":
