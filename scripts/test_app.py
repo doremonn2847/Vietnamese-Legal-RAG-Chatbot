@@ -127,6 +127,7 @@ class AppTest(unittest.TestCase):
         article = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
                    "document_version_id": "v1", "canonical_text": text, "pham_vi": "Trung ương",
                    "retrieval_index_candidate": True, "answer_evidence_enabled": False,
+                   "topic_candidates": ["probation"],
                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
                    "reported_status_conflict": False, "source_dataset_revision": "pinned-r1",
                    "content_sha256": "fixture-sha"}
@@ -318,6 +319,84 @@ class AppTest(unittest.TestCase):
         self.assertNotEqual(response.json()["state"], "provisional")
         response = client.post("/api/answer", json={"question": "Trích Điều 24 trong Nghị định số 145/2020/NĐ-CP"})
         self.assertEqual(response.json()["answer"]["text"], right["canonical_text"])
+
+    def test_explicit_article_uses_exact_catalog_hit_when_semantic_top_k_misses_it(self):
+        def row(article_id, number, text, topics):
+            return {"article_id": article_id, "article_version_id": article_id, "document_id": "doc1",
+                    "document_version_id": "v1", "label": f"Điều {number}", "canonical_text": text,
+                    "topic_candidates": topics,
+                    "document_metadata": {"title": "Bộ luật Lao động", "so_ky_hieu": "45/2019/QH14",
+                        "pham_vi": "Trung ương", "retrieval_index_candidate": True,
+                        "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                        "reported_status_conflict": False, "source_dataset_revision": "r1",
+                        "content_sha256": "sha256-fixture", "source_dataset_url": "https://example.invalid/source"}}
+        target = row("a13", "13", "Điều 13. Snapshot extract.", ["contracts"])
+        hit = row("a34", "34", "Điều 34. Unrelated retrieval hit.", ["contracts"])
+        hit_evidence = {**hit, **hit["document_metadata"], "text": hit["canonical_text"], "evidence_id": "a34:v1"}
+        calls = []
+        class Retriever:
+            articles = {"a13": target, "a34": hit}
+            def search(self, *args): return {"evidence": [hit_evidence], "timings_ms": {}}
+        class Provider:
+            def answer(self, *args): calls.append(args); raise AssertionError("snapshot extract must not call provider")
+
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Trích Điều 13"})
+        body = response.json()
+        self.assertEqual(body["state"], "provisional")
+        self.assertEqual(body["answer"]["text"], target["canonical_text"])
+        self.assertEqual(body["answer"]["citations"][0]["evidence_id"], "a13:v1")
+        self.assertTrue(body["validation"]["valid"])
+        self.assertEqual(calls, [])
+
+    def test_article_lookup_uses_catalog_text_when_same_version_retrieval_copy_differs(self):
+        catalog = {"article_id": "a13", "article_version_id": "a13", "document_id": "doc1",
+                   "document_version_id": "v1", "label": "Điều 13", "canonical_text": "Điều 13. Pinned catalog text.",
+                   "topic_candidates": ["contracts"],
+                   "document_metadata": {"title": "Bộ luật Lao động", "pham_vi": "Trung ương",
+                       "retrieval_index_candidate": True, "current_validity": "unverified",
+                       "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                       "source_dataset_revision": "r1", "content_sha256": "catalog-hash"}}
+        retrieval_copy = {**catalog, "canonical_text": "Điều 13. Altered retrieval text.",
+                          "document_metadata": {**catalog["document_metadata"], "content_sha256": "different-hash"}}
+        retrieved = {**retrieval_copy, **retrieval_copy["document_metadata"], "text": retrieval_copy["canonical_text"], "evidence_id": "a13:v1"}
+        class Retriever:
+            articles = {"a13": catalog}
+            def search(self, *args): return {"evidence": [retrieved]}
+        class Provider:
+            def answer(self, *args): raise AssertionError("snapshot extract must not call provider")
+
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Trích Điều 13"})
+        body = response.json()
+        self.assertEqual(body["state"], "provisional")
+        self.assertEqual(body["answer"]["text"], catalog["canonical_text"])
+        self.assertEqual(body["answer"]["citations"][0]["quote"], catalog["canonical_text"])
+        self.assertTrue(body["validation"]["valid"])
+
+    def test_catalog_fallback_rejects_non_topical_or_unhashed_articles(self):
+        base = {"article_id": "a13", "article_version_id": "a13", "document_id": "doc1",
+                "document_version_id": "v1", "label": "Điều 13", "canonical_text": "Điều 13. Snapshot.",
+                "topic_candidates": ["contracts"],
+                "document_metadata": {"title": "Bộ luật Lao động", "pham_vi": "Trung ương",
+                    "retrieval_index_candidate": True, "current_validity": "unverified",
+                    "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                    "source_dataset_revision": "r1", "content_sha256": "sha256-fixture"}}
+        unrelated = {**base, "article_id": "a34", "label": "Điều 34", "canonical_text": "Điều 34.",
+                     "topic_candidates": ["contracts"]}
+        hit = {**unrelated, **unrelated["document_metadata"], "text": unrelated["canonical_text"], "evidence_id": "a34:v1"}
+        class Retriever:
+            articles = {}
+            def search(self, *args): return {"evidence": [hit]}
+        class Provider:
+            def answer(self, *args): raise AssertionError("snapshot path must not call provider")
+        for patch in ({"topic_candidates": []}, {"document_metadata": {**base["document_metadata"], "content_sha256": ""}}):
+            with self.subTest(patch=patch):
+                candidate = {**base, **patch}
+                Retriever.articles = {"a13": candidate, "a34": unrelated}
+                response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+                    "/api/answer", json={"question": "Trích Điều 13"})
+                self.assertEqual(response.json()["state"], "abstain_insufficient_evidence")
 
     def test_provisional_document_qualifier_must_match_even_with_one_top_hit(self):
         evidence = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",

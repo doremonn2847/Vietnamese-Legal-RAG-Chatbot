@@ -81,18 +81,18 @@ def _safe_sources(answer, evidence):
 
 
 def _provisional_evidence(rows, question, requested_as_of_date, source_catalog=None):
-    decision = decide_provisional_eligibility(question, rows, requested_as_of_date=requested_as_of_date)
-    if not decision["allowed"]:
-        return decision, {}
     references = list(re.finditer(r"\b(?:điều|article)\s+(\d+[a-z]?)\b|\btrích\s+(?:nguyên văn\s+)?(?:điều\s+)?(\d+[a-z]?)\b", question, re.IGNORECASE))
     if references:
+        gate = decide_provisional_eligibility(question, [], requested_as_of_date=requested_as_of_date)
+        if not gate["allowed"] and gate["reason"] != "no_evidence":
+            return gate, {}
         requested_numbers = {next(group for group in match.groups() if group).casefold() for match in references}
         if len(requested_numbers) != 1:
             return _article_request_denial("requested_article_ambiguous"), {}
         number = next(iter(requested_numbers)).casefold()
         catalog_rows = source_catalog.values() if isinstance(source_catalog, dict) else source_catalog
         catalog_rows = list(catalog_rows) if catalog_rows is not None else rows
-        possible_sources = [row for row in catalog_rows if _article_number(row) == number and _metadata(row, "pham_vi") == "Trung ương" and _metadata(row, "retrieval_index_candidate") is True]
+        possible_sources = [row for row in catalog_rows if _article_number(row) == number and _metadata(row, "pham_vi") == "Trung ương" and _metadata(row, "retrieval_index_candidate") is True and (source_catalog is None or isinstance(_metadata(row, "topic_candidates"), list) and bool(_metadata(row, "topic_candidates")))]
         qualifier = re.search(r"\b(?:trong|của)\s+(?:bộ luật|nghị định|thông tư)(?:\s+(?:lao\s+động|số\s+\d+[\w/-]*)){1,2}", question, re.IGNORECASE)
         if qualifier:
             requested_document = re.sub(r"^(?:trong|của)\s+", "", qualifier.group(0), flags=re.IGNORECASE).casefold()
@@ -100,10 +100,19 @@ def _provisional_evidence(rows, question, requested_as_of_date, source_catalog=N
         possible_sources = list({(row.get("article_id"), row.get("document_version_id")): row for row in possible_sources}.values())
         if len(possible_sources) != 1:
             return _article_request_denial("requested_article_not_unambiguous"), {}
-        source_id = (possible_sources[0].get("article_id"), possible_sources[0].get("document_version_id"))
-        rows = [row for row in rows if _article_number(row) == number and (row.get("article_id"), row.get("document_version_id")) == source_id]
-        if len(rows) != 1:
-            return _article_request_denial("requested_article_not_unambiguous"), {}
+        source = possible_sources[0]
+        metadata = source.get("document_metadata") if isinstance(source.get("document_metadata"), dict) else {}
+        source = {**metadata, **source}
+        source["canonical_text"] = source.get("canonical_text", source.get("text"))
+        source["source_url"] = source.get("source_url", source.get("source_dataset_url"))
+        decision = decide_provisional_eligibility(question, [source], requested_as_of_date=requested_as_of_date)
+        if not decision["allowed"]:
+            return decision, {}
+        rows = [source]
+    else:
+        decision = decide_provisional_eligibility(question, rows, requested_as_of_date=requested_as_of_date)
+        if not decision["allowed"]:
+            return decision, {}
     selected = {}
     for row in rows:
         article_id, version = row["article_id"], row["document_version_id"]

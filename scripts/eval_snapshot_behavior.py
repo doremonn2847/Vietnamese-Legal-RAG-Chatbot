@@ -19,6 +19,7 @@ from core_app import _qdrant_api_key  # noqa: E402
 
 
 REVISION = "8977887f17be2defae4c5171d55562e1cde7d695"
+EVALUATION_VERSION = "snapshot-answer-behavior-v2"
 CORPUS_REL = Path("data/curated") / REVISION / "core-employment-portfolio-v1"
 ARTIFACT_REL = Path("data/embeddings/core-employment-portfolio-v1-e5-small-provisional-v4")
 CASES = (
@@ -158,7 +159,7 @@ def main():
     expected_exact = [row for row in cases if row["kind"] == "explicit_extract"]
     natural = [row for row in cases if row["kind"] == "natural_question"]
     report = {
-        "evaluation": "snapshot-answer-behavior-v1",
+        "evaluation": EVALUATION_VERSION,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "interpretation": "Frozen engineering expectations for a non-activated snapshot. These labels, evidence matches, and outputs do not determine legal validity or legal correctness.",
         "execution": {"mode": "real pinned corpus + local Qdrant retrieval; injected provider that fails if called", "provider_calls": provider_calls,
@@ -166,6 +167,7 @@ def main():
         "artifacts": {"dataset_revision": REVISION, "evaluation_script_sha256": _sha(__file__), "corpus_manifest": str(CORPUS_REL / "corpus_manifest.json"), "corpus_manifest_sha256": _sha(corpus_manifest),
                       "articles_sha256": _sha(corpus_root / "articles.jsonl"), "embedding_manifest": str(ARTIFACT_REL / "embedding_manifest.json"),
                       "embedding_manifest_sha256": _sha(artifact_manifest), "model_artifact_manifest_sha256": _sha(ROOT / "data/models/e5-small/artifact_manifest.json"),
+                      "implementation_sha256": {name: _sha(ROOT / name) for name in ("scripts/app.py", "scripts/provisional_policy.py", "scripts/core_app.py", "scripts/core_retriever.py", "scripts/answer_contract.py", "scripts/retrieval.py")},
                       "model": artifact.get("model"), "vector_records": artifact.get("records")},
         "coverage": {"explicit_extracts": {"expected": len(expected_exact), "provisional": sum(row["observed_state"] == "provisional" for row in expected_exact), "requested_articles_retrieved": sum(row["requested_article_retrieved"] is True for row in expected_exact), "valid_citations": sum(row["citation_valid"] is True for row in expected_exact), "requested_article_matches": sum(row["citation_matches_requested_article"] is True for row in expected_exact), "reference_evidence_matches": sum(row["citation_matches_reference_evidence"] is True for row in expected_exact)},
                      "natural_questions": {"expected_to_abstain": len(natural), "abstained": sum(row["observed_state"] in {"abstain_conflict", "abstain_insufficient_evidence"} for row in natural), "answered": sum(row["observed_state"] in {"answer", "partial", "provisional"} for row in natural)}},
@@ -175,7 +177,7 @@ def main():
         "mocked_failure_checks": _mock_failure_checks(),
         "command": ".venv\\Scripts\\python.exe scripts\\eval_snapshot_behavior.py",
     }
-    output = ROOT / "docs" / "snapshot-answer-behavior-v1.json"
+    output = ROOT / "docs" / f"{EVALUATION_VERSION}.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(output.relative_to(ROOT)), "coverage": report["coverage"], "latency_ms": report["latency_ms"], "qdrant": report["execution"]["qdrant"], "provider_calls": provider_calls, "mocked_failure_checks": report["mocked_failure_checks"]}, ensure_ascii=False, indent=2))
