@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -41,7 +42,9 @@ def main():
     results = []
     for case in CASES:
         selector.expected_id = case["article_id"] + ":" + case["document_version_id"]
+        started = time.perf_counter_ns()
         response = client.post("/api/answer", json={"question": case["question"]})
+        elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
         body = response.json()
         answer = body.get("answer", {})
         citations = answer.get("citations", [])
@@ -51,6 +54,9 @@ def main():
                         "retrieval_contains_reference": selector.expected_id in body.get("retrieval", {}).get("selected_evidence_ids", []),
                         "evidence_matches_reference": citation.get("evidence_id") == selector.expected_id,
                         "safe_abstention": answer.get("state") == "abstain_insufficient_evidence" and selector.expected_id not in body.get("retrieval", {}).get("selected_evidence_ids", []),
+                        "provider_evidence_count": body.get("retrieval", {}).get("evidence_count", 0),
+                        "end_to_end_ms": round(elapsed_ms, 2),
+                        "retrieval_timings_ms": body.get("retrieval", {}).get("timings_ms", {}),
                         "quote_sha256": hashlib.sha256(citation.get("quote", "").encode("utf-8")).hexdigest(),
                         "quote_length_chars": len(citation.get("quote", "")),
                         "provider": "injected deterministic source-span selector"})
@@ -61,12 +67,17 @@ def main():
                                          for name in ("scripts/app.py", "scripts/core_app.py", "scripts/provisional_policy.py",
                                                       "scripts/answer_contract.py", "scripts/core_retriever.py", "scripts/eval_snapshot_excerpt.py")},
               "interpretation": "Uses pinned corpus and local Qdrant retrieval plus an injected deterministic provider that selects only frozen reference evidence; checks target retrieval and exact citation fidelity, not model quality, legal correctness, or legal validity.",
+              "candidate_depth": {"default_evidence_cap": 5, "experimental_evidence_cap": 12,
+                                  "per_source_prompt_char_cap": 2400, "max_sources_to_provider": 12,
+                                  "prior_frozen_miss_trace": {"case_id": "contract_contents", "target_article_id": "3f2b3e90-453c-527c-ade0-11e72029d715", "bm25_rank": 22, "dense_rank": 5, "rrf_rank": 11, "default_selected": False}},
               "provider_calls": selector.calls, "results": results,
               "coverage": {"cases": len(results), "passed": sum(row["citation_valid"] is True and row["evidence_matches_reference"] for row in results),
                            "safe_abstentions": sum(row["safe_abstention"] for row in results),
                            "reference_retrieval_hits": sum(row["retrieval_contains_reference"] for row in results),
                            "development": sum(row["split"] == "development" for row in results),
                            "held_out": sum(row["split"] == "held_out" for row in results)},
+              "latency_ms": {"n": len(results), "median_end_to_end": round(sorted(row["end_to_end_ms"] for row in results)[len(results) // 2], 2),
+                             "max_end_to_end": max(row["end_to_end_ms"] for row in results)},
               "manual_relevance_review": "Article labels and frozen questions were inspected for topic match; excerpt selection is deterministic and cannot establish broader semantic relevance."}
     output = ROOT / "docs" / "snapshot-excerpt-fidelity-v1.json"
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

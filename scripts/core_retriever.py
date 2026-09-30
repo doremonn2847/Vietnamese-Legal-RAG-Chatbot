@@ -53,7 +53,10 @@ class CoreCorpusRetriever:
         self.sparse = BM25Index(docs)
         self.index_version = hashlib.sha256((self.corpus_manifest_path.read_bytes() + (self.artifact_dir / "embedding_manifest.json").read_bytes()).strip()).hexdigest()
 
-    def search(self, query, legal_date=None):
+    def search_snapshot_excerpt(self, query, legal_date=None):
+        return self.search(query, legal_date, evidence_cap=12)
+
+    def search(self, query, legal_date=None, *, evidence_cap=None):
         started = time.perf_counter_ns()
         sparse = self.sparse.search(query, limit=self.sparse_limit)
         sparse_ms = (time.perf_counter_ns() - started) / 1_000_000
@@ -80,7 +83,7 @@ class CoreCorpusRetriever:
                 continue
             metadata = article["document_metadata"]
             candidates.append({**article, **metadata, **hit, "text": article["canonical_text"], "source_url": metadata.get("source_dataset_url"), "evidence_id": f"{article['article_id']}:{article['document_version_id']}", "matched_child_ids": sorted(child for child in matched.get(hit["article_id"], set()) if child)})
-        evidence = select_evidence(candidates, self.evidence_cap)
+        evidence = select_evidence(candidates, self.evidence_cap if evidence_cap is None else evidence_cap)
         return {"sparse": sparse, "dense": dense, "fused": fused, "evidence": evidence, "timings_ms": {"sparse": sparse_ms, "dense": dense_ms, "fusion_and_evidence": (time.perf_counter_ns() - ranked_started) / 1_000_000}}
 
 

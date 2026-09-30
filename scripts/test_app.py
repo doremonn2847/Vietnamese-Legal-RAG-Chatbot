@@ -281,6 +281,44 @@ class AppTest(unittest.TestCase):
                                              "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
         self.assertNotEqual(response.json()["answer"]["state"], "provisional")
 
+    def test_experimental_mode_uses_bounded_snapshot_candidate_search(self):
+        rows = []
+        for index in range(13):
+            rows.append({"article_id": f"a{index}", "document_version_id": f"v{index}",
+                         "label": f"Điều {index}", "canonical_text": f"Điều {index}. Nội dung hợp đồng {index}. " + "nội dung " * 400,
+                         "topic_candidates": ["contracts"], "pham_vi": "Trung ương",
+                         "retrieval_index_candidate": True, "current_validity": "unverified",
+                         "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                         "source_dataset_revision": "pinned-r1", "content_sha256": f"hash{index}"})
+        class Retriever:
+            articles = {row["article_id"]: row for row in rows}
+            snapshot_calls = 0
+            def search(self, *args): raise AssertionError("default candidate search should not be used")
+            def search_snapshot_excerpt(self, *args):
+                self.snapshot_calls += 1
+                return {"evidence": rows}
+        class Provider:
+            seen = 0
+            def answer(self, question, legal_date, evidence):
+                self.seen = len(evidence)
+                self.max_text = max(len(source["canonical_text"]) for source in evidence.values())
+                evidence_id, source = next(iter(evidence.items()))
+                quote = source["canonical_text"][:20]
+                return {"state": "provisional", "legal_date": None, "text": quote,
+                        "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                        "reason": "", "unanswered": ""}
+        retriever, provider = Retriever(), Provider()
+        body = TestClient(create_app(provider, retriever=retriever,
+                                     experimental_snapshot_excerpt_enabled=True)).post(
+                                         "/api/answer", json={"question": "Hợp đồng lao động cần có nội dung chính nào?"}).json()
+        self.assertEqual(retriever.snapshot_calls, 1)
+        self.assertEqual(body["answer"]["state"], "provisional")
+        self.assertTrue(body["validation"]["valid"])
+        self.assertEqual(provider.seen, 12)
+        self.assertLessEqual(provider.max_text, 2400)
+
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
         day = 738886
         class Retriever:

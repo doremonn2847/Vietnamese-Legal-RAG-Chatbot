@@ -1,10 +1,13 @@
 import io
 import json
 import unittest
+from contextlib import redirect_stdout
 from urllib.error import HTTPError
+from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
 from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
+from smoke_snapshot_excerpt_groq import main as snapshot_smoke_main
 
 
 class GroqTest(unittest.TestCase):
@@ -77,6 +80,17 @@ class GroqTest(unittest.TestCase):
         request = json.loads(calls[0][2]["messages"][1]["content"])
         self.assertEqual(request["selected_evidence"][0]["canonical_text"], quote)
         self.assertNotIn(full_text, str(calls[0][2]))
+
+    def test_real_snapshot_smoke_requires_explicit_free_tier_and_enabled_config(self):
+        output = io.StringIO()
+        with patch("smoke_snapshot_excerpt_groq.load_config", return_value=(GroqConfig(), None)), \
+             patch("core_app.create_core_app", side_effect=AssertionError("must not start app without enabled provider")), \
+             redirect_stdout(output):
+            self.assertEqual(snapshot_smoke_main([]), 2)
+            self.assertEqual(snapshot_smoke_main(["--confirm-free-tier"]), 2)
+        self.assertIn('"max_provider_calls": 1', output.getvalue())
+        self.assertNotIn("not-logged", output.getvalue())
+        self.assertNotIn("Bearer", output.getvalue())
 
     def test_http_transport_is_bounded_and_does_not_retry(self):
         class Response:

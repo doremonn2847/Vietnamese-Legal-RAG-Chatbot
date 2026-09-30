@@ -171,7 +171,7 @@ def _snapshot_excerpt_evidence(retrieved_rows, source_catalog, question, request
         text = row.get("canonical_text", row.get("text"))
         if not isinstance(text, str) or not text.strip():
             continue
-        excerpt_text = text[:6000]
+        excerpt_text = text[:2400]
         if len(text) > len(excerpt_text):
             boundary = excerpt_text.rfind(" ")
             if boundary > 0:
@@ -185,7 +185,7 @@ def _snapshot_excerpt_evidence(retrieved_rows, source_catalog, question, request
             selected[evidence_id] = candidate
         elif not selected:
             first_denial = first_denial or decision
-        if len(selected) == 3:
+        if len(selected) == 12:
             break
     if not selected:
         return (first_denial or decide_snapshot_excerpt_eligibility(
@@ -262,7 +262,8 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
             selected_evidence = {evidence_id: DEMO_EVIDENCE[evidence_id] for evidence_id in retrieval["selected_evidence_ids"]}
         else:
             try:
-                retrieval = retriever.search(request.question, legal_date)
+                snapshot_search = getattr(retriever, "search_snapshot_excerpt", None) if experimental_snapshot_excerpt_enabled else None
+                retrieval = snapshot_search(request.question, legal_date) if callable(snapshot_search) else retriever.search(request.question, legal_date)
                 selected_evidence = _configured_evidence(retrieval.get("evidence", []), legal_date) if isinstance(retrieval, dict) else {}
                 if not selected_evidence and (provisional_snapshot_enabled or experimental_snapshot_excerpt_enabled) and isinstance(retrieval, dict):
                     policy_decision, selected_evidence = _provisional_evidence(retrieval.get("evidence", []), request.question, request.legal_date is not None, getattr(retriever, "articles", None))
