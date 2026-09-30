@@ -119,16 +119,18 @@ Remaining implementation milestones:
 - [x] Pinned snapshot, strict central-only audit, provenance and ledgers.
 - [x] Provisional employment seed/dependency review packet and article parser.
 - [x] Offline article-level BM25 baseline with tests.
-- [x] Qdrant REST/E5 contract tests with synthetic points; live Qdrant integration is opt-in and model execution remains unverified.
+- [x] Qdrant REST/E5 contract tests with synthetic points; live Qdrant integration is opt-in and the real model smoke is recorded below.
 - [x] Minimal FastAPI demo with mocked Vietnamese grounded answers, explicit clarification/unavailable states, and strict citation validation.
-- [x] Pinned local Transformers E5 loader contract; model loading remains opt-in and requires local artifacts.
+- [x] Pinned local Transformers E5 loader contract with checksummed local artifacts and a real CPU smoke.
+- [x] Real CPU execution of pinned multilingual-E5-small against the inactive core corpus; 477 vectors in checksummed shards, all marked answer-ineligible.
+- [x] Versioned inactive Qdrant import contract for the core artifact, validated with injected transport; local daemon is currently unavailable.
 - [x] Hybrid retrieval, CPU reranker, evaluation, and privacy-safe logging contracts with injected offline tests. Synthetic branches are not quality measurements.
 - [x] Offline GitHub Actions unit-test workflow; live Qdrant remains opt-in.
 - [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked direct Groq transport.
 - [x] Synthetic manifest/shard import rehearsal with pre-write compatibility checks and no alias activation.
-- [ ] Owner review of employment relevance, duplicates, dependencies, and validity.
-- [ ] Real E5 document/query execution, verified artifact import, Qdrant activation, and measured hybrid/reranker quality.
-- [ ] Connect the app to real reviewed retrieval and a user-configured provider; run hosted CI and reviewed benchmark evaluation.
+- [ ] Implement conservative provisional answer eligibility from pinned metadata; abstain on unresolved requested dates, amendments, partial repeal, or conflicting status, and keep the corpus freshness/validity caveat visible.
+- [ ] Import the inactive core vectors into local Qdrant when its daemon is available; connect BM25+dense retrieval, then measure reranking and retrieval quality.
+- [ ] Connect the app to the bounded real-data path and user-configured provider; run held-out portfolio evaluation and hosted CI.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
 runnable commands, artifact paths, and owner/resource gates.

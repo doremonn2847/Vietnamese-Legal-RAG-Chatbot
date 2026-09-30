@@ -9,7 +9,7 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 0. Audit | Strict central-only ledgers and source hashes | Unit tests | Pinned local data outputs | Legal authority, relevance, validity |
 | 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
-| 3. Dense/retrieval | E5/reranker loaders, Qdrant adapter, hybrid/RRF contracts, synthetic artifact-import rehearsal | Injected encoder/reranker/import tests | Qdrant 1.13 synthetic points; rehearsal default is injected | Real model vectors, reviewed-corpus import, activation, quality |
+| 3. Dense/retrieval | Pinned E5-small vectors for the inactive core corpus; checksummed shards; versioned Qdrant import path; hybrid/RRF and reranker contracts | Encoder chunking, manifest and injected Qdrant import tests | Real 384-d CPU model/query smoke and 477 core-corpus vectors; local Qdrant unavailable | Real Qdrant writes, provisional answer eligibility, retrieval/reranker quality |
 | 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled direct Groq bridge, redacted trace events, and accepted UI state/citation presentation contract | FastAPI, mocked HTTP, and static UI contract tests | One fictional Groq contract smoke succeeded; provider remains disabled | App connected to reviewed hybrid retrieval |
 | 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
 
@@ -40,6 +40,15 @@ account limits remain authoritative. One fictional provider-contract validation 
 ```powershell
 $env:PYTHONPATH='scripts'
 .\.venv\Scripts\python.exe -m unittest discover -s scripts -p 'test_*.py' -q
+
+# Pin and verify the CPU embedding runtime; download only the immutable E5 revision.
+.\.venv\Scripts\python.exe -m pip install -r requirements-embeddings.txt
+.\.venv\Scripts\python.exe scripts/fetch_e5_model.py --output data/models/e5-small
+.\.venv\Scripts\python.exe scripts/cpu_benchmark.py data/models/e5-small --output data/benchmarks/cpu-e5-small-smoke.json --repeats 1
+
+# Generate inactive real-data vectors, then validate the Qdrant import artifact without writes.
+.\.venv\Scripts\python.exe scripts/core_corpus_embeddings.py --articles data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/articles.jsonl --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json --model data/models/e5-small --output data/embeddings/core-employment-portfolio-v1-e5-small-r4
+.\.venv\Scripts\python.exe scripts/import_core_corpus_qdrant.py --artifact data/embeddings/core-employment-portfolio-v1-e5-small-r4 --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json
 
 # Synthetic local Qdrant only; needs an already-running local Compose service.
 $env:RUN_QDRANT_INTEGRATION='1'
@@ -80,43 +89,34 @@ preserves versioned collection/alias operations. Do not activate an artifact
 until the returned manifest, collection dimension, and reviewed benchmark
 provenance agree.
 
+## Current core-corpus batch
+
+Commit `559e021` contains the deterministic three-document corpus. The current
+uncommitted follow-up uses the immutable `intfloat/multilingual-e5-small`
+revision `614241f622f53c4eeff9890bdc4f31cfecc418b3` and CPU-only
+`torch==2.14.0+cpu` / `transformers==4.57.6`. Local files and all 477 vector
+points are checksum-verified. Long articles are token-windowed while preserving
+article IDs and canonical-text offsets. Every point is exact-central, reports
+validity as unverified, and has `answer_evidence_enabled=false`. The Qdrant
+import validates the entire artifact before writes, uses a versioned collection,
+and does not activate an alias. Injected transport tests pass; the Docker daemon
+is unavailable, so no real Qdrant write has occurred. Generated model, corpus,
+and vector files are ignored by Git.
+
 ## Remaining work
 
-The manifest-only synthetic artifact import rehearsal is complete. It reads a
-fictional reviewed fixture, produces/checks a shard manifest, validates it before
-synthetic staging writes, and never activates an alias or a real collection.
-
-Remaining independent engineering tasks:
-
-- Keep the direct Groq transport disabled until reviewed-corpus activation and
-  owner release authorization. The fixed free-only route uses non-streaming
-  strict JSON Schema, a finite timeout, a 1 MB response limit, no redirect,
-  retry, fallback, batch, tools, or browser search.
-- For local CPU measurements, install compatible `torch` and `transformers` in
-  the virtual environment only after owner approval: `python -m pip install torch transformers`.
-  Place owner-supplied files under `data/models/e5-small/` and invoke
-  `load_transformers_encoder(model_path="data/models/e5-small", tokenizer_path="data/models/e5-small", local_files_only=True)`.
-  The loader uses the immutable small-E5 revisions in `data/config/e5_revisions.json`.
-  The runner is `python scripts/cpu_benchmark.py data/models/e5-small --output data/benchmarks/cpu-e5.json --repeats 5`; it verifies `artifact_manifest.json` hashes before loading and uses `local_files_only=True`.
-  Compatible dependency versions and real measurements remain unverified. The BGE reranker remains optional and is not a
-  default dependency. Do not download or run weights until the owner supplies
-  local artifacts.
-- Connect the existing hybrid retriever to the app only after reviewed-corpus
-  embedding/import/activation, preserving the synthetic demo until that gate is
-  passed.
-
-Owner/resource work:
-
-- Obtain compatible local E5 and reranker artifacts, then run bounded CPU
-  encoding/reranking measurements using the documented recipe.
-- Confirm actual Groq account limits and usage terms before release. The
-  fictional non-streaming contract check has passed; no paid fallback is
-  configured.
-- Review `owner_review_packet.csv`, authoritative source/version identity,
-  applicability dates, employment relevance, and benchmark references.
-- Review the benchmark, then run held-out evaluation after reviewed corpus
-  embedding/import/activation.
-- Run hosted CI and retain remote evidence after the offline gates pass.
+- Implement a conservative source/date policy that allows explicitly
+  provisional answers when the pinned record supports them, with a freshness and
+  validity caveat. Abstain when requested dates, amendments, partial repeal, or
+  conflicting statuses cannot be resolved. Employment scope remains unchanged.
+- Run the versioned local Qdrant import when Docker is available, then wire
+  real-data BM25+dense retrieval, reranking, and bounded retrieval evaluation.
+- Connect the app and UI to this path without allowing retrieval similarity to
+  stand in for legal validity. Keep Groq disabled by default and free-only; no
+  paid fallback.
+- Keep the existing review artifacts as provenance, not as a development gate.
+  The benchmark remains a draft and cannot support legal-correctness claims.
+- Run hosted CI after the offline gates pass.
 
 The benchmark at `data/benchmarks/vietnamese_employment_draft.json` is unreviewed
 scaffolding. It cannot generate retrieval-quality or legal-correctness claims.

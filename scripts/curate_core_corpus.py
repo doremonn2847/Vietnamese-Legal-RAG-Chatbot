@@ -194,7 +194,7 @@ def build(output):
             for topic in candidates:
                 if article["label"] not in article_candidate_counts[document["id"]][topic]:
                     article_candidate_counts[document["id"]][topic].append(article["label"])
-            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "expiry_state", "current_validity", "amendment_state", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "content_sha256")}
+            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "pham_vi", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "expiry_state", "current_validity", "amendment_state", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "content_sha256")}
             article["topic_candidates"] = candidates
             article["validity"] = "unverified"
             articles.append(article)

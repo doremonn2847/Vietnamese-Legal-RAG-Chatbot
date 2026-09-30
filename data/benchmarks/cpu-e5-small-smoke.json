@@ -1,0 +1,57 @@
+{
+  "artifact": {
+    "source": "huggingface.co/intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "spec": {
+      "model_id": "intfloat/multilingual-e5-small",
+      "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "dimension": 384,
+      "document_prefix": "passage: ",
+      "query_prefix": "query: ",
+      "tokenizer_id": "intfloat/multilingual-e5-small",
+      "tokenizer_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "pooling": "mean",
+      "max_tokens": 512,
+      "normalize_embeddings": true,
+      "preprocessing": "NFC + collapse whitespace"
+    },
+    "spec_sha256": "83faf082c3606ff060ab75678a5cce3daf8f9b4a270ecf82dcb8c8494c8a5b04",
+    "files": {
+      "config.json": "69137736cab8b8903a07fe8afaafdda25aac55415a12a55d1bffa9f581abf959",
+      "model.safetensors": "1a55775f53449dac10a2bcbc312469fac40b96d53198c407081a831f81c98477",
+      "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+      "special_tokens_map.json": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "tokenizer_config.json": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b"
+    }
+  },
+  "counts": {
+    "documents": 1,
+    "queries": 1
+  },
+  "dimensions": {
+    "expected": 384,
+    "observed": 384
+  },
+  "timings_ms": {
+    "documents": {
+      "p50": 23.3098,
+      "p95": 23.3098,
+      "wall": 23.3098
+    },
+    "queries": {
+      "p50": 22.5103,
+      "p95": 22.5103,
+      "wall": 22.5103
+    }
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "dependencies": {
+    "torch": "2.14.0+cpu",
+    "transformers": "4.57.6"
+  },
+  "memory": {
+    "metric": "unsupported",
+    "value": null
+  }
+}
