@@ -43,6 +43,13 @@ class ProvisionalPolicyTest(unittest.TestCase):
                 self.assertFalse(decision["allowed"])
                 self.assertEqual(decision["reason"], "source_text_request_required")
         self.assertTrue(decide_provisional_eligibility("What does Article 24 say about probation?", [self.evidence])["allowed"])
+        self.assertTrue(decide_provisional_eligibility("Nội dung Điều 24 là gì?", [self.evidence])["allowed"])
+
+    def test_combined_source_text_and_applicability_requests_abstain(self):
+        for question in ("Điều 24 quy định gì, có áp dụng cho tôi không?", "What does Article 24 say; can I use it?", "Trích Điều 24, tôi có được áp dụng không?", "Điều 24 quy định gì về tôi có được áp dụng không"):
+            with self.subTest(question=question):
+                decision = decide_provisional_eligibility(question, [self.evidence])
+                self.assertFalse(decision["allowed"])
 
     def test_rejects_noncentral_or_promoted_validity_metadata(self):
         for changed in ({"pham_vi": "Địa phương"}, {"current_validity": "current"}, {"retrieval_index_candidate": False}):

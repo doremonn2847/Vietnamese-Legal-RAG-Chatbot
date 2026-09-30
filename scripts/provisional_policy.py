@@ -9,7 +9,7 @@ PROVISIONAL_CAVEAT = (
 _VALIDITY_QUERY = re.compile(r"\b(hiện nay|hiện tại|hiện hành|hôm nay|today|còn hiệu lực|hết hiệu lực|tình trạng hiệu lực|hiệu lực|đang có hiệu lực|đang áp dụng|còn áp dụng|áp dụng hiện tại|buộc phải tuân thủ|phải tuân thủ|có bắt buộc|có nghĩa vụ|must comply|applicable|validity|currently|in force|currently applicable)\b", re.IGNORECASE)
 _AS_OF_QUERY = re.compile(r"\b(?:tính đến ngày|vào ngày|as of)\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}/\d{1,2}/(?:19|20)\d{2}\b|\bnăm\s+(?:19|20)\d{2}\b", re.IGNORECASE)
 _AMENDMENT_QUERY = re.compile(r"\b(sửa đổi|bổ sung|bản hợp nhất|hợp nhất|mới nhất|đã sửa đổi|amendment|consolidated|latest version)\b", re.IGNORECASE)
-_SOURCE_TEXT_REQUEST = re.compile(r"\b(?:điều\s+\d+\s+(?:quy định|nói|ghi)\s+gì|nội dung\s+(?:của\s+)?điều\s+\d+|trích\s+(?:nguyên văn\s+)?(?:điều\s+)?\d+|what does article\s+\d+\s+say|(?:show|quote)\s+(?:me\s+)?(?:the\s+)?(?:exact\s+)?(?:text|quote)\s+(?:of\s+)?article\s+\d+|exact text of article\s+\d+)\b", re.IGNORECASE)
+_SOURCE_TEXT_REQUEST = re.compile(r"(?:điều\s+\d+\s+(?:quy định|nói|ghi)\s+gì(?:\s+về\s+(?:thử việc|hợp đồng|giờ làm|nghỉ phép))?|nội dung\s+(?:của\s+)?điều\s+\d+(?:\s+là\s+gì)?|trích\s+(?:nguyên văn\s+)?(?:điều\s+)?\d+|what does article\s+\d+\s+say(?:\s+about\s+(?:probation|employment contracts?|working hours?|leave))?|(?:show|quote)\s+(?:me\s+)?(?:the\s+)?(?:exact\s+)?(?:text|quote)\s+(?:of\s+)?article\s+\d+|exact text of article\s+\d+)[?.! ]*", re.IGNORECASE)
 _MESSAGES = {
     "conflicting_status": "Tình trạng hiệu lực trong các bản ghi xung đột; chưa thể xác nhận câu trả lời theo thời điểm yêu cầu.",
     "validity_unverified": "Bản dữ liệu chưa xác minh hiệu lực hiện tại hoặc tình trạng áp dụng.",
@@ -32,7 +32,7 @@ def decide_provisional_eligibility(question, evidence, *, requested_as_of_date=F
         return _deny("conflicting_status" if conflict else "requested_date_unverified")
     if _AMENDMENT_QUERY.search(query):
         return _deny("amendments_unverified")
-    if not _SOURCE_TEXT_REQUEST.search(query):
+    if not _SOURCE_TEXT_REQUEST.fullmatch(query.strip()):
         return _deny("source_text_request_required")
     if not rows:
         return _deny("no_evidence")
