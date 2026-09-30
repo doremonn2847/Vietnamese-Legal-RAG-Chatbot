@@ -5,12 +5,13 @@ import hashlib
 import html
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import pyarrow.dataset as ds
 
 from audit_corpus import REVISION, ROOT as RAW_ROOT, scope_reason, sha256
-from corpus_stage import _segments, parse_articles
+from corpus_stage import _segments
 
 
 CORE_IDS = ("139264", "152668", "146696")
@@ -21,12 +22,41 @@ TOPIC_TERMS = {
     "working_time": ("thời giờ làm việc", "thời giờ nghỉ ngơi", "làm thêm giờ"),
     "leave": ("nghỉ hằng năm", "nghỉ hàng năm", "nghỉ lễ", "nghỉ phép", "ngày nghỉ hằng năm"),
 }
+DEPENDENCY_ALLOWLIST = {
+    "139264": frozenset({"Điều 2", "Điều 3"}),
+    "152668": frozenset({"Điều 2"}),
+    "146696": frozenset({"Điều 1"}),
+}
+AMENDMENT_RELATION_TYPES = frozenset({
+    "Sửa đổi, bổ sung", "Văn bản được sửa đổi", "Văn bản bổ sung", "Hợp nhất",
+    "Thay thế", "Bãi bỏ", "Văn bản hết hiệu lực", "Văn bản quy định hết hiệu lực",
+    "Văn bản bị hết hiệu lực 1 phần", "Văn bản quy định hết hiệu lực 1 phần",
+})
 
 
 def classify_topic_candidates(canonical_text):
     """Return topic labels matched in an extracted article heading."""
     heading = " ".join((canonical_text or "").split()).casefold()
     return [topic for topic, terms in TOPIC_TERMS.items() if any(term in heading for term in terms)]
+
+
+def is_core_retrieval_candidate(document_id, article):
+    return bool(article.get("topic_candidates")) or article.get("label") in DEPENDENCY_ALLOWLIST.get(str(document_id), ())
+
+
+def audit_amendment_boundary(relationships, core_ids):
+    core_ids = set(core_ids)
+    rows = []
+    for edge in relationships:
+        source, target, kind = edge.get("doc_id"), edge.get("other_doc_id"), edge.get("relationship")
+        if kind not in AMENDMENT_RELATION_TYPES or not ({source, target} & core_ids):
+            continue
+        related = target if source in core_ids else source
+        rows.append({"source": source, "target": target, "relationship": kind,
+                     "core_document_id": source if source in core_ids else target,
+                     "related_document_id": related,
+                     "disposition": "quarantined_outside_core_corpus"})
+    return sorted(rows, key=lambda row: (row["core_document_id"], row["source"], row["target"], row["relationship"]))
 
 
 def _content_marker(value, marker):
@@ -161,12 +191,44 @@ def _read_parquet(path, wanted):
     return result
 
 
+def _read_amendment_edges(path, wanted):
+    rows = []
+    for batch in ds.dataset(path, format="parquet").to_batches(batch_size=8192):
+        for edge in batch.to_pylist():
+            if edge.get("doc_id") in wanted or edge.get("other_doc_id") in wanted:
+                rows.append(edge)
+    return rows
+
+
 def _write_jsonl(path, rows):
     partial = path.with_suffix(path.suffix + ".part")
     with partial.open("w", encoding="utf-8", newline="\n") as stream:
         for row in rows:
             stream.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
     partial.replace(path)
+
+
+def load_staged_articles(stage_dir, source_content_hashes):
+    stage_dir = Path(stage_dir)
+    manifest_path = stage_dir / "core_article_stage_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    source_manifest = RAW_ROOT / "manifest.json"
+    article_info = manifest.get("outputs", {}).get("core_articles.jsonl", {})
+    articles_path = stage_dir / "core_articles.jsonl"
+    if manifest.get("dataset_revision") != REVISION or manifest.get("source_manifest_sha256") != sha256(source_manifest) or manifest.get("content_sha256") != source_content_hashes or not articles_path.is_file() or sha256(articles_path) != article_info.get("sha256"):
+        raise ValueError("staged article parses do not match the pinned central corpus inputs")
+    rows = [json.loads(line) for line in articles_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if len(rows) != manifest.get("article_count"):
+        raise ValueError("staged article count does not match its manifest")
+    grouped = {doc_id: [] for doc_id in source_content_hashes}
+    for row in rows:
+        doc_id = row.get("document_id")
+        if doc_id not in grouped or row.get("source_content_sha256") != source_content_hashes[doc_id] or not isinstance(row.get("article"), dict):
+            raise ValueError("staged article record is outside the pinned core sources")
+        grouped[doc_id].append(row["article"])
+    if any(not grouped[doc_id] for doc_id in grouped):
+        raise ValueError("staged article parses are missing a selected core document")
+    return grouped, sha256(manifest_path)
 
 
 def build(output):
@@ -178,11 +240,22 @@ def build(output):
     with (audit_root / "duplicate_groups.csv").open(encoding="utf-8-sig", newline="") as stream:
         duplicate_groups = list(csv.DictReader(stream))
     documents, duplicate_ledger = select_core_records(metadata, contents, audit, duplicate_groups)
+    stage_dir = RAW_ROOT.parents[1] / "staging" / REVISION / "core-employment-portfolio-v1"
+    staged_articles, stage_manifest_sha = load_staged_articles(
+        stage_dir, {doc_id: hashlib.sha256(contents[doc_id].encode("utf-8")).hexdigest() for doc_id in CORE_IDS})
+    relationships_path = RAW_ROOT / "relationships.parquet"
+    amendment_boundary = audit_amendment_boundary(_read_amendment_edges(relationships_path, set(CORE_IDS)), CORE_IDS)
+    related_by_core = {}
+    for edge in amendment_boundary:
+        related_by_core.setdefault(edge["core_document_id"], set()).add(edge["related_document_id"])
+    for document in documents:
+        document["quarantined_related_document_ids"] = sorted(related_by_core.get(document["id"], set()) - set(CORE_IDS))
+        document["amendment_state"] = "base_snapshot_only; noncore amendment/version records quarantined; not consolidated"
 
     articles = []
     article_candidate_counts = {}
     for document in documents:
-        parsed = parse_articles(document["id"], document["content_html"])
+        parsed = staged_articles[document["id"]]
         if not parsed:
             raise ValueError(f"article parser produced no articles for {document['id']}")
         article_candidate_counts[document["id"]] = {topic: [] for topic in TOPIC_TERMS}
@@ -192,10 +265,13 @@ def build(output):
             heading_blocks = _segments(article["source_html"])
             heading = heading_blocks[0][2] if heading_blocks else article["canonical_text"]
             candidates = classify_topic_candidates(heading)
+            retrieval_candidate = is_core_retrieval_candidate(document["id"], {"label": article["label"], "topic_candidates": candidates})
             for topic in candidates:
                 if article["label"] not in article_candidate_counts[document["id"]][topic]:
                     article_candidate_counts[document["id"]][topic].append(article["label"])
-            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "pham_vi", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "reported_status_conflict", "expiry_state", "current_validity", "amendment_state", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "source_dataset_url", "content_sha256")}
+            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "pham_vi", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "reported_status_conflict", "expiry_state", "current_validity", "amendment_state", "quarantined_related_document_ids", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "source_dataset_url", "content_sha256")}
+            article["document_metadata"]["retrieval_index_candidate"] = retrieval_candidate
+            article["index_disposition"] = "in_scope_topic" if candidates else ("explicit_dependency" if retrieval_candidate else "out_of_scope")
             article["topic_candidates"] = candidates
             article["validity"] = "unverified"
             articles.append(article)
@@ -215,7 +291,7 @@ def build(output):
     source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
     audit_manifest_path = audit_root / "audit_manifest.json"
     audit_manifest = json.loads(audit_manifest_path.read_text(encoding="utf-8"))
-    inputs = {row["file"]: row["sha256"] for row in source_manifest["files"] if row["file"] in {"metadata.parquet", "content.parquet"}}
+    inputs = {row["file"]: row["sha256"] for row in source_manifest["files"] if row["file"] in {"metadata.parquet", "content.parquet", "relationships.parquet"}}
     audited_outputs = {row["file"]: row["sha256"] for row in audit_manifest["outputs"] if row["file"] in {"document_decisions.csv", "duplicate_groups.csv"}}
     outputs = {name: {"bytes": (output / name).stat().st_size, "sha256": sha256(output / name)} for name in ("documents.jsonl", "articles.jsonl", "duplicate_ledger.csv")}
     manifest = {
@@ -226,11 +302,16 @@ def build(output):
         "audit_manifest_sha256": sha256(audit_manifest_path),
         "audit_input_sha256": audited_outputs,
         "curation_script_sha256": sha256(Path(__file__)),
+        "core_article_stage_manifest_sha256": stage_manifest_sha,
         "selected_ids": list(CORE_IDS),
-        "selection_policy": "explicit core IDs; exact central-only; no relationship closure",
+        "selection_policy": "explicit core IDs; exact central-only; four topic candidates plus explicit dependency allowlist",
         "duplicate_policy": "prefer Vietnamese original for the verified pinned bibliographic pair; preserve translation separately and do not merge text",
         "document_count": len(documents),
         "article_count": len(articles),
+        "retrieval_index_article_count": sum(article["document_metadata"]["retrieval_index_candidate"] for article in articles),
+        "retrieval_index_dispositions": dict(sorted(Counter(article["index_disposition"] for article in articles).items())),
+        "retrieval_scope": {"topics": list(TOPIC_TERMS), "dependency_allowlist": {key: sorted(value) for key, value in DEPENDENCY_ALLOWLIST.items()}},
+        "amendment_boundary": {"policy": "base snapshots may be quoted extractively; related noncore amendment/version records are quarantined; no consolidated/current-effect claim", "records": amendment_boundary},
         "article_topic_candidates": article_candidate_counts,
         "legal_validity": "unverified for every record; blank expiry remains unknown",
         "reported_status_conflict_ids": ["139264"],

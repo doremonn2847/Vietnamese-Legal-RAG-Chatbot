@@ -71,7 +71,7 @@ def _safe_sources(answer, evidence):
         if not parsed or parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password: url = None
         version = citation.get("document_version_id", citation.get("reviewed_version_id"))
         if answer.get("state") == "provisional":
-            sources.append({"evidence_id": citation["evidence_id"], "document_version_id": version, "title": source.get("title"), "so_ky_hieu": source.get("so_ky_hieu"), "issuer": source.get("issuer"), "reported_status": source.get("reported_status"), "current_validity": "unverified", "source_dataset_revision": source.get("source_dataset_revision"), "quote": citation["quote"], "source_url": url})
+            sources.append({"evidence_id": citation["evidence_id"], "document_version_id": version, "title": source.get("title"), "so_ky_hieu": source.get("so_ky_hieu"), "issuer": source.get("issuer"), "reported_status": source.get("reported_status"), "current_validity": "unverified", "amendment_state": source.get("amendment_state"), "quarantined_related_document_ids": source.get("quarantined_related_document_ids", []), "source_dataset_revision": source.get("source_dataset_revision"), "quote": citation["quote"], "source_url": url})
             continue
         try: dates = {key: date.fromordinal(source[key]).isoformat() for key in ("effective_from_day", "effective_to_day", "reviewed_through_day")}
         except (KeyError, TypeError, ValueError): continue
@@ -168,7 +168,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
             except Exception:
                 selected_evidence, retrieval = {}, {"evidence": []}
             timings = retrieval.get("timings_ms", {}) if isinstance(retrieval, dict) else {}
-            retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if key in {"sparse", "dense", "rerank_and_evidence"} and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
+            retrieval = {"selected_evidence_ids": list(selected_evidence), "evidence_count": len(selected_evidence), "timings_ms": {key: value for key, value in timings.items() if key in {"sparse", "dense", "fusion_and_evidence"} and isinstance(value, (int, float)) and math.isfinite(value)} if isinstance(timings, dict) else {}}
             if not selected_evidence:
                 if policy_decision is not None:
                     reason = policy_decision["reason"]
@@ -179,6 +179,20 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="empty", reason="unavailable", provenance=provenance))
                 return {"demo": False, "state": "unavailable", "answer": _empty("unavailable", "Không có bằng chứng đã xét duyệt phù hợp."), "retrieval": retrieval}
         event_sink.append(event("retrieve", trace_id=trace_id, query=request.question, duration_ms=(time.perf_counter_ns() - started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance))
+        if provisional:
+            evidence_id, source = next(iter(selected_evidence.items()))
+            quote = source["canonical_text"]
+            answer = {"state": "provisional", "legal_date": None, "text": quote,
+                      "claims": [{"claim_id": "snapshot-quote", "text": quote, "evidence_ids": [evidence_id]}],
+                      "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                     "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                      "reason": "", "unanswered": ""}
+            validation = validate_citations(answer, selected_evidence)
+            if not validation["valid"]:
+                return unavailable(502, "Đoạn trích không vượt qua kiểm tra bằng chứng.")
+            return {"demo": False, "state": "provisional", "answer": answer,
+                    "caveat": policy_decision["caveat"], "sources": _safe_sources(answer, selected_evidence),
+                    "validation": validation, "retrieval": retrieval}
         provider_started = time.perf_counter_ns()
         try:
             answer = provider.answer(request.question, None if provisional else legal_date, selected_evidence)
@@ -217,7 +231,15 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
 
     @app.get("/api/search")
     def search(question: str):
-        return {"demo": True, "banner": DEMO_BANNER, "retrieval": synthetic_retrieve(question)}
+        if retriever is None:
+            return {"demo": True, "banner": DEMO_BANNER, "retrieval": synthetic_retrieve(question)}
+        try:
+            result = retriever.search(question)
+        except Exception:
+            raise HTTPException(status_code=503, detail="Configured retrieval is unavailable.")
+        evidence = [{key: row.get(key) for key in ("article_id", "document_version_id", "label", "title", "canonical_text", "pham_vi", "current_validity", "amendment_state", "source_dataset_revision", "source_url")}
+                    for row in result.get("evidence", []) if isinstance(row, dict)]
+        return {"demo": False, "banner": None, "retrieval": {"evidence": evidence, "timings_ms": result.get("timings_ms", {})}}
 
     @app.post("/api/answer")
     @app.post("/chat")

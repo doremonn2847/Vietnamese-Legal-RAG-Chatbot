@@ -103,6 +103,7 @@ def _read_records(articles_path, tokenizer, spec):
                     "expiry_state": docmeta.get("expiry_state"),
                     "current_validity": "unverified",
                     "amendment_state": docmeta.get("amendment_state"),
+                    "quarantined_related_document_ids": docmeta.get("quarantined_related_document_ids", []),
                     "retrieval_index_candidate": True,
                     "answer_evidence_enabled": False,
                     "corpus_disposition": docmeta.get("corpus_disposition"),

@@ -44,7 +44,7 @@ def validate_artifact(artifact_dir, corpus_manifest_path):
             payload, vector = row.get("payload"), row.get("vector")
             if not isinstance(payload, dict) or not isinstance(vector, list) or len(vector) != spec.dimension or any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in vector):
                 raise ValueError("invalid E5 point vector or payload")
-            if payload.get("pham_vi") != "Trung ương" or payload.get("retrieval_index_candidate") is not True or payload.get("answer_evidence_enabled") is not False or payload.get("current_validity") != "unverified" or payload.get("expiry_state") != "unknown_expiry" or type(payload.get("reported_status_conflict")) is not bool:
+            if payload.get("pham_vi") != "Trung ương" or payload.get("retrieval_index_candidate") is not True or payload.get("answer_evidence_enabled") is not False or payload.get("current_validity") != "unverified" or payload.get("expiry_state") != "unknown_expiry" or type(payload.get("reported_status_conflict")) is not bool or not isinstance(payload.get("amendment_state"), str) or not isinstance(payload.get("quarantined_related_document_ids"), list):
                 raise ValueError("point violates central-only or unverified-evidence policy")
             if not payload.get("canonical_text", "").strip() or payload.get("source_dataset_revision") != context.get("dataset_revision"):
                 raise ValueError("point is missing its evidence text or pinned dataset provenance")
@@ -60,14 +60,22 @@ def validate_artifact(artifact_dir, corpus_manifest_path):
     return manifest, points
 
 
+def versioned_collection_name(manifest, artifact_dir, config=None):
+    config = config or QdrantLocalConfig()
+    artifact_hash = _sha(Path(artifact_dir) / "embedding_manifest.json")
+    context = manifest["context"]
+    revision = re.sub(r"[^A-Za-z0-9_.-]", "_", context["corpus_id"])
+    revision = f"{revision}_{context['corpus_manifest_sha256'][:12]}_{artifact_hash[:12]}"
+    spec_hash = hashlib.sha256(json.dumps(manifest["model"], sort_keys=True).encode()).hexdigest()
+    return config.collection_name(revision, spec_hash)
+
+
 def import_collection(artifact_dir, corpus_manifest_path, qdrant, config=None):
     config = config or QdrantLocalConfig()
     manifest, points = validate_artifact(artifact_dir, corpus_manifest_path)
     context = manifest["context"]
     artifact_manifest_sha256 = _sha(Path(artifact_dir) / "embedding_manifest.json")
-    revision = re.sub(r"[^A-Za-z0-9_.-]", "_", context["corpus_id"])
-    revision = f"{revision}_{context['corpus_manifest_sha256'][:12]}_{artifact_manifest_sha256[:12]}"
-    collection = config.collection_name(revision, manifest["context"].get("embedding_spec_sha256") or hashlib.sha256(json.dumps(manifest["model"], sort_keys=True).encode()).hexdigest())
+    collection = versioned_collection_name(manifest, artifact_dir, config)
     created = False
     try:
         dimension = qdrant.get_collection_dimension(collection)

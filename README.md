@@ -95,7 +95,7 @@ The next provisional stage is available locally:
 # then pass its articles.jsonl path to search_bm25.py.
 ```
 
-The current run found 527 central employment seed documents, 3,789
+The broad provisional run found 527 central employment seed documents, 3,789
 seed/dependency review IDs, 45 dangling dependency IDs, and attempted 1,420
 audit-eligible documents. Article segmentation succeeded for 1,085 documents,
 320 produced zero articles, and 15 were quarantined for explicit layout anomalies,
@@ -114,6 +114,23 @@ packet: 20 employment seeds, 15 central dependencies, 10 quarantined
 dependencies, and 5 dangling targets, each with a source locator, review task,
 pass criteria, and failure action.
 
+The separate three-document prototype is built in this order so the central
+and data-quality checks happen before parsing and only eligible topical
+articles reach the embedding builder:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/core_article_stage.py
+.\.venv\Scripts\python.exe scripts/curate_core_corpus.py
+.\.venv\Scripts\python.exe scripts/core_corpus_embeddings.py --articles data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/articles.jsonl --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json --model data/models/e5-small --output data/embeddings/core-employment-portfolio-v1-e5-small-provisional-v4
+docker compose -f docker-compose.qdrant.yml up -d
+.\.venv\Scripts\python.exe scripts/import_core_corpus_qdrant.py --artifact data/embeddings/core-employment-portfolio-v1-e5-small-provisional-v4 --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json --write-local-qdrant
+```
+
+The core app requires that local Qdrant collection and fails closed if its
+artifact digest, vector size, or point count does not match. It never activates
+an alias. Provisional replies are exact source extracts; current validity,
+amendments, and date-specific applicability remain unverified.
+
 Remaining implementation milestones:
 
 - [x] Pinned snapshot, strict central-only audit, provenance and ledgers.
@@ -122,15 +139,18 @@ Remaining implementation milestones:
 - [x] Qdrant REST/E5 contract tests with synthetic points; live Qdrant integration is opt-in and the real model smoke is recorded below.
 - [x] Minimal FastAPI demo with mocked Vietnamese grounded answers, explicit clarification/unavailable states, and strict citation validation.
 - [x] Pinned local Transformers E5 loader contract with checksummed local artifacts and a real CPU smoke.
-- [x] Real CPU execution of pinned multilingual-E5-small against the inactive core corpus; 477 vectors in checksummed shards, all marked answer-ineligible.
-- [x] Versioned inactive Qdrant import contract for the core artifact, validated with injected transport; local daemon is currently unavailable.
+- [x] Deterministic core article staging reuses active staged parses and parses only the audited duplicate-original document missing from that build.
+- [x] Core retrieval is limited to probation, contracts, working time, leave, and the explicit dependency allowlist; 68 of 365 article versions are indexed.
+- [x] Pinned CPU multilingual-E5-small generated 85 checksum-manifested vectors for the inactive topical corpus.
+- [x] Imported those 85 vectors into an artifact-digest-versioned local Qdrant collection and verified a bounded local search; alias remains inactive.
 - [x] Hybrid retrieval, CPU reranker, evaluation, and privacy-safe logging contracts with injected offline tests. Synthetic branches are not quality measurements.
 - [x] Offline GitHub Actions unit-test workflow; live Qdrant remains opt-in.
 - [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked direct Groq transport.
 - [x] Synthetic manifest/shard import rehearsal with pre-write compatibility checks and no alias activation.
-- [ ] Implement conservative provisional answer eligibility from pinned metadata; abstain on unresolved requested dates, amendments, partial repeal, or conflicting status, and keep the corpus freshness/validity caveat visible.
-- [ ] Import the inactive core vectors into local Qdrant when its daemon is available; connect BM25+dense retrieval, then measure reranking and retrieval quality.
-- [ ] Connect the app to the bounded real-data path and user-configured provider; run held-out portfolio evaluation and hosted CI.
+- [x] App uses local BM25 plus the validated Qdrant collection; `/api/search` uses configured retrieval.
+- [x] Provisional output is deterministic extractive text; applicability, date, and amendment-status questions abstain. No provider call is used for provisional answers.
+- [ ] Benchmark a distinct reranker and retrieval quality; current fusion is explicitly pre-rerank.
+- [ ] Run held-out portfolio evaluation and hosted CI; current validity and legal correctness remain unverified.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
 runnable commands, artifact paths, and owner/resource gates.

@@ -30,6 +30,12 @@ class ProvisionalPolicyTest(unittest.TestCase):
         self.assertFalse(decision["allowed"])
         self.assertEqual(decision["reason"], "conflicting_status")
 
+    def test_applicability_and_amendment_questions_abstain(self):
+        applicability = decide_provisional_eligibility("Tôi có buộc phải tuân thủ Điều 24 hôm nay không?", [self.evidence])
+        amendments = decide_provisional_eligibility("Cho tôi bản hợp nhất mới nhất của Điều 24", [self.evidence])
+        self.assertEqual(applicability["reason"], "validity_unverified")
+        self.assertEqual(amendments["reason"], "amendments_unverified")
+
     def test_rejects_noncentral_or_promoted_validity_metadata(self):
         for changed in ({"pham_vi": "Địa phương"}, {"current_validity": "current"}, {"retrieval_index_candidate": False}):
             with self.subTest(changed=changed):

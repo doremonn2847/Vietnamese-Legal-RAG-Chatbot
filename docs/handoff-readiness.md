@@ -9,8 +9,8 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 0. Audit | Strict central-only ledgers and source hashes | Unit tests | Pinned local data outputs | Legal authority, relevance, validity |
 | 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
-| 3. Dense/retrieval | Pinned E5-small vectors for the inactive core corpus; checksummed shards; versioned Qdrant import path; hybrid/RRF and reranker contracts | Encoder chunking, manifest and injected Qdrant import tests | Real 384-d CPU model/query smoke and 477 core-corpus vectors; local Qdrant unavailable | Real Qdrant writes, provisional answer eligibility, retrieval/reranker quality |
-| 4. App/provider | Synthetic Vietnamese UI/API, citation gate, disabled direct Groq bridge, redacted trace events, and accepted UI state/citation presentation contract | FastAPI, mocked HTTP, and static UI contract tests | One fictional Groq contract smoke succeeded; provider remains disabled | App connected to reviewed hybrid retrieval |
+| 3. Dense/retrieval | Pinned E5-small, 68-article topical eligibility, 85 checksummed vectors, versioned Qdrant import, local hybrid/RRF | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; 3-hit bounded search | Retrieval quality and distinct reranker benchmark |
+| 4. App/provider | Synthetic demo plus opt-in core app; core search uses local BM25+Qdrant; exact-extract provisional response; Groq disabled by default | FastAPI, citation, policy, and retrieval tests | Real corpus + local Qdrant search, provisional citation validation, applicability abstention; provider injected and not called | User-facing legal review, current validity, and answer-quality evaluation |
 | 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
 
 ## Verified Stage 4 state
@@ -91,29 +91,30 @@ provenance agree.
 
 ## Current core-corpus batch
 
-Commit `559e021` contains the deterministic three-document corpus. The current
-uncommitted follow-up uses the immutable `intfloat/multilingual-e5-small`
-revision `614241f622f53c4eeff9890bdc4f31cfecc418b3` and CPU-only
-`torch==2.14.0+cpu` / `transformers==4.57.6`. Local files and all 477 vector
-points are checksum-verified. Long articles are token-windowed while preserving
-article IDs and canonical-text offsets. Every point is exact-central, reports
-validity as unverified, and has `answer_evidence_enabled=false`. The Qdrant
-import validates the entire artifact before writes, uses a versioned collection,
-and does not activate an alias. Injected transport tests pass; the Docker daemon
-is unavailable, so no real Qdrant write has occurred. Generated model, corpus,
-and vector files are ignored by Git.
+Commit `3918fd9` implements extractive provisional answers. The follow-up under
+review records amendment/version edges, quarantines related noncore texts, and
+restricts retrieval to four employment topics plus an explicit dependency
+allowlist (61 topic articles, 7 dependencies, 297 exclusions). It reuses active staged parses for the regulation and circular, and
+stages the Labor Code original once because the active parse build excluded it
+as a duplicate. The curated file still retains 365 articles; 68 enter the index.
+
+The immutable `intfloat/multilingual-e5-small` revision is
+`614241f622f53c4eeff9890bdc4f31cfecc418b3`; the new inactive artifact has 85
+384-dimensional vectors. Local Qdrant v1.13.2 contains all 85 points in the
+artifact-digest-versioned collection. Collection dimension/count and a bounded
+three-hit search were verified. The core app resolves that collection, fails
+closed on mismatch/unavailability, and `/api/search` uses configured retrieval.
+No alias is active. A TestClient check used the real corpus, local Qdrant and
+encoder with a provider that fails if called: extractive response validation
+passed, and an applicability query abstained. Current validity remains
+unverified, blank expiry remains unknown, and Groq stayed disabled.
 
 ## Remaining work
 
-- Implement a conservative source/date policy that allows explicitly
-  provisional answers when the pinned record supports them, with a freshness and
-  validity caveat. Abstain when requested dates, amendments, partial repeal, or
-  conflicting statuses cannot be resolved. Employment scope remains unchanged.
-- Run the versioned local Qdrant import when Docker is available, then wire
-  real-data BM25+dense retrieval, reranking, and bounded retrieval evaluation.
-- Connect the app and UI to this path without allowing retrieval similarity to
-  stand in for legal validity. Keep Groq disabled by default and free-only; no
-  paid fallback.
+- Benchmark a distinct reranker and evaluate the four-topic retrieval baseline.
+- Continue to keep validity unverified; do not treat the extractive slice as a
+  legal-correctness or current-applicability release.
+- Keep Groq disabled by default; no hosted or paid call was made for this batch.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.

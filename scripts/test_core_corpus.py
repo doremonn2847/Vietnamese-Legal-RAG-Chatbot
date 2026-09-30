@@ -1,6 +1,11 @@
 import unittest
+import hashlib
+import json
+import tempfile
+from pathlib import Path
 
-from curate_core_corpus import classify_topic_candidates, select_core_records
+from audit_corpus import ROOT as RAW_ROOT, REVISION, sha256
+from curate_core_corpus import audit_amendment_boundary, classify_topic_candidates, is_core_retrieval_candidate, load_staged_articles, select_core_records
 
 
 class CoreCorpusTest(unittest.TestCase):
@@ -54,6 +59,35 @@ class CoreCorpusTest(unittest.TestCase):
     def test_topic_candidates_use_article_heading_not_body_mentions(self):
         self.assertEqual(classify_topic_candidates("Điều 24. Thử việc"), ["probation"])
         self.assertEqual(classify_topic_candidates("Điều 1. Phạm vi điều chỉnh"), [])
+
+    def test_index_scope_is_four_topics_plus_explicit_dependencies(self):
+        self.assertTrue(is_core_retrieval_candidate("139264", {"label": "Điều 24", "topic_candidates": ["probation"]}))
+        self.assertTrue(is_core_retrieval_candidate("139264", {"label": "Điều 3", "topic_candidates": []}))
+        self.assertFalse(is_core_retrieval_candidate("139264", {"label": "Điều 10", "topic_candidates": []}))
+
+    def test_amendment_edges_are_retained_and_noncore_related_acts_quarantined(self):
+        rows = audit_amendment_boundary([
+            {"doc_id": "161263", "other_doc_id": "139264", "relationship": "Sửa đổi, bổ sung"},
+            {"doc_id": "139264", "other_doc_id": "46744", "relationship": "Sửa đổi, bổ sung"},
+            {"doc_id": "100", "other_doc_id": "139264", "relationship": "Căn cứ"},
+        ], {"139264", "152668", "146696"})
+        self.assertEqual({row["related_document_id"] for row in rows}, {"161263", "46744"})
+        self.assertTrue(all(row["disposition"] == "quarantined_outside_core_corpus" for row in rows))
+
+    def test_staged_articles_are_bound_to_the_pinned_source_and_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            content_hashes = {doc_id: hashlib.sha256(doc_id.encode()).hexdigest() for doc_id in ("139264", "152668", "146696")}
+            data = "".join(json.dumps({"document_id": doc_id, "source_content_sha256": digest, "article": {"label": "Điều 1"}}, ensure_ascii=False) + "\n" for doc_id, digest in content_hashes.items())
+            article_path = root / "core_articles.jsonl"
+            article_path.write_text(data, encoding="utf-8")
+            manifest = {"dataset_revision": REVISION, "source_manifest_sha256": sha256(RAW_ROOT / "manifest.json"),
+                       "content_sha256": content_hashes, "article_count": 3,
+                       "outputs": {article_path.name: {"sha256": sha256(article_path)}}}
+            (root / "core_article_stage_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            parsed, _ = load_staged_articles(root, content_hashes)
+            self.assertEqual(set(parsed), set(content_hashes))
+            self.assertEqual(len(parsed["139264"]), 1)
 
 
 if __name__ == "__main__":

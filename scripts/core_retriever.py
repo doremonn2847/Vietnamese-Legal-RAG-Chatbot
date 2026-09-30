@@ -15,6 +15,8 @@ class CoreCorpusRetriever:
         self.articles_path = Path(articles_path)
         self.corpus_manifest_path = Path(corpus_manifest_path)
         self.artifact_dir = Path(artifact_dir)
+        if qdrant is not None and (not isinstance(collection, str) or not collection.strip()):
+            raise ValueError("Qdrant collection is required when configured retrieval is enabled")
         self.encoder, self.qdrant, self.collection = encoder, qdrant, collection
         self.sparse_limit, self.dense_limit, self.evidence_cap = sparse_limit, dense_limit, evidence_cap
         corpus = json.loads(self.corpus_manifest_path.read_text(encoding="utf-8"))
@@ -32,8 +34,8 @@ class CoreCorpusRetriever:
                 if not isinstance(article_id, str) or article_id in self.articles:
                     raise ValueError(f"invalid or duplicate article ID at line {line_number}")
                 metadata = article.get("document_metadata") or {}
-                if metadata.get("pham_vi") != "Trung ương" or metadata.get("retrieval_index_candidate") is not True:
-                    raise ValueError(f"article fails exact central retrieval eligibility at line {line_number}")
+                if metadata.get("pham_vi") != "Trung ương" or type(metadata.get("retrieval_index_candidate")) is not bool:
+                    raise ValueError(f"article fails exact central scope metadata at line {line_number}")
                 self.articles[article_id] = article
         docs = []
         for point in self.points:
@@ -42,10 +44,11 @@ class CoreCorpusRetriever:
             if not article or article.get("article_version_id") != payload.get("article_version_id") or article.get("document_version_id") != payload.get("document_version_id"):
                 raise ValueError("embedding point does not match its parent article/version")
             metadata = article.get("document_metadata") or {}
-            if any(payload.get(key) != metadata.get(key) for key in ("pham_vi", "retrieval_index_candidate", "answer_evidence_enabled", "current_validity", "expiry_state", "reported_status_conflict", "source_dataset_revision")):
+            if metadata.get("retrieval_index_candidate") is not True or any(payload.get(key) != metadata.get(key) for key in ("pham_vi", "retrieval_index_candidate", "answer_evidence_enabled", "current_validity", "expiry_state", "reported_status_conflict", "amendment_state", "quarantined_related_document_ids", "source_dataset_revision")):
                 raise ValueError("embedding point metadata differs from its parent article")
             docs.append({"article_id": payload["article_id"], "document_version_id": payload["document_version_id"], "child_id": payload["child_id"], "text": payload["canonical_text"]})
-        if len(self.articles) != corpus.get("article_count") or len({point["payload"]["article_version_id"] for point in self.points}) != len(self.articles):
+        expected_candidates = corpus.get("retrieval_index_article_count", corpus.get("article_count"))
+        if len(self.articles) != corpus.get("article_count") or len({point["payload"]["article_version_id"] for point in self.points}) != expected_candidates:
             raise ValueError("article and embedding manifests have different version coverage")
         self.sparse = BM25Index(docs)
         self.index_version = hashlib.sha256((self.corpus_manifest_path.read_bytes() + (self.artifact_dir / "embedding_manifest.json").read_bytes()).strip()).hexdigest()
@@ -78,7 +81,7 @@ class CoreCorpusRetriever:
             metadata = article["document_metadata"]
             candidates.append({**article, **metadata, **hit, "text": article["canonical_text"], "source_url": metadata.get("source_dataset_url"), "evidence_id": f"{article['article_id']}:{article['document_version_id']}", "matched_child_ids": sorted(child for child in matched.get(hit["article_id"], set()) if child)})
         evidence = select_evidence(candidates, self.evidence_cap)
-        return {"sparse": sparse, "dense": dense, "fused": fused, "evidence": evidence, "timings_ms": {"sparse": sparse_ms, "dense": dense_ms, "rerank_and_evidence": (time.perf_counter_ns() - ranked_started) / 1_000_000}}
+        return {"sparse": sparse, "dense": dense, "fused": fused, "evidence": evidence, "timings_ms": {"sparse": sparse_ms, "dense": dense_ms, "fusion_and_evidence": (time.perf_counter_ns() - ranked_started) / 1_000_000}}
 
 
 def _sha(path):

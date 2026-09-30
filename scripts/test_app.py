@@ -184,7 +184,53 @@ class AppTest(unittest.TestCase):
         self.assertEqual(response.json()["state"], "provisional")
         self.assertTrue(response.json()["caveat"])
         self.assertTrue(response.json()["validation"]["valid"])
-        self.assertIsNone(calls[0][0])
+        self.assertEqual(calls, [])
+
+    def test_provisional_answers_are_extracts_and_never_call_provider(self):
+        text = "Điều 24. Thử việc tối đa 60 ngày."
+        evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": text,
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True, "answer_evidence_enabled": False,
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        calls = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence], "timings_ms": {}}
+        class Provider:
+            def answer(self, *args): calls.append(args); return {}
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        body = response.json()
+        self.assertEqual(body["state"], "provisional")
+        self.assertEqual(body["answer"]["text"], text)
+        self.assertTrue(body["validation"]["valid"])
+        self.assertEqual(calls, [])
+
+    def test_applicability_question_is_abstained_without_provider_call(self):
+        text = "Điều 24. Thử việc tối đa 60 ngày."
+        evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": text,
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True, "answer_evidence_enabled": False,
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        calls = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence], "timings_ms": {}}
+        class Provider:
+            def answer(self, *args): calls.append(args); return {}
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Tôi có buộc phải tuân thủ Điều 24 hôm nay không?"})
+        self.assertEqual(response.json()["state"], "abstain_insufficient_evidence")
+        self.assertEqual(calls, [])
+
+    def test_search_endpoint_uses_configured_core_retriever(self):
+        class CoreRetriever:
+            def search(self, question, legal_date=None):
+                return {"evidence": [{"article_id": "a1", "label": "Điều 24", "title": "Bộ luật", "canonical_text": "Nội dung", "document_version_id": "v1", "current_validity": "unverified"}]}
+        response = TestClient(create_app(retriever=CoreRetriever(), provisional_snapshot_enabled=True)).get(
+            "/api/search", params={"question": "thử việc"})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["demo"])
+        self.assertEqual(response.json()["retrieval"]["evidence"][0]["article_id"], "a1")
+        self.assertNotIn("HƯ CẤU", response.text)
 
     def test_explicit_as_of_date_is_abstained_before_provider(self):
         evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": "Điều 1.",

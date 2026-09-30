@@ -70,13 +70,16 @@ class QdrantRestAdapter:
         return self.transport("DELETE", f"/collections/{collection}", {})
 
     def get_collection_dimension(self, collection):
-        response = self.transport("GET", f"/collections/{collection}", {})
+        response = self.get_collection_info(collection)
         vectors = response.get("result", {}).get("config", {}).get("params", {}).get("vectors", {})
         dimension = vectors.get("size") if isinstance(vectors, dict) else None
         if not isinstance(dimension, int):
             raise ValueError("collection vector schema is unavailable")
         self._dimensions[collection] = dimension
         return dimension
+
+    def get_collection_info(self, collection):
+        return self.transport("GET", f"/collections/{collection}", {})
 
     def get_point(self, collection, point_id):
         return self.transport("GET", f"/collections/{collection}/points/{point_id}", {})

@@ -69,6 +69,13 @@ def validate_citations(answer, evidence, requested_legal_date=None):
             if source.get("effective_from_day") is None or source["effective_from_day"] > legal_day or (not open_ended and (source.get("effective_to_day") is None or source["effective_to_day"] <= legal_day)) or source.get("reviewed_through_day") is None or source["reviewed_through_day"] < legal_day:
                 invalid.append(evidence_id)
     cited = set(citation_ids)
+    if state == "provisional":
+        extracts = {}
+        for citation in citations:
+            extracts.setdefault(citation.get("evidence_id"), set()).add(citation.get("quote"))
+        for claim in claims:
+            if claim.get("text") not in set().union(*(extracts.get(evidence_id, set()) for evidence_id in claim.get("evidence_ids", []))):
+                invalid.append(claim.get("claim_id", "uncited_extract"))
     for claim in claims:
         if any(evidence_id in known and evidence_id not in cited for evidence_id in claim.get("evidence_ids", [])):
             uncited.append(claim.get("claim_id", ""))

@@ -30,6 +30,7 @@ class CoreCorpusQdrantTest(unittest.TestCase):
             "pham_vi": "Trung ương", "retrieval_index_candidate": True,
             "answer_evidence_enabled": False, "current_validity": "unverified", "expiry_state": "unknown_expiry",
             "canonical_text": "fixture evidence", "source_dataset_revision": "revision-fixture", "reported_status_conflict": False,
+            "amendment_state": "not_verified", "quarantined_related_document_ids": [],
         }
         self.point = {"id": stable_point_id("article-id", "document-version", "chunk-0"), "vector": [0.0] * 384, "payload": self.payload}
         self.write_artifact()
