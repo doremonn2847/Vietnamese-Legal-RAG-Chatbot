@@ -31,3 +31,22 @@ once to fetch the immutable CPU model, then use the command in
 `docs/handoff-readiness.md`. Results are exploratory because this small set has
 no held-out cases; they do not establish legal correctness or justify activating
 the corpus.
+
+## Frozen held-out engineering set
+
+`data/benchmarks/vietnamese_employment_heldout_v1.json` was frozen in commit
+`f1e4dca` before the multi-depth evaluator was added. It has six answerable
+heading-level cases, one multi-target ambiguous case, and one out-of-scope
+negative case; its scenario families do not overlap the dev set. The result at
+`data/benchmarks/vietnamese_employment_heldout_v1_results.json` reports BM25,
+dense, RRF, and rerank candidate depths 5/10/20, plus per-query rankings,
+Recall/MRR, p50/p95 latency, and process peak resident memory. The negative case
+still receives retrieval candidates, which is a useful limit of ranking-only
+evaluation and not a legal-answer decision.
+
+The pinned CPU BGE reranker raised held-out MRR@5 from 0.786 for RRF to 1.0 at
+all three candidate depths; recall@5 was 1.0 across answerable and ambiguous
+cases. Median rerank latency ranged from 7.2 seconds at depth 5 to 28.6 seconds
+at depth 20. Given that cost and the tiny manually labeled set, the interactive
+retriever remains pre-rerank. These measurements are exploratory heading-level
+retrieval evidence only, not legal validation.

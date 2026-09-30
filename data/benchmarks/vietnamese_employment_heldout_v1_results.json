@@ -1,0 +1,856 @@
+{
+  "benchmark": {
+    "id": "vietnamese-employment-heldout-v1",
+    "split": "heldout",
+    "label_freeze": "2026-09-30",
+    "labeling": "manual Vietnamese heading-level retrieval relevance; not legal review, validity, or advice",
+    "cases": 8,
+    "sha256": "be6573efa966a6819645cdde918aede1dbc3a3882dbf3e2d404c1e5b1da96d19"
+  },
+  "corpus": {
+    "id": "core-employment-portfolio-v1",
+    "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+    "manifest_sha256": "c16bfcd783f5714cea243cbccdd3359dce46bdb1a53b0249579cc055b115cd5a"
+  },
+  "embedding": {
+    "model_id": "intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "manifest_sha256": "97b881b86aec021e886873127885460b621762abdc4206be0f6e88d24ff523ba"
+  },
+  "reranker": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "execution": "CPU",
+    "manifest_sha256": "e499e5f9bd6adcd84d4ddd6ee5849aeae12a9f1e9f42583e0865e94ca9f2abb7"
+  },
+  "retrieval_mode": "BM25 + exact dot-product over pinned local vectors + RRF; no Qdrant request",
+  "limits": {
+    "sparse_candidates": 30,
+    "dense_candidates": 30,
+    "rerank_depths": [
+      5,
+      10,
+      20
+    ],
+    "k": 5
+  },
+  "memory": {
+    "metric": "process peak resident working set",
+    "bytes_after_models_loaded": 899743744,
+    "bytes_after_evaluation": 2052042752
+  },
+  "results": [
+    {
+      "case_id": "contract-duration-type",
+      "scenario_family_id": "contract-duration-choice",
+      "kind": "answerable",
+      "retrieval_latency_ms": 871.7704,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "a71d875b-87a6-5bde-ab83-042475c5b6ea",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "3f2b3e90-453c-527c-ade0-11e72029d715"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "3f2b3e90-453c-527c-ade0-11e72029d715"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 10385.9785
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15656.4371
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 30796.7233
+        }
+      }
+    },
+    {
+      "case_id": "contract-amendment-process",
+      "scenario_family_id": "contract-amendment-procedure",
+      "kind": "answerable",
+      "retrieval_latency_ms": 331.1019,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "02eee374-a457-569d-92b2-7795f569fa63",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "068ff88d-038a-5ca3-9c3b-0da0200aac90"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "068ff88d-038a-5ca3-9c3b-0da0200aac90",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7027.8629
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13986.5795
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 27651.6059
+        }
+      }
+    },
+    {
+      "case_id": "overtime-consent",
+      "scenario_family_id": "overtime-consent",
+      "kind": "answerable",
+      "retrieval_latency_ms": 113.6825,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 6952.6128
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "d890c9fc-cf24-55c0-ad5b-c41c9698ce21",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13684.9358
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "d890c9fc-cf24-55c0-ad5b-c41c9698ce21",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 28714.3871
+        }
+      }
+    },
+    {
+      "case_id": "paid-rest-time",
+      "scenario_family_id": "paid-rest-time",
+      "kind": "answerable",
+      "retrieval_latency_ms": 154.6328,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.2
+          },
+          "top_article_ids": [
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7404.9022
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13809.6412
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 27730.9117
+        }
+      }
+    },
+    {
+      "case_id": "annual-leave-entitlement",
+      "scenario_family_id": "annual-leave-entitlement",
+      "kind": "answerable",
+      "retrieval_latency_ms": 69.6792,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "b6e82d58-e750-5a73-837f-664f05fa258b",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 5528.4492
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13660.2236
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 28432.8588
+        }
+      }
+    },
+    {
+      "case_id": "seniority-leave-increment",
+      "scenario_family_id": "seniority-leave-increment",
+      "kind": "answerable",
+      "retrieval_latency_ms": 49.1641,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "b6e82d58-e750-5a73-837f-664f05fa258b",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 5197.6449
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13997.4653
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "375749b3-e300-57e9-a4fb-abcafabd9616"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 27336.6411
+        }
+      }
+    },
+    {
+      "case_id": "special-work-rest-ambiguous",
+      "scenario_family_id": "special-work-rest-ambiguity",
+      "kind": "ambiguous",
+      "retrieval_latency_ms": 78.1613,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7614.9283
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15168.0894
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 31061.6244
+        }
+      }
+    },
+    {
+      "case_id": "unemployment-insurance-out-of-scope",
+      "scenario_family_id": "unemployment-insurance-outscope",
+      "kind": "negative",
+      "retrieval_latency_ms": 293.0563,
+      "baseline": {
+        "bm25": {
+          "metrics": null,
+          "top_article_ids": [
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ]
+        },
+        "dense": {
+          "metrics": null,
+          "top_article_ids": [
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ]
+        },
+        "rrf": {
+          "metrics": null,
+          "top_article_ids": [
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": null,
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7599.8767
+        },
+        "10": {
+          "metrics": null,
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 14407.5517
+        },
+        "20": {
+          "metrics": null,
+          "top_article_ids": [
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 28992.8863
+        }
+      }
+    }
+  ],
+  "summary": {
+    "case_counts": {
+      "answerable": 6,
+      "ambiguous": 1,
+      "negative": 1
+    },
+    "baseline": {
+      "bm25": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 0.7428571428571429
+      },
+      "dense": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 0.8571428571428571
+      },
+      "rrf": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 0.7857142857142857
+      }
+    },
+    "reranked": {
+      "5": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0
+      },
+      "10": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0
+      },
+      "20": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0
+      }
+    },
+    "negative_cases_with_any_rrf_candidate": 1,
+    "latency_ms": {
+      "retrieval": {
+        "samples": 8,
+        "p50": 134.15765,
+        "p95": 871.7704
+      },
+      "retrieval_stages": {
+        "sparse": {
+          "samples": 8,
+          "p50": 4.36415,
+          "p95": 31.9195
+        },
+        "dense": {
+          "samples": 8,
+          "p50": 106.83155000000001,
+          "p95": 866.6188
+        },
+        "fusion_and_evidence": {
+          "samples": 8,
+          "p50": 3.2146,
+          "p95": 23.0557
+        }
+      },
+      "rerank_by_depth": {
+        "5": {
+          "samples": 8,
+          "p50": 7216.38255,
+          "p95": 10385.9785
+        },
+        "10": {
+          "samples": 8,
+          "p50": 13992.0224,
+          "p95": 15656.4371
+        },
+        "20": {
+          "samples": 8,
+          "p50": 28573.62295,
+          "p95": 31061.6244
+        }
+      }
+    }
+  },
+  "claims": "heading-level retrieval engineering only; labels do not validate legal content or current applicability"
+}

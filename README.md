@@ -151,7 +151,8 @@ Remaining implementation milestones:
 - [x] App uses local BM25 plus the validated Qdrant collection; `/api/search` uses configured retrieval.
 - [x] Provisional output is deterministic extractive text for explicit source-text requests; applicability, ambiguous permission, date, and amendment-status questions abstain. No provider call is used for provisional answers.
 - [x] Ran a bounded nine-query manually labeled retrieval comparison with the pinned CPU reranker; the report retains pre-rerank and post-rerank results and is explicitly exploratory.
-- [ ] Expand/review held-out portfolio cases and hosted CI; current validity and legal correctness remain unverified.
+- [x] Froze an eight-case held-out set and compared BM25, dense, RRF, and CPU reranking depths 5/10/20 with Recall/MRR, p50/p95 latency, and process peak memory. Interactive retrieval remains pre-rerank because CPU reranking took 7–29 seconds/query.
+- [ ] Expand the exploratory set before broad retrieval claims and run hosted CI; current validity and legal correctness remain unverified.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
 runnable commands, artifact paths, and owner/resource gates.

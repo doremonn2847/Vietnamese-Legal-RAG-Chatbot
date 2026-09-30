@@ -49,6 +49,7 @@ $env:PYTHONPATH='scripts'
 # Optional distinct CPU reranker benchmark (9 manually labeled dev queries, <=20 candidates).
 .\.venv\Scripts\python.exe scripts/fetch_reranker.py --output data/models/bge-reranker-v2-m3
 .\.venv\Scripts\python.exe scripts/evaluate_core_reranker.py --reranker data/models/bge-reranker-v2-m3 --output data/benchmarks/vietnamese_employment_retrieval_v1_results.json
+.\.venv\Scripts\python.exe scripts/evaluate_heldout_retrieval.py --output data/benchmarks/vietnamese_employment_heldout_v1_results.json
 
 # Generate inactive real-data vectors, then validate the Qdrant import artifact without writes.
 .\.venv\Scripts\python.exe scripts/core_corpus_embeddings.py --articles data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/articles.jsonl --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json --model data/models/e5-small --output data/embeddings/core-employment-portfolio-v1-e5-small-r4
@@ -118,7 +119,9 @@ permission questions abstain by default.
 ## Remaining work
 
 - A bounded nine-query dev check is recorded at `data/benchmarks/vietnamese_employment_retrieval_v1_results.json`. On this machine the distinct pinned BGE CPU reranker raised mean MRR@5 from 0.944 to 1.0 and left recall@5 at 1.0; mean reranker latency was about 27 seconds/query. The set is small and manually labeled from section headings, so these exploratory results do not establish retrieval quality broadly or legal correctness.
-- Review and expand held-out portfolio cases before making retrieval-quality claims.
+- An eight-case held-out set and real local evaluation are recorded at `data/benchmarks/vietnamese_employment_heldout_v1_results.json`. Recall@5 was 1.0 for answerable/ambiguous cases; MRR@5 was BM25 0.743, dense 0.857, RRF 0.786, and reranking 1.0 at candidate depths 5/10/20. Reranker p50/p95 latency ranged from 7.2/10.4 s (depth 5) to 28.6/31.1 s (depth 20). Peak process working set rose from 0.90 GB after model load to 2.05 GB after evaluation. Labels are frozen heading-level retrieval labels, not legal review. The online path remains pre-rerank due to CPU latency.
+- The negative case still returns RRF candidates: retrieval scores alone do not decide whether a legal answer is safe.
+- Expand the exploratory set before broader retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
 - Keep Groq disabled by default; no hosted or paid call was made for this batch.
