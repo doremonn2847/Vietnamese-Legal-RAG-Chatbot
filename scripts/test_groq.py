@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
 from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
-from smoke_snapshot_excerpt_groq import main as snapshot_smoke_main
+from smoke_snapshot_excerpt_groq import _citation_summary, main as snapshot_smoke_main
 
 
 class GroqTest(unittest.TestCase):
@@ -15,6 +15,12 @@ class GroqTest(unittest.TestCase):
         self.config = GroqConfig("https://api.groq.com/openai/v1", "chat/completions", "openai/gpt-oss-20b", True)
         self.quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
         self.answer = {"state": "answer", "legal_date": "2024-01-01", "text": self.quote, "claims": [{"claim_id": "c1", "text": self.quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": self.quote, "span_start": 0, "span_end": len(self.quote), "document_version_id": "fiction-v1"}], "reason": "", "unanswered": ""}
+
+    def test_smoke_citation_report_omits_raw_quote(self):
+        summary = _citation_summary(self.answer["citations"][0])
+        self.assertEqual(summary["quote_length_chars"], len(self.quote))
+        self.assertNotIn(self.quote, json.dumps(summary, ensure_ascii=False))
+        self.assertEqual(summary["span_start"], 0)
 
     def test_disabled_and_exact_structured_request(self):
         with self.assertRaises(RuntimeError): GroqProvider(GroqConfig(), lambda *args: None).generate([])
