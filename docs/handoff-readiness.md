@@ -107,7 +107,9 @@ closed on mismatch/unavailability, and `/api/search` uses configured retrieval.
 No alias is active. A TestClient check used the real corpus, local Qdrant and
 encoder with a provider that fails if called: extractive response validation
 passed, and an applicability query abstained. Current validity remains
-unverified, blank expiry remains unknown, and Groq stayed disabled.
+unverified, blank expiry remains unknown, and Groq stayed disabled. Only a
+clearly phrased source-text request can receive the extract; ambiguous
+permission questions abstain by default.
 
 ## Remaining work
 

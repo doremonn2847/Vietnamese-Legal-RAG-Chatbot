@@ -220,6 +220,10 @@ class AppTest(unittest.TestCase):
             "/api/answer", json={"question": "Tôi có buộc phải tuân thủ Điều 24 hôm nay không?"})
         self.assertEqual(response.json()["state"], "abstain_insufficient_evidence")
         self.assertEqual(calls, [])
+        ambiguous = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Can I use a 60-day probation period?"})
+        self.assertEqual(ambiguous.json()["state"], "abstain_insufficient_evidence")
+        self.assertEqual(calls, [])
 
     def test_search_endpoint_uses_configured_core_retriever(self):
         class CoreRetriever:

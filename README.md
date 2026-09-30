@@ -128,8 +128,9 @@ docker compose -f docker-compose.qdrant.yml up -d
 
 The core app requires that local Qdrant collection and fails closed if its
 artifact digest, vector size, or point count does not match. It never activates
-an alias. Provisional replies are exact source extracts; current validity,
-amendments, and date-specific applicability remain unverified.
+an alias. Provisional replies are exact source extracts only for explicit
+source-text requests. Applicability, ambiguous permission, current validity,
+amendments, and date-specific questions abstain or remain unverified.
 
 Remaining implementation milestones:
 
@@ -148,7 +149,7 @@ Remaining implementation milestones:
 - [x] Synthetic API/provider bridge and privacy-safe trace contract, including disabled-by-default mocked direct Groq transport.
 - [x] Synthetic manifest/shard import rehearsal with pre-write compatibility checks and no alias activation.
 - [x] App uses local BM25 plus the validated Qdrant collection; `/api/search` uses configured retrieval.
-- [x] Provisional output is deterministic extractive text; applicability, date, and amendment-status questions abstain. No provider call is used for provisional answers.
+- [x] Provisional output is deterministic extractive text for explicit source-text requests; applicability, ambiguous permission, date, and amendment-status questions abstain. No provider call is used for provisional answers.
 - [ ] Benchmark a distinct reranker and retrieval quality; current fusion is explicitly pre-rerank.
 - [ ] Run held-out portfolio evaluation and hosted CI; current validity and legal correctness remain unverified.
 

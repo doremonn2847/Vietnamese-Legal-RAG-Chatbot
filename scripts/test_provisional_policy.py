@@ -36,6 +36,14 @@ class ProvisionalPolicyTest(unittest.TestCase):
         self.assertEqual(applicability["reason"], "validity_unverified")
         self.assertEqual(amendments["reason"], "amendments_unverified")
 
+    def test_only_explicit_source_text_requests_are_eligible(self):
+        for question in ("Tôi có được thử việc 60 ngày không?", "Hiện giờ tôi có được thử việc 60 ngày không?", "Can I use a 60-day probation period?"):
+            with self.subTest(question=question):
+                decision = decide_provisional_eligibility(question, [self.evidence])
+                self.assertFalse(decision["allowed"])
+                self.assertEqual(decision["reason"], "source_text_request_required")
+        self.assertTrue(decide_provisional_eligibility("What does Article 24 say about probation?", [self.evidence])["allowed"])
+
     def test_rejects_noncentral_or_promoted_validity_metadata(self):
         for changed in ({"pham_vi": "Địa phương"}, {"current_validity": "current"}, {"retrieval_index_candidate": False}):
             with self.subTest(changed=changed):
