@@ -1,0 +1,19 @@
+{
+  "benchmark_id": "vietnamese-employment-heldout-v2",
+  "split": "heldout",
+  "label_freeze": "2026-09-30",
+  "supersedes": "vietnamese-employment-heldout-v1",
+  "corpus_id": "core-employment-portfolio-v1",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "labeling": "manual Vietnamese heading-level retrieval relevance; not legal review, validity, or advice",
+  "cases": [
+    {"case_id": "contract-duration-type", "scenario_family_id": "contract-duration-choice", "kind": "answerable", "query": "Hợp đồng lao động không xác định thời hạn thuộc loại hợp đồng nào?", "relevant_article_ids": ["e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8"]},
+    {"case_id": "contract-amendment-process", "scenario_family_id": "contract-amendment-procedure", "kind": "answerable", "query": "Hai bên muốn thay đổi nội dung hợp đồng lao động thì xử lý ra sao?", "relevant_article_ids": ["2fd5cbf6-e01f-5741-b776-ec0840634d89"]},
+    {"case_id": "overtime-consent", "scenario_family_id": "overtime-consent", "kind": "answerable", "query": "Khi nào cần có sự đồng ý của người lao động để làm thêm giờ?", "relevant_article_ids": ["870c93c9-cd7f-5430-bb26-9acc131f71d7"]},
+    {"case_id": "paid-rest-time", "scenario_family_id": "paid-rest-time", "kind": "answerable", "query": "Khoảng nghỉ nào được tính vào thời giờ làm việc hưởng lương?", "relevant_article_ids": ["368e060a-40a3-51cd-8134-27ce5b88e9b3"]},
+    {"case_id": "contract-termination-cases", "scenario_family_id": "contract-termination-cases", "kind": "answerable", "query": "Trong trường hợp nào hợp đồng lao động chấm dứt?", "relevant_article_ids": ["98d8e71d-815e-55cc-b303-0919d1ed0019"]},
+    {"case_id": "worker-unilateral-termination", "scenario_family_id": "worker-unilateral-termination", "kind": "answerable", "query": "Người lao động có thể đơn phương chấm dứt hợp đồng lao động khi nào?", "relevant_article_ids": ["e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"]},
+    {"case_id": "special-work-rest-ambiguous", "scenario_family_id": "special-work-rest-ambiguity", "kind": "ambiguous", "query": "Thời giờ làm việc và thời giờ nghỉ ngơi của công việc có tính chất đặc biệt được quy định ở đâu?", "relevant_article_ids": ["368e060a-40a3-51cd-8134-27ce5b88e9b3", "8e6ad528-07ef-59e9-9433-4e92d3a5ee72"]},
+    {"case_id": "unemployment-insurance-out-of-scope", "scenario_family_id": "unemployment-insurance-outscope", "kind": "negative", "query": "Bảo hiểm thất nghiệp được hưởng bao nhiêu?", "relevant_article_ids": []}
+  ]
+}

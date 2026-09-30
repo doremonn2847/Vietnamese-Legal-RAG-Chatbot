@@ -1,0 +1,10 @@
+{
+  "benchmark_id": "vietnamese-employment-heldout-v1",
+  "status": "superseded",
+  "superseded_by": "vietnamese-employment-heldout-v2",
+  "benchmark_sha256": "be6573efa966a6819645cdde918aede1dbc3a3882dbf3e2d404c1e5b1da96d19",
+  "historical_results_sha256": "93d427f966ce19d0a2fad81db50add6bd3f0b3342c3299a4e84445193e88c6e6",
+  "reason": "Leakage: annual-leave and seniority-leave cases reuse development relevant article IDs and paraphrase the same fact patterns.",
+  "affected_case_ids": ["annual-leave-entitlement", "seniority-leave-increment"],
+  "instruction": "Keep v1 and its result as historical artifacts; do not cite its metrics as held-out performance."
+}
