@@ -3,6 +3,7 @@ __pycache__/
 data/raw/
 data/audit/
 data/staging/
+data/curated/
 .env
 .env.*
 !.env.example
