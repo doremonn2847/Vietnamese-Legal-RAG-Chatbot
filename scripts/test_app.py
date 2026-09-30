@@ -98,6 +98,8 @@ class AppTest(unittest.TestCase):
             self.assertIn(state, page)
         for token in ("r.textContent=''", "s.textContent=''", "b.disabled=true", "finally{b.disabled=false}", "textContent", "Hiệu lực:", "Rà soát:", "source_url", "z.demo", "banner.hidden"):
             self.assertIn(token, page)
+        for token in ("current_validity", "unverified", "thử việc", "hợp đồng", "giờ làm", "nghỉ phép", "<details", "aria-live", "@media", "Georgia,serif"):
+            self.assertIn(token, page)
         self.assertNotIn("innerHTML=", page)
 
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
