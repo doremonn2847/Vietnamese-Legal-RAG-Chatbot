@@ -64,25 +64,31 @@ def main(argv=None):
         return 2
 
     transport = http_transport(timeout_seconds=10)
-    calls = 0
+    callback_attempts = 0
+    transport_calls = 0
     usage = []
     provider_errors = []
     report = {"status": "in_progress", "max_provider_calls": MAX_PROVIDER_CALLS,
-              "provider_calls": calls, "provider_errors": provider_errors,
+              "provider_callback_attempts": callback_attempts, "http_transport_calls": transport_calls,
+              "provider_call_count_semantics": "callback attempts vs actual HTTP transport invocations",
+              "provider_errors": provider_errors,
               "usage": usage, "model": config.model, "cases": [],
               "no_retries": True, "paid_fallback": False,
               "attempt_started_at_utc": datetime.now(timezone.utc).isoformat()}
     _checkpoint(report, report_path)
     current_case = None
     def bounded_transport(*args):
-        nonlocal calls
-        if calls >= MAX_PROVIDER_CALLS:
+        nonlocal callback_attempts, transport_calls
+        if callback_attempts >= MAX_PROVIDER_CALLS:
             raise RuntimeError("smoke provider call limit reached")
-        calls += 1
-        report["provider_calls"] = calls
+        callback_attempts += 1
+        report["provider_callback_attempts"] = callback_attempts
         report["call_attempts"] = report.get("call_attempts", []) + [{"case": current_case, "state": "attempt_started"}]
         _checkpoint(report, report_path)
         try:
+            transport_calls += 1
+            report["http_transport_calls"] = transport_calls
+            _checkpoint(report, report_path)
             response = transport(*args)
         except Exception as error:
             provider_errors.append({"case": current_case, "type": type(error).__name__,
@@ -134,6 +140,9 @@ def main(argv=None):
         elif any(error.get("case") == case_id for error in provider_errors):
             response_origin = "local_fallback_after_provider_error"
             vietnamese_relevance = "not_assessed_no_provider_answer"
+        elif any(row.get("case") == case_id for row in report.get("call_attempts", [])):
+            response_origin = "local_runner_error_before_transport"
+            vietnamese_relevance = "not_assessed_no_provider_answer"
         else:
             response_origin = "local_policy_gate"
             vietnamese_relevance = "out_of_scope_gate_only"
@@ -149,7 +158,8 @@ def main(argv=None):
                             "retrieval_timings_ms": body.get("retrieval", {}).get("timings_ms", {}),
                             "current_validity": [source.get("current_validity") for source in body.get("sources", [])],
                             "caveat_present": bool(body.get("caveat")),
-                            "provider_calls_after_case": calls,
+                            "provider_callback_attempts_after_case": callback_attempts,
+                            "http_transport_calls_after_case": transport_calls,
                             "status": "complete" if status_code == 200 and answer.get("state") == expected_state and validation.get("valid") is True else "failed"})
         _checkpoint(report, report_path)
     reports = report["cases"]
@@ -158,11 +168,11 @@ def main(argv=None):
     print(json.dumps(report, ensure_ascii=False, indent=2))
     ordinary = reports[0]
     abstention = reports[1]
-    if (calls > MAX_PROVIDER_CALLS or report["status"] != "complete"
+    if (callback_attempts > MAX_PROVIDER_CALLS or report["status"] != "complete"
             or ordinary.get("status") != "complete" or abstention.get("status") != "complete"
             or not 1 <= ordinary.get("citation_count", 0) <= 3
             or any(c["quote_length_chars"] > 500 for c in ordinary.get("citations", []))
-            or abstention.get("citation_count") != 0 or calls != 1):
+            or abstention.get("citation_count") != 0 or callback_attempts != 1 or transport_calls != 1):
         return 1
     return 0
 
