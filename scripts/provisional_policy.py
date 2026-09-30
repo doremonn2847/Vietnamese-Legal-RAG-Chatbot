@@ -20,7 +20,7 @@ _TOPICS = {
 _PERSONAL_OR_APPLICABILITY = re.compile(r"\b(tôi|của tôi|trường hợp của (?:tôi|em)|nếu|em có|doanh nghiệp tôi|công ty tôi|được phép|có được|được không|nên làm gì|tôi phải)\b", re.IGNORECASE)
 _APPLICABILITY_QUERY = re.compile(r"\b(áp dụng cho ai|đối tượng áp dụng|đối tượng nào|ai được áp dụng|trường hợp nào áp dụng|có áp dụng cho)\b", re.IGNORECASE)
 _ARTICLE_REFERENCE = re.compile(r"\b(?:điều|article)\s+\d+[a-z]?\b|\btrích\s+(?:nguyên văn\s+)?(?:điều\s+)?\d+\b", re.IGNORECASE)
-_OUT_OF_SCOPE_QUERY = re.compile(r"\b(thuế|tax(?:ation)?|bảo hiểm xã hội|bảo hiểm y tế|insurance|tranh chấp|disputes?|hình sự|criminal|immigration|visa|đất đai)\b", re.IGNORECASE)
+_OUT_OF_SCOPE_QUERY = re.compile(r"\b(thuế|tax(?:ation)?|bảo hiểm|insurance|tranh chấp|disputes?|hình sự|criminal|immigration|visa|đất đai|công chức|viên chức|cán bộ|cơ quan nhà nước|khu vực công|lực lượng vũ trang|civil servants?|public employees?|chưa thành niên|chưa đủ 18 tuổi|dưới 18 tuổi|người khuyết tật|người cao tuổi|lao động nữ|lao động mang thai|lao động nước ngoài|người lao động nước ngoài|giúp việc gia đình|domestic workers?)\b", re.IGNORECASE)
 _MESSAGES = {
     "conflicting_status": "Tình trạng hiệu lực trong các bản ghi xung đột; chưa thể xác nhận câu trả lời theo thời điểm yêu cầu.",
     "validity_unverified": "Bản dữ liệu chưa xác minh hiệu lực hiện tại hoặc tình trạng áp dụng.",
