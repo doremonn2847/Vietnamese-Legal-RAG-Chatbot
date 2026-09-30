@@ -1,5 +1,6 @@
 """At most one answer and one policy-abstention smoke, gated on Free-tier confirmation."""
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -34,6 +35,11 @@ def _checkpoint(report, path=REPORT_PATH):
     temporary.replace(path)
 
 
+def _provider_responded(attempts, case_id):
+    return any(row.get("case") == case_id and row.get("state") == "response_received"
+               for row in attempts)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm-free-tier", action="store_true",
@@ -61,7 +67,9 @@ def main(argv=None):
     report = {"status": "in_progress", "max_provider_calls": MAX_PROVIDER_CALLS,
               "provider_calls": calls, "provider_errors": provider_errors,
               "usage": usage, "model": config.model, "cases": [],
-              "no_retries": True, "paid_fallback": False}
+              "no_retries": True, "paid_fallback": False,
+              "attempt_started_at_utc": datetime.now(timezone.utc).isoformat()}
+    _checkpoint(report)
     current_case = None
     def bounded_transport(*args):
         nonlocal calls
@@ -74,7 +82,7 @@ def main(argv=None):
         try:
             response = transport(*args)
         except Exception as error:
-            provider_errors.append({"type": type(error).__name__,
+            provider_errors.append({"case": current_case, "type": type(error).__name__,
                                     "status": getattr(error, "status", None)})
             report["call_attempts"][-1]["state"] = "transport_error"
             _checkpoint(report)
@@ -84,10 +92,16 @@ def main(argv=None):
         _checkpoint(report)
         return response
 
-    provider = GroqProvider(config, bounded_transport, key)
-    from core_app import create_core_app
-    from fastapi.testclient import TestClient
-    client = TestClient(create_core_app(provider=provider, experimental_snapshot_excerpt_enabled=True))
+    try:
+        provider = GroqProvider(config, bounded_transport, key)
+        from core_app import create_core_app
+        from fastapi.testclient import TestClient
+        client = TestClient(create_core_app(provider=provider, experimental_snapshot_excerpt_enabled=True))
+    except Exception as error:
+        report.update(status="startup_error", startup_error_type=type(error).__name__)
+        _checkpoint(report)
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 1
     for case_id, question, expected_state in CASES:
         current_case = case_id
         case_report = {"case": case_id, "status": "in_progress", "expected_state": expected_state}
@@ -108,9 +122,24 @@ def main(argv=None):
         citations = answer.get("citations", [])
         citations = citations if isinstance(citations, list) else []
         validation = body.get("validation") or validate_citations(answer, {})
+        provider_response_received = _provider_responded(report.get("call_attempts", []), case_id)
+        provider_answer_contract_valid = (validation.get("valid") is True
+                                           if provider_response_received and status_code == 200 else None)
+        if provider_response_received:
+            response_origin = "provider_response"
+            vietnamese_relevance = "manual_review_required"
+        elif any(error.get("case") == case_id for error in provider_errors):
+            response_origin = "local_fallback_after_provider_error"
+            vietnamese_relevance = "not_assessed_no_provider_answer"
+        else:
+            response_origin = "local_policy_gate"
+            vietnamese_relevance = "out_of_scope_gate_only"
         case_report.update({"status_code": status_code, "answer_state": answer.get("state"),
+                            "response_origin": response_origin,
+                            "vietnamese_relevance": vietnamese_relevance,
                             "state_matches": answer.get("state") == expected_state,
-                            "strict_schema_and_citation_valid": validation.get("valid") is True,
+                            "provider_schema_and_citation_valid": provider_answer_contract_valid,
+                            "visible_answer_contract_valid": validation.get("valid") is True,
                             "citation_count": len(citations),
                             "citations": [_citation_summary(citation) for citation in citations],
                             "end_to_end_ms": elapsed_ms,

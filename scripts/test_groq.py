@@ -1,5 +1,7 @@
 import io
 import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from contextlib import redirect_stdout
 from urllib.error import HTTPError
@@ -7,7 +9,8 @@ from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
 from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
-from smoke_snapshot_excerpt_groq import _citation_summary, main as snapshot_smoke_main
+from smoke_snapshot_excerpt_groq import (_checkpoint, _citation_summary, _provider_responded,
+                                         main as snapshot_smoke_main)
 
 
 class GroqTest(unittest.TestCase):
@@ -21,6 +24,20 @@ class GroqTest(unittest.TestCase):
         self.assertEqual(summary["quote_length_chars"], len(self.quote))
         self.assertNotIn(self.quote, json.dumps(summary, ensure_ascii=False))
         self.assertEqual(summary["span_start"], 0)
+
+    def test_smoke_distinguishes_transport_error_from_provider_response(self):
+        attempts = [{"case": "ordinary", "state": "transport_error"},
+                    {"case": "abstention", "state": "local_gate"}]
+        self.assertFalse(_provider_responded(attempts, "ordinary"))
+        attempts.append({"case": "ordinary", "state": "response_received"})
+        self.assertTrue(_provider_responded(attempts, "ordinary"))
+
+    def test_smoke_checkpoint_replaces_report_atomically(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "report.json"
+            _checkpoint({"provider_calls": 0, "status": "in_progress"}, path)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["provider_calls"], 0)
+            self.assertFalse(path.with_suffix(".json.tmp").exists())
 
     def test_disabled_and_exact_structured_request(self):
         with self.assertRaises(RuntimeError): GroqProvider(GroqConfig(), lambda *args: None).generate([])

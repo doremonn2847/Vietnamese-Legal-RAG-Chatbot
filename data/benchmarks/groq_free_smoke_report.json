@@ -1,0 +1,69 @@
+{
+  "status": "failed",
+  "max_provider_calls": 2,
+  "provider_calls": 1,
+  "provider_errors": [
+    {
+      "case": "ordinary",
+      "type": "ProviderHTTPError",
+      "status": 401
+    }
+  ],
+  "usage": [],
+  "model": "openai/gpt-oss-20b",
+  "cases": [
+    {
+      "case": "ordinary",
+      "status": "failed",
+      "expected_state": "provisional",
+      "status_code": 503,
+      "answer_state": "unavailable",
+      "state_matches": false,
+      "citation_count": 0,
+      "citations": [],
+      "end_to_end_ms": 4830.01,
+      "retrieval_timings_ms": {},
+      "current_validity": [],
+      "caveat_present": false,
+      "provider_calls_after_case": 1,
+      "provider_schema_and_citation_valid": null,
+      "visible_answer_contract_valid": true,
+      "response_origin": "local_fallback_after_provider_error",
+      "vietnamese_relevance": "not_assessed_no_provider_answer"
+    },
+    {
+      "case": "abstention",
+      "status": "complete",
+      "expected_state": "abstain_insufficient_evidence",
+      "status_code": 200,
+      "answer_state": "abstain_insufficient_evidence",
+      "state_matches": true,
+      "citation_count": 0,
+      "citations": [],
+      "end_to_end_ms": 2167.52,
+      "retrieval_timings_ms": {
+        "sparse": 4.1201,
+        "dense": 2150.193,
+        "fusion_and_evidence": 0.6865
+      },
+      "current_validity": [],
+      "caveat_present": true,
+      "provider_calls_after_case": 1,
+      "provider_schema_and_citation_valid": null,
+      "visible_answer_contract_valid": true,
+      "response_origin": "local_policy_gate",
+      "vietnamese_relevance": "out_of_scope_gate_only"
+    }
+  ],
+  "no_retries": true,
+  "paid_fallback": false,
+  "attempt_started_at_utc": "2026-09-30T18:30:16.543826+00:00",
+  "call_attempts": [
+    {
+      "case": "ordinary",
+      "state": "transport_error"
+    }
+  ],
+  "result_note": "Ordinary request received HTTP 401 before a model answer; no provider schema, citation, quote, relevance, or token result exists. Abstention was produced locally.",
+  "default_groq_enabled_after_run": false
+}
