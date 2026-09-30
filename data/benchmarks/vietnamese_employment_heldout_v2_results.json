@@ -1,0 +1,856 @@
+{
+  "benchmark": {
+    "id": "vietnamese-employment-heldout-v2",
+    "split": "heldout",
+    "label_freeze": "2026-09-30",
+    "labeling": "manual Vietnamese heading-level retrieval relevance; not legal review, validity, or advice",
+    "cases": 8,
+    "sha256": "5e8c9d5fc5d75c523cd7609c1d61d4cade5749caeac7c76cbf74a3665e3531b9"
+  },
+  "corpus": {
+    "id": "core-employment-portfolio-v1",
+    "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+    "manifest_sha256": "c16bfcd783f5714cea243cbccdd3359dce46bdb1a53b0249579cc055b115cd5a"
+  },
+  "embedding": {
+    "model_id": "intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "manifest_sha256": "97b881b86aec021e886873127885460b621762abdc4206be0f6e88d24ff523ba"
+  },
+  "reranker": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "execution": "CPU",
+    "manifest_sha256": "e499e5f9bd6adcd84d4ddd6ee5849aeae12a9f1e9f42583e0865e94ca9f2abb7"
+  },
+  "retrieval_mode": "BM25 + exact dot-product over pinned local vectors + RRF; no Qdrant request",
+  "limits": {
+    "sparse_candidates": 30,
+    "dense_candidates": 30,
+    "rerank_depths": [
+      5,
+      10,
+      20
+    ],
+    "k": 5
+  },
+  "memory": {
+    "metric": "process peak resident working set",
+    "bytes_after_models_loaded": 897470464,
+    "bytes_after_evaluation": 2040492032
+  },
+  "results": [
+    {
+      "case_id": "contract-duration-type",
+      "scenario_family_id": "contract-duration-choice",
+      "kind": "answerable",
+      "retrieval_latency_ms": 250.1239,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "a71d875b-87a6-5bde-ab83-042475c5b6ea",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "3f2b3e90-453c-527c-ade0-11e72029d715"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "3f2b3e90-453c-527c-ade0-11e72029d715"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 10351.3426
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15049.354
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 31169.7477
+        }
+      }
+    },
+    {
+      "case_id": "contract-amendment-process",
+      "scenario_family_id": "contract-amendment-procedure",
+      "kind": "answerable",
+      "retrieval_latency_ms": 397.1497,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "02eee374-a457-569d-92b2-7795f569fa63",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "068ff88d-038a-5ca3-9c3b-0da0200aac90"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "068ff88d-038a-5ca3-9c3b-0da0200aac90",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7305.5429
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 13847.3581
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "8f7ebeeb-3f20-589a-94b3-e5d7c80e63f6",
+            "9db309b0-6ede-528d-a9e2-95823fdb8106",
+            "ddd1aac4-ed2b-559c-b2ed-621f5aa43d2f",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 27215.0371
+        }
+      }
+    },
+    {
+      "case_id": "overtime-consent",
+      "scenario_family_id": "overtime-consent",
+      "kind": "answerable",
+      "retrieval_latency_ms": 73.0805,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7706.0752
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "d890c9fc-cf24-55c0-ad5b-c41c9698ce21",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 14652.3938
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "870c93c9-cd7f-5430-bb26-9acc131f71d7",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "d890c9fc-cf24-55c0-ad5b-c41c9698ce21",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 29387.2146
+        }
+      }
+    },
+    {
+      "case_id": "paid-rest-time",
+      "scenario_family_id": "paid-rest-time",
+      "kind": "answerable",
+      "retrieval_latency_ms": 85.3462,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.2
+          },
+          "top_article_ids": [
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 8509.3246
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 14520.8008
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+            "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+            "36cc7c0c-0e31-5d81-b140-1876dd50e53d"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 28617.0623
+        }
+      }
+    },
+    {
+      "case_id": "contract-termination-cases",
+      "scenario_family_id": "contract-termination-cases",
+      "kind": "answerable",
+      "retrieval_latency_ms": 65.7079,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 0.0,
+            "mrr_at_k": 0.0
+          },
+          "top_article_ids": [
+            "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.3333333333333333
+          },
+          "top_article_ids": [
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "d7d83632-178a-572e-a181-c9523c7f214a",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.3333333333333333
+          },
+          "top_article_ids": [
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7050.3131
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 16583.7505
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 33303.9173
+        }
+      }
+    },
+    {
+      "case_id": "worker-unilateral-termination",
+      "scenario_family_id": "worker-unilateral-termination",
+      "kind": "answerable",
+      "retrieval_latency_ms": 84.79,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 0.0,
+            "mrr_at_k": 0.0
+          },
+          "top_article_ids": [
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "9eaa7ac0-c7c2-5884-9a5b-4d6fc2a8dbe8"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.2
+          },
+          "top_article_ids": [
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 0.0,
+            "mrr_at_k": 0.0
+          },
+          "top_article_ids": [
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 0.0,
+            "mrr_at_k": 0.0
+          },
+          "top_article_ids": [
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9",
+            "0ef8cbe7-3d85-591f-8e29-06da2a1a0cfb",
+            "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608",
+            "61a3c28d-b1cf-59ba-8627-24d2e2e7b76c"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7883.0841
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15301.0313
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+            "9ea242b4-84c9-55df-95a6-27dc5d0edb28",
+            "98d8e71d-815e-55cc-b303-0919d1ed0019",
+            "1c07ebda-d503-58ab-8149-9d1d6d79e8d9",
+            "a50b448f-4b82-5c38-867a-2c0d10a84bd2"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 28454.7943
+        }
+      }
+    },
+    {
+      "case_id": "special-work-rest-ambiguous",
+      "scenario_family_id": "special-work-rest-ambiguity",
+      "kind": "ambiguous",
+      "retrieval_latency_ms": 69.9067,
+      "baseline": {
+        "bm25": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+          ]
+        },
+        "dense": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+            "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+          ]
+        },
+        "rrf": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 0.5
+          },
+          "top_article_ids": [
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "5898dedd-f8c1-5009-b3e1-bbfd318d9233"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 7051.8896
+        },
+        "10": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15289.551
+        },
+        "20": {
+          "metrics": {
+            "recall_at_k": 1.0,
+            "mrr_at_k": 1.0
+          },
+          "top_article_ids": [
+            "8e6ad528-07ef-59e9-9433-4e92d3a5ee72",
+            "8c03c2c9-e9e5-50c8-b72e-30ae2dc51d7c",
+            "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+            "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a",
+            "261eddd3-1f68-553d-bb86-50cac873ad9b"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 34771.0269
+        }
+      }
+    },
+    {
+      "case_id": "unemployment-insurance-out-of-scope",
+      "scenario_family_id": "unemployment-insurance-outscope",
+      "kind": "negative",
+      "retrieval_latency_ms": 68.1746,
+      "baseline": {
+        "bm25": {
+          "metrics": null,
+          "top_article_ids": [
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ]
+        },
+        "dense": {
+          "metrics": null,
+          "top_article_ids": [
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ]
+        },
+        "rrf": {
+          "metrics": null,
+          "top_article_ids": [
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae"
+          ]
+        }
+      },
+      "reranked": {
+        "5": {
+          "metrics": null,
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "3f2b3e90-453c-527c-ade0-11e72029d715",
+            "b0d429db-3123-54ff-b63f-8047f837cd29",
+            "ddc8b696-3282-5c59-8ce6-1e98be5f6be1"
+          ],
+          "candidate_count": 5,
+          "latency_ms": 8175.752
+        },
+        "10": {
+          "metrics": null,
+          "top_article_ids": [
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+            "02eee374-a457-569d-92b2-7795f569fa63"
+          ],
+          "candidate_count": 10,
+          "latency_ms": 15309.8353
+        },
+        "20": {
+          "metrics": null,
+          "top_article_ids": [
+            "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+            "691ac858-7af2-5bfa-93d5-0642564aaefa",
+            "7e950b80-dbe5-5859-8135-a87a1c4d0aae",
+            "267dc82e-753a-5183-8bd6-81603d3ab746",
+            "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11"
+          ],
+          "candidate_count": 20,
+          "latency_ms": 29011.0457
+        }
+      }
+    }
+  ],
+  "summary": {
+    "case_counts": {
+      "answerable": 6,
+      "ambiguous": 1,
+      "negative": 1
+    },
+    "baseline": {
+      "bm25": {
+        "mean_recall_at_k": 0.7142857142857143,
+        "mean_mrr_at_k": 0.5285714285714286
+      },
+      "dense": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 0.719047619047619
+      },
+      "rrf": {
+        "mean_recall_at_k": 0.8571428571428571,
+        "mean_mrr_at_k": 0.6190476190476191
+      }
+    },
+    "reranked": {
+      "5": {
+        "mean_recall_at_k": 0.8571428571428571,
+        "mean_mrr_at_k": 0.8571428571428571
+      },
+      "10": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0
+      },
+      "20": {
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0
+      }
+    },
+    "negative_cases_with_any_rrf_candidate": 1,
+    "latency_ms": {
+      "retrieval": {
+        "samples": 8,
+        "p50": 78.93525,
+        "p95": 397.1497
+      },
+      "retrieval_stages": {
+        "sparse": {
+          "samples": 8,
+          "p50": 3.7371,
+          "p95": 36.551
+        },
+        "dense": {
+          "samples": 8,
+          "p50": 65.11080000000001,
+          "p95": 348.8304
+        },
+        "fusion_and_evidence": {
+          "samples": 8,
+          "p50": 1.51495,
+          "p95": 8.9922
+        }
+      },
+      "rerank_by_depth": {
+        "5": {
+          "samples": 8,
+          "p50": 7794.57965,
+          "p95": 10351.3426
+        },
+        "10": {
+          "samples": 8,
+          "p50": 15169.4525,
+          "p95": 16583.7505
+        },
+        "20": {
+          "samples": 8,
+          "p50": 29199.130149999997,
+          "p95": 34771.0269
+        }
+      }
+    }
+  },
+  "claims": "heading-level retrieval engineering only; labels do not validate legal content or current applicability"
+}

@@ -32,21 +32,28 @@ once to fetch the immutable CPU model, then use the command in
 no held-out cases; they do not establish legal correctness or justify activating
 the corpus.
 
-## Frozen held-out engineering set
+## Held-out engineering sets
 
-`data/benchmarks/vietnamese_employment_heldout_v1.json` was frozen in commit
-`f1e4dca` before the multi-depth evaluator was added. It has six answerable
-heading-level cases, one multi-target ambiguous case, and one out-of-scope
-negative case; its scenario families do not overlap the dev set. The result at
-`data/benchmarks/vietnamese_employment_heldout_v1_results.json` reports BM25,
-dense, RRF, and rerank candidate depths 5/10/20, plus per-query rankings,
-Recall/MRR, p50/p95 latency, and process peak resident memory. The negative case
-still receives retrieval candidates, which is a useful limit of ranking-only
-evaluation and not a legal-answer decision.
+`vietnamese_employment_heldout_v1.json` and its result are historical only.
+`vietnamese_employment_heldout_v1_status.json` marks them superseded and records
+the hashes and leakage reason: two leave cases shared development article IDs
+and near-identical fact patterns. Do not report v1 metrics as held-out evidence.
 
-The pinned CPU BGE reranker raised held-out MRR@5 from 0.786 for RRF to 1.0 at
-all three candidate depths; recall@5 was 1.0 across answerable and ambiguous
-cases. Median rerank latency ranged from 7.2 seconds at depth 5 to 28.6 seconds
-at depth 20. Given that cost and the tiny manually labeled set, the interactive
-retriever remains pre-rerank. These measurements are exploratory heading-level
-retrieval evidence only, not legal validation.
+`vietnamese_employment_heldout_v2.json` was frozen in commit `3e9285e`. It
+replaces the overlapping cases and is validated against both development
+scenario families and relevant article IDs before any model loads. It has six
+answerable heading-level cases, one multi-target ambiguous case, and one
+out-of-scope negative case. The versioned result file reports BM25, dense, RRF,
+and rerank candidate depths 5/10/20, per-query rankings and Recall/MRR,
+p50/p95 latency, and process peak resident memory. The negative case can still
+receive retrieval candidates; ranking is not an abstention decision.
+
+On the v2 run, positive-case Recall@5/MRR@5 were BM25 0.714/0.529, dense
+1.0/0.719, and RRF 0.857/0.619. Reranking at depth 5 reached 0.857/0.857;
+depths 10 and 20 reached 1.0/1.0. Reranker p50/p95 was 7.8/10.4 s at depth 5,
+15.2/16.6 s at depth 10, and 29.2/34.8 s at depth 20. Retrieval p50/p95 was
+79/397 ms. Peak process working set was 0.90 GB after model load and 2.04 GB
+after evaluation. Keep interactive retrieval pre-rerank given that cost.
+
+The labels are exploratory section-heading relevance labels only, not legal
+validity review; the eight cases do not support broad quality claims.

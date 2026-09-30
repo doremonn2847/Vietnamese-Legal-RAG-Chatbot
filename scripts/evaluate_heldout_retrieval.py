@@ -67,6 +67,7 @@ def evaluate_cases(cases, retriever, reranker, articles, *, depths=DEPTHS, k=5):
 
 def run(cases_path, output_path, *, model_path, reranker_path, corpus_root, artifact_dir, dev_cases_path):
     cases_path, model_path, reranker_path, corpus_root, artifact_dir = map(Path, (cases_path, model_path, reranker_path, corpus_root, artifact_dir))
+    _reject_superseded(cases_path)
     raw = cases_path.read_bytes()
     benchmark = json.loads(raw.decode("utf-8"))
     cases = benchmark.get("cases") if isinstance(benchmark, dict) else None
@@ -103,11 +104,17 @@ def _validate_cases(cases, dev_cases_path):
     if len({case.get("case_id") for case in cases if isinstance(case, dict)}) != len(cases) or len({case.get("scenario_family_id") for case in cases if isinstance(case, dict)}) != len(cases):
         raise ValueError("heldout case and scenario-family IDs must be unique")
     dev = json.loads(Path(dev_cases_path).read_text(encoding="utf-8"))
-    dev_families = {case.get("scenario_family_id") for case in dev if isinstance(case, dict)}
+    dev_cases = dev.get("cases", []) if isinstance(dev, dict) else dev
+    if not isinstance(dev_cases, list):
+        raise ValueError("development benchmark must contain a cases array")
+    dev_families = {case.get("scenario_family_id") for case in dev_cases if isinstance(case, dict)}
+    dev_articles = {article_id for case in dev_cases if isinstance(case, dict) for article_id in case.get("relevant_article_ids", []) if isinstance(article_id, str)}
     for case in cases:
         targets = case.get("relevant_article_ids")
         if not all(isinstance(case.get(key), str) and case[key].strip() for key in ("case_id", "scenario_family_id", "query")) or case.get("scenario_family_id") in dev_families or case.get("kind") not in {"answerable", "ambiguous", "negative"} or not isinstance(targets, list) or len(set(targets)) != len(targets) or any(not isinstance(item, str) for item in targets):
             raise ValueError("heldout schema, labels, or dev-family separation is invalid")
+        if set(targets) & dev_articles:
+            raise ValueError("heldout references overlap development references")
         if (case["kind"] == "negative") != (not targets) or (case["kind"] == "answerable" and len(targets) != 1) or (case["kind"] == "ambiguous" and len(targets) < 2):
             raise ValueError("relevance targets do not match the case kind")
 
@@ -116,6 +123,13 @@ def _validate_targets(cases, articles):
     for case in cases:
         if any(article_id not in articles or articles[article_id]["document_metadata"].get("retrieval_index_candidate") is not True for article_id in case["relevant_article_ids"]):
             raise ValueError("heldout relevance target is not in the eligible pinned corpus")
+
+
+def _reject_superseded(cases_path):
+    path = Path(cases_path)
+    status_path = path.with_name(path.stem + "_status.json")
+    if status_path.is_file() and json.loads(status_path.read_text(encoding="utf-8")).get("status") == "superseded":
+        raise ValueError("heldout benchmark is superseded; use its current version")
 
 
 def _metric(ranked, relevant, k):

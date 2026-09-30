@@ -1,8 +1,9 @@
 import tempfile
 import unittest
 from pathlib import Path
+import json
 
-from evaluate_heldout_retrieval import _distribution, evaluate_cases
+from evaluate_heldout_retrieval import _distribution, _reject_superseded, _validate_cases, evaluate_cases
 
 
 class HeldoutEvaluationTest(unittest.TestCase):
@@ -35,6 +36,29 @@ class HeldoutEvaluationTest(unittest.TestCase):
 
     def test_latency_distribution_uses_median_and_nearest_rank_p95(self):
         self.assertEqual(_distribution([1.0, 2.0, 3.0, 4.0]), {"samples": 4, "p50": 2.5, "p95": 4.0})
+
+    def test_dev_cases_object_is_parsed_and_paraphrase_reference_overlap_is_rejected(self):
+        dev = {"cases": [{"scenario_family_id": "annual-leave", "query": "Người lao động được nghỉ hằng năm bao nhiêu ngày?", "relevant_article_ids": ["article-113"]}]}
+        heldout = [{"case_id": "leave-entitlement", "scenario_family_id": "different-family", "kind": "answerable", "query": "Làm đủ 12 tháng được nghỉ hằng năm bao nhiêu ngày?", "relevant_article_ids": ["article-113"]}]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "dev.json"
+            path.write_text(json.dumps(dev), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "references overlap"):
+                _validate_cases(heldout, path)
+
+    def test_scenario_family_overlap_is_rejected_and_superseded_set_cannot_run(self):
+        dev = {"cases": [{"scenario_family_id": "family", "relevant_article_ids": ["a"]}]}
+        heldout = [{"case_id": "same-family", "scenario_family_id": "family", "kind": "answerable", "query": "query", "relevant_article_ids": ["b"]}]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "dev.json"
+            path.write_text(json.dumps(dev), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                _validate_cases(heldout, path)
+            old = Path(temp) / "heldout_v1.json"
+            old.write_text("{}", encoding="utf-8")
+            old.with_name("heldout_v1_status.json").write_text(json.dumps({"status": "superseded"}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "superseded"):
+                _reject_superseded(old)
 
 
 if __name__ == "__main__":
