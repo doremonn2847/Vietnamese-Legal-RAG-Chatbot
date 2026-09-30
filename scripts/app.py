@@ -1,6 +1,7 @@
 """Offline-only FastAPI demo. Its evidence is fictional and never legal advice."""
 from datetime import date, datetime, timedelta, timezone
 import math
+import re
 import time
 import uuid
 from collections import deque
@@ -83,6 +84,22 @@ def _provisional_evidence(rows, question, requested_as_of_date):
     decision = decide_provisional_eligibility(question, rows, requested_as_of_date=requested_as_of_date)
     if not decision["allowed"]:
         return decision, {}
+    requested_numbers = set(re.findall(r"\b(?:điều|article)\s+(\d+[a-z]?)\b", question, re.IGNORECASE))
+    if requested_numbers:
+        if len(requested_numbers) != 1:
+            return _article_request_denial("requested_article_ambiguous"), {}
+        number = next(iter(requested_numbers)).casefold()
+        matching = [row for row in rows if _article_number(row) == number]
+        matching = list({(row.get("article_id"), row.get("document_version_id")): row for row in matching}.values())
+        if len(matching) > 1:
+            named = [row for row in matching if any(
+                isinstance(row.get(field), str) and row[field].strip().casefold() in question.casefold()
+                for field in ("so_ky_hieu", "title")
+            )]
+            matching = named if len(named) == 1 else []
+        if len(matching) != 1:
+            return _article_request_denial("requested_article_not_unambiguous"), {}
+        rows = matching
     selected = {}
     for row in rows:
         article_id, version = row["article_id"], row["document_version_id"]
@@ -90,6 +107,20 @@ def _provisional_evidence(rows, question, requested_as_of_date):
         text = row.get("canonical_text", row.get("text"))
         selected[evidence_id] = {**row, "canonical_text": text, "document_version_id": version, "provisional_snapshot_eligible": True}
     return decision, selected
+
+
+def _article_number(row):
+    label = row.get("label")
+    if not isinstance(label, str):
+        label = row.get("canonical_text", row.get("text", ""))
+    match = re.match(r"\s*(?:điều|article)\s+(\d+[a-z]?)\b", label, re.IGNORECASE)
+    return match.group(1).casefold() if match else None
+
+
+def _article_request_denial(reason):
+    return {"allowed": False, "mode": "abstain", "reason": reason,
+            "message": "Không thể xác định duy nhất đúng điều khoản và văn bản được yêu cầu.",
+            "caveat": PROVISIONAL_CAVEAT}
 
 
 class MockProvider:

@@ -1,0 +1,17 @@
+{
+  "benchmark_id": "vietnamese-employment-retrieval-v1",
+  "labeling": "manual section-heading relevance labels for retrieval engineering; not legal advice or validity review",
+  "corpus_id": "core-employment-portfolio-v1",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "cases": [
+    {"case_id": "probation-agreement", "query": "Thỏa thuận thử việc có thể ghi nhận ở đâu?", "relevant_article_ids": ["1b20253b-b817-5392-abf1-83385d1b82d7"]},
+    {"case_id": "probation-duration", "query": "Thời gian thử việc tối đa bao nhiêu ngày?", "relevant_article_ids": ["4b53b32a-ba57-5b20-aed1-b4c91d937e7a"]},
+    {"case_id": "probation-pay", "query": "Tiền lương của người thử việc tối thiểu thế nào?", "relevant_article_ids": ["ecbc7630-641e-5e31-bec8-dea75585bf97"]},
+    {"case_id": "probation-result", "query": "Kết thúc thử việc cần thông báo điều gì?", "relevant_article_ids": ["37aef809-7b4c-52e0-8a99-16415076aa92"]},
+    {"case_id": "contract-form", "query": "Hợp đồng lao động được lập theo hình thức nào?", "relevant_article_ids": ["8764b7c2-ee4c-5251-a2cb-09fbc799807e"]},
+    {"case_id": "contract-contents", "query": "Hợp đồng lao động cần có những nội dung chủ yếu nào?", "relevant_article_ids": ["02eee374-a457-569d-92b2-7795f569fa63"]},
+    {"case_id": "overtime-pay", "query": "Tiền lương làm thêm giờ được tính thế nào?", "relevant_article_ids": ["ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"]},
+    {"case_id": "annual-leave", "query": "Người lao động được nghỉ hằng năm bao nhiêu ngày?", "relevant_article_ids": ["267dc82e-753a-5183-8bd6-81603d3ab746"]},
+    {"case_id": "seniority-leave", "query": "Thâm niên làm việc ảnh hưởng ngày nghỉ hằng năm ra sao?", "relevant_article_ids": ["c1d0dda7-75e2-5051-a9e3-7b3c1d211841"]}
+  ]
+}

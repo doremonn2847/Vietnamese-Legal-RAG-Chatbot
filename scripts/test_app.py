@@ -205,6 +205,44 @@ class AppTest(unittest.TestCase):
         self.assertTrue(body["validation"]["valid"])
         self.assertEqual(calls, [])
 
+    def test_provisional_numbered_article_must_match_retrieved_label(self):
+        evidence = {"article_id": "a25", "label": "Điều 25", "document_version_id": "v1",
+                    "canonical_text": "Điều 25. Nội dung khác.", "pham_vi": "Trung ương",
+                    "retrieval_index_candidate": True, "answer_evidence_enabled": False,
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence]}
+        class Provider:
+            def answer(self, *args): raise AssertionError("provisional path must not call provider")
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        self.assertNotEqual(response.json()["state"], "provisional")
+
+    def test_provisional_numbered_article_selects_exact_match_and_abstains_on_duplicate_documents(self):
+        def row(article_id, version, label, text, title="Bộ luật A"):
+            return {"article_id": article_id, "label": label, "title": title, "document_version_id": version,
+                    "canonical_text": text, "pham_vi": "Trung ương", "retrieval_index_candidate": True,
+                    "answer_evidence_enabled": False, "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        wrong = row("a25", "v1", "Điều 25", "Điều 25. Sai điều.")
+        right = row("a24", "v1", "Điều 24", "Điều 24. Đúng điều.", "Nghị định số 145/2020/NĐ-CP")
+        class Retriever:
+            evidence = [wrong, right]
+            def search(self, *args): return {"evidence": self.evidence}
+        class Provider:
+            def answer(self, *args): raise AssertionError("provisional path must not call provider")
+        retriever = Retriever()
+        client = TestClient(create_app(Provider(), retriever=retriever, provisional_snapshot_enabled=True))
+        response = client.post("/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        self.assertEqual(response.json()["answer"]["text"], right["canonical_text"])
+        other = row("a24-copy", "v2", "Điều 24", "Điều 24. Bản khác.", "Nghị định số 99/2021/NĐ-CP")
+        retriever.evidence = [right, other]
+        response = client.post("/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        self.assertNotEqual(response.json()["state"], "provisional")
+        response = client.post("/api/answer", json={"question": "Trích Điều 24 trong Nghị định số 145/2020/NĐ-CP"})
+        self.assertEqual(response.json()["answer"]["text"], right["canonical_text"])
+
     def test_applicability_question_is_abstained_without_provider_call(self):
         text = "Điều 24. Thử việc tối đa 60 ngày."
         evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": text,

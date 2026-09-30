@@ -44,9 +44,10 @@ class ProvisionalPolicyTest(unittest.TestCase):
                 self.assertEqual(decision["reason"], "source_text_request_required")
         self.assertTrue(decide_provisional_eligibility("What does Article 24 say about probation?", [self.evidence])["allowed"])
         self.assertTrue(decide_provisional_eligibility("Nội dung Điều 24 là gì?", [self.evidence])["allowed"])
+        self.assertTrue(decide_provisional_eligibility("Trích Điều 24 trong Bộ luật Lao động số 45/2019/QH14", [self.evidence])["allowed"])
 
     def test_combined_source_text_and_applicability_requests_abstain(self):
-        for question in ("Điều 24 quy định gì, có áp dụng cho tôi không?", "What does Article 24 say; can I use it?", "Trích Điều 24, tôi có được áp dụng không?", "Điều 24 quy định gì về tôi có được áp dụng không"):
+        for question in ("Điều 24 quy định gì, có áp dụng cho tôi không?", "What does Article 24 say; can I use it?", "Trích Điều 24, tôi có được áp dụng không?", "Điều 24 quy định gì về tôi có được áp dụng không", "Điều 24 quy định gì về thử việc trong Bộ luật tôi được áp dụng?"):
             with self.subTest(question=question):
                 decision = decide_provisional_eligibility(question, [self.evidence])
                 self.assertFalse(decision["allowed"])

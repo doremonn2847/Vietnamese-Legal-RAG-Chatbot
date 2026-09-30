@@ -150,8 +150,8 @@ Remaining implementation milestones:
 - [x] Synthetic manifest/shard import rehearsal with pre-write compatibility checks and no alias activation.
 - [x] App uses local BM25 plus the validated Qdrant collection; `/api/search` uses configured retrieval.
 - [x] Provisional output is deterministic extractive text for explicit source-text requests; applicability, ambiguous permission, date, and amendment-status questions abstain. No provider call is used for provisional answers.
-- [ ] Benchmark a distinct reranker and retrieval quality; current fusion is explicitly pre-rerank.
-- [ ] Run held-out portfolio evaluation and hosted CI; current validity and legal correctness remain unverified.
+- [x] Ran a bounded nine-query manually labeled retrieval comparison with the pinned CPU reranker; the report retains pre-rerank and post-rerank results and is explicitly exploratory.
+- [ ] Expand/review held-out portfolio cases and hosted CI; current validity and legal correctness remain unverified.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
 runnable commands, artifact paths, and owner/resource gates.

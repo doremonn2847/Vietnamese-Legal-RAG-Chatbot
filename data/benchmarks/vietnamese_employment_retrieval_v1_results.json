@@ -1,0 +1,300 @@
+{
+  "benchmark": {
+    "id": "vietnamese-employment-retrieval-v1",
+    "sha256": "d8fc30cb4b6ff814c1736460823d0a8e980b515ac6eac4d3632fc475fa97a9bd",
+    "labeling": "manual section-heading relevance labels for retrieval engineering; not legal advice or validity review",
+    "cases": 9
+  },
+  "corpus": {
+    "id": "core-employment-portfolio-v1",
+    "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+    "manifest_sha256": "c16bfcd783f5714cea243cbccdd3359dce46bdb1a53b0249579cc055b115cd5a"
+  },
+  "embedding_artifact": {
+    "manifest_sha256": "97b881b86aec021e886873127885460b621762abdc4206be0f6e88d24ff523ba",
+    "model_id": "intfloat/multilingual-e5-small",
+    "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3"
+  },
+  "reranker": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "execution": "CPU",
+    "manifest_sha256": "e499e5f9bd6adcd84d4ddd6ee5849aeae12a9f1e9f42583e0865e94ca9f2abb7"
+  },
+  "limits": {
+    "sparse_candidates": 30,
+    "dense_candidates": 30,
+    "rerank_candidates": 20,
+    "k": 5
+  },
+  "results": [
+    {
+      "case_id": "probation-agreement",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 234.222,
+      "reranker_latency_ms": 27603.3592,
+      "pre_rerank_top_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "98d8e71d-815e-55cc-b303-0919d1ed0019",
+        "3f2b3e90-453c-527c-ade0-11e72029d715",
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a"
+      ],
+      "post_rerank_top_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "98d8e71d-815e-55cc-b303-0919d1ed0019",
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+        "ecbc7630-641e-5e31-bec8-dea75585bf97"
+      ]
+    },
+    {
+      "case_id": "probation-duration",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 58.1957,
+      "reranker_latency_ms": 26412.4514,
+      "pre_rerank_top_ids": [
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "ecbc7630-641e-5e31-bec8-dea75585bf97"
+      ],
+      "post_rerank_top_ids": [
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "267dc82e-753a-5183-8bd6-81603d3ab746"
+      ]
+    },
+    {
+      "case_id": "probation-pay",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 62.8582,
+      "reranker_latency_ms": 26989.6672,
+      "pre_rerank_top_ids": [
+        "ecbc7630-641e-5e31-bec8-dea75585bf97",
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+        "068ff88d-038a-5ca3-9c3b-0da0200aac90",
+        "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+        "b6e82d58-e750-5a73-837f-664f05fa258b"
+      ],
+      "post_rerank_top_ids": [
+        "ecbc7630-641e-5e31-bec8-dea75585bf97",
+        "d5f72557-a61f-586c-a5ed-d53daa016f2e",
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "a71d875b-87a6-5bde-ab83-042475c5b6ea",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a"
+      ]
+    },
+    {
+      "case_id": "probation-result",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 78.0558,
+      "reranker_latency_ms": 27544.3234,
+      "pre_rerank_top_ids": [
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "1b20253b-b817-5392-abf1-83385d1b82d7",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+        "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+        "5fe6add0-4b6b-5231-b5ad-fca8b2b7f608"
+      ],
+      "post_rerank_top_ids": [
+        "37aef809-7b4c-52e0-8a99-16415076aa92",
+        "98d8e71d-815e-55cc-b303-0919d1ed0019",
+        "7577375e-7e7a-5f94-b3bd-ae7b8f5e6b6c",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+        "1b20253b-b817-5392-abf1-83385d1b82d7"
+      ]
+    },
+    {
+      "case_id": "contract-form",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 35.7783,
+      "reranker_latency_ms": 27299.8759,
+      "pre_rerank_top_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e",
+        "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+        "02eee374-a457-569d-92b2-7795f569fa63",
+        "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+        "3f2b3e90-453c-527c-ade0-11e72029d715"
+      ],
+      "post_rerank_top_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e",
+        "8687eefb-7d10-543f-ace3-de69ea0e7a18",
+        "a50b448f-4b82-5c38-867a-2c0d10a84bd2",
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+        "02eee374-a457-569d-92b2-7795f569fa63"
+      ]
+    },
+    {
+      "case_id": "contract-contents",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 56.0219,
+      "reranker_latency_ms": 27365.4428,
+      "pre_rerank_top_ids": [
+        "02eee374-a457-569d-92b2-7795f569fa63",
+        "a2fed194-29cc-580a-a02a-ed21026a790e",
+        "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+        "3f2b3e90-453c-527c-ade0-11e72029d715"
+      ],
+      "post_rerank_top_ids": [
+        "02eee374-a457-569d-92b2-7795f569fa63",
+        "3f2b3e90-453c-527c-ade0-11e72029d715",
+        "a2fed194-29cc-580a-a02a-ed21026a790e",
+        "ddc8b696-3282-5c59-8ce6-1e98be5f6be1",
+        "8687eefb-7d10-543f-ace3-de69ea0e7a18"
+      ]
+    },
+    {
+      "case_id": "overtime-pay",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.5
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 55.2646,
+      "reranker_latency_ms": 26356.9861,
+      "pre_rerank_top_ids": [
+        "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+        "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+        "5898dedd-f8c1-5009-b3e1-bbfd318d9233",
+        "d18e762a-adc5-5d5e-a53a-d7e8c4596b6a"
+      ],
+      "post_rerank_top_ids": [
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c",
+        "b4e0dc36-c102-5e0a-9d11-2055418d3e6a",
+        "36cc7c0c-0e31-5d81-b140-1876dd50e53d",
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+        "5898dedd-f8c1-5009-b3e1-bbfd318d9233"
+      ]
+    },
+    {
+      "case_id": "annual-leave",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 45.9318,
+      "reranker_latency_ms": 26255.6271,
+      "pre_rerank_top_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746",
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+        "375749b3-e300-57e9-a4fb-abcafabd9616",
+        "b6e82d58-e750-5a73-837f-664f05fa258b"
+      ],
+      "post_rerank_top_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746",
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+        "375749b3-e300-57e9-a4fb-abcafabd9616",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11"
+      ]
+    },
+    {
+      "case_id": "seniority-leave",
+      "candidate_count": 20,
+      "pre_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "post_rerank": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 1.0
+      },
+      "baseline_latency_ms": 50.1651,
+      "reranker_latency_ms": 27752.3383,
+      "pre_rerank_top_ids": [
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+        "267dc82e-753a-5183-8bd6-81603d3ab746",
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+        "b6e82d58-e750-5a73-837f-664f05fa258b"
+      ],
+      "post_rerank_top_ids": [
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+        "267dc82e-753a-5183-8bd6-81603d3ab746",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11",
+        "b6e82d58-e750-5a73-837f-664f05fa258b"
+      ]
+    }
+  ],
+  "summary": {
+    "pre_rerank": {
+      "mean_recall_at_k": 1.0,
+      "mean_mrr_at_k": 0.9444444444444444
+    },
+    "post_rerank": {
+      "mean_recall_at_k": 1.0,
+      "mean_mrr_at_k": 1.0
+    }
+  },
+  "latency_ms": {
+    "baseline_mean": 75.16593333333334,
+    "reranker_mean": 27064.45237777778
+  },
+  "claims": "retrieval-ranking engineering measurement only; labels are manually assigned section-heading relevance, not legal validity or advice",
+  "retrieval_mode": "real pinned corpus and vectors, local exact dot-product dense search (no Qdrant request)"
+}\n

@@ -46,6 +46,10 @@ $env:PYTHONPATH='scripts'
 .\.venv\Scripts\python.exe scripts/fetch_e5_model.py --output data/models/e5-small
 .\.venv\Scripts\python.exe scripts/cpu_benchmark.py data/models/e5-small --output data/benchmarks/cpu-e5-small-smoke.json --repeats 1
 
+# Optional distinct CPU reranker benchmark (9 manually labeled dev queries, <=20 candidates).
+.\.venv\Scripts\python.exe scripts/fetch_reranker.py --output data/models/bge-reranker-v2-m3
+.\.venv\Scripts\python.exe scripts/evaluate_core_reranker.py --reranker data/models/bge-reranker-v2-m3 --output data/benchmarks/vietnamese_employment_retrieval_v1_results.json
+
 # Generate inactive real-data vectors, then validate the Qdrant import artifact without writes.
 .\.venv\Scripts\python.exe scripts/core_corpus_embeddings.py --articles data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/articles.jsonl --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json --model data/models/e5-small --output data/embeddings/core-employment-portfolio-v1-e5-small-r4
 .\.venv\Scripts\python.exe scripts/import_core_corpus_qdrant.py --artifact data/embeddings/core-employment-portfolio-v1-e5-small-r4 --corpus-manifest data/curated/8977887f17be2defae4c5171d55562e1cde7d695/core-employment-portfolio-v1/corpus_manifest.json
@@ -113,7 +117,8 @@ permission questions abstain by default.
 
 ## Remaining work
 
-- Benchmark a distinct reranker and evaluate the four-topic retrieval baseline.
+- A bounded nine-query dev check is recorded at `data/benchmarks/vietnamese_employment_retrieval_v1_results.json`. On this machine the distinct pinned BGE CPU reranker raised mean MRR@5 from 0.944 to 1.0 and left recall@5 at 1.0; mean reranker latency was about 27 seconds/query. The set is small and manually labeled from section headings, so these exploratory results do not establish retrieval quality broadly or legal correctness.
+- Review and expand held-out portfolio cases before making retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
 - Keep Groq disabled by default; no hosted or paid call was made for this batch.
@@ -121,5 +126,5 @@ permission questions abstain by default.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
 
-The benchmark at `data/benchmarks/vietnamese_employment_draft.json` is unreviewed
-scaffolding. It cannot generate retrieval-quality or legal-correctness claims.
+The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed
+scaffolding and cannot generate legal-correctness claims.
