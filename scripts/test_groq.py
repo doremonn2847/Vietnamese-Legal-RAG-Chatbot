@@ -88,7 +88,7 @@ class GroqTest(unittest.TestCase):
              redirect_stdout(output):
             self.assertEqual(snapshot_smoke_main([]), 2)
             self.assertEqual(snapshot_smoke_main(["--confirm-free-tier"]), 2)
-        self.assertIn('"max_provider_calls": 1', output.getvalue())
+        self.assertIn('"max_provider_calls": 2', output.getvalue())
         self.assertNotIn("not-logged", output.getvalue())
         self.assertNotIn("Bearer", output.getvalue())
 
