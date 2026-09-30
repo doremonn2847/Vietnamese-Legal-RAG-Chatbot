@@ -1,5 +1,4 @@
 {
-  "benchmark_id": "snapshot-excerpt-natural-questions-v1",
   "frozen_on": "2026-10-01",
   "corpus_id": "core-employment-portfolio-v1",
   "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
@@ -8,6 +7,18 @@
     "data/benchmarks/vietnamese_employment_retrieval_v1.json": "d8fc30cb4b6ff814c1736460823d0a8e980b515ac6eac4d3632fc475fa97a9bd",
     "data/benchmarks/vietnamese_employment_heldout_v2.json": "5e8c9d5fc5d75c523cd7609c1d61d4cade5749caeac7c76cbf74a3665e3531b9"
   },
+  "benchmark_id": "snapshot-excerpt-natural-questions-v2",
+  "supersedes": {
+    "benchmark_id": "snapshot-excerpt-natural-questions-v1",
+    "sha256": "6570cf4019bedbf18d84424b12acd134d790a2f1c03c43e9c8214de6a63d1626"
+  },
+  "superseded_reason": "Removed the development paid-working-time case because its article and near-identical natural question overlap two held-out v2 cases.",
+  "excluded_cases": [
+    {
+      "case_id": "snapshot-paid-working-time",
+      "reason": "Cross-split article/question overlap with frozen held-out cases; retain held-out v2 labels without a development duplicate."
+    }
+  ],
   "cases": [
     {
       "case_id": "dev-probation-agreement",
@@ -189,16 +200,6 @@
       "source_benchmark": "snapshot-excerpt-fidelity-v1"
     },
     {
-      "case_id": "snapshot-paid-working-time",
-      "split": "development",
-      "kind": "answerable",
-      "query": "Thời giờ nào được tính vào thời giờ làm việc hưởng lương?",
-      "relevant_article_ids": [
-        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
-      ],
-      "source_benchmark": "snapshot-excerpt-fidelity-v1"
-    },
-    {
       "case_id": "snapshot-annual-leave",
       "split": "held_out",
       "kind": "answerable",
@@ -208,5 +209,10 @@
       ],
       "source_benchmark": "snapshot-excerpt-fidelity-v1"
     }
-  ]
+  ],
+  "split_isolation": {
+    "cross_split_relevant_article_id_count": 0,
+    "development_cases": 10,
+    "held_out_cases": 9
+  }
 }
