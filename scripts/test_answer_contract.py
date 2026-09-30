@@ -24,6 +24,18 @@ class AnswerContractTest(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertTrue(result["invalid_citations"])
 
+    def test_provisional_citation_accepts_snapshot_text_only_without_as_of_date(self):
+        text = "Điều 24 quy định thời gian thử việc."
+        source = {"canonical_text": text, "document_version_id": "v1", "provisional_snapshot_eligible": True,
+                  "pham_vi": "Trung ương", "retrieval_index_candidate": True, "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                  "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        answer = {"state": "provisional", "legal_date": None, "text": text,
+                  "claims": [{"claim_id": "c1", "text": text, "evidence_ids": ["a1:v1"]}],
+                  "citations": [{"evidence_id": "a1:v1", "quote": text, "span_start": 0,
+                                 "span_end": len(text), "document_version_id": "v1"}]}
+        self.assertTrue(validate_citations(answer, {"a1:v1": source})["valid"])
+        self.assertFalse(validate_citations(answer, {"a1:v1": source}, requested_legal_date="2024-01-01")["valid"])
+
     def test_unreviewed_or_out_of_date_evidence_cannot_ground_answer(self):
         evidence = {"E1": {"canonical_text": "Nội dung", "source_start": 0, "source_end": 8, "reviewed_version_id": "v1", "reviewed_status": "unreviewed", "central_eligible": True, "effective_from_day": 700000, "effective_to_day": 800000, "reviewed_through_day": 700000}}
         answer = {"state": "answer", "legal_date": "2024-01-01", "claims": [{"claim_id": "C1", "text": "Nội dung", "evidence_ids": ["E1"]}], "citations": [{"evidence_id": "E1", "quote": "Nội dung", "span_start": 0, "span_end": 8, "reviewed_version_id": "v1"}], "text": "Nội dung"}

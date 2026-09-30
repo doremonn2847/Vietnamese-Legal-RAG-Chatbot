@@ -40,6 +40,7 @@ class CoreCorpusTest(unittest.TestCase):
         labor_code = next(row for row in docs if row["id"] == "139264")
         self.assertTrue(labor_code["retrieval_index_candidate"])
         self.assertFalse(labor_code["answer_evidence_enabled"])
+        self.assertTrue(labor_code["reported_status_conflict"])
         self.assertEqual(labor_code["corpus_disposition"], "retrieval_only_temporal_uncertainty")
         self.assertIn(labor_code["reported_expiry_date"], (None, ""))
         self.assertEqual(labor_code["expiry_state"], "unknown_expiry")

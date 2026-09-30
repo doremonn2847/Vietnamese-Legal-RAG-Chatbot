@@ -161,6 +161,61 @@ class AppTest(unittest.TestCase):
         self.assertEqual(response.json()["state"], "unavailable")
         self.assertNotIn("secret", response.text)
 
+    def test_provisional_snapshot_answers_text_without_claiming_current_validity(self):
+        text = "Điều 24. Thử việc tối đa 60 ngày."
+        evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": text,
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True, "answer_evidence_enabled": False,
+                    "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                    "reported_status_conflict": False, "source_dataset_revision": "r1", "content_sha256": "hash"}
+        calls = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence], "timings_ms": {}}
+        class Provider:
+            def answer(self, question, legal_date, selected):
+                calls.append((legal_date, selected))
+                return {"state": "provisional", "legal_date": None, "text": text,
+                        "claims": [{"claim_id": "c1", "text": text, "evidence_ids": ["a1:v1"]}],
+                        "citations": [{"evidence_id": "a1:v1", "quote": text, "span_start": 0,
+                                       "span_end": len(text), "document_version_id": "v1"}],
+                        "reason": "", "unanswered": ""}
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Điều 24 quy định gì về thử việc?"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["state"], "provisional")
+        self.assertTrue(response.json()["caveat"])
+        self.assertTrue(response.json()["validation"]["valid"])
+        self.assertIsNone(calls[0][0])
+
+    def test_explicit_as_of_date_is_abstained_before_provider(self):
+        evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": "Điều 1.",
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True, "current_validity": "unverified",
+                    "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                    "source_dataset_revision": "r1", "content_sha256": "hash"}
+        calls = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence]}
+        class Provider:
+            def answer(self, *args): calls.append(args)
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Điều 1 vào ngày 2024-01-01?", "legal_date": "2024-01-01"})
+        self.assertEqual(response.json()["state"], "abstain_insufficient_evidence")
+        self.assertEqual(calls, [])
+
+    def test_conflicting_status_is_abstained_without_provider_call(self):
+        evidence = {"article_id": "a1", "document_version_id": "v1", "canonical_text": "Điều 1.",
+                    "pham_vi": "Trung ương", "retrieval_index_candidate": True, "current_validity": "unverified",
+                    "expiry_state": "unknown_expiry", "reported_status_conflict": True,
+                    "source_dataset_revision": "r1", "content_sha256": "hash"}
+        calls = []
+        class Retriever:
+            def search(self, *args): return {"evidence": [evidence]}
+        class Provider:
+            def answer(self, *args): calls.append(args)
+        response = TestClient(create_app(Provider(), retriever=Retriever(), provisional_snapshot_enabled=True)).post(
+            "/api/answer", json={"question": "Bộ luật này còn hiệu lực không?"})
+        self.assertEqual(response.json()["state"], "abstain_conflict")
+        self.assertEqual(calls, [])
+
 
 if __name__ == "__main__":
     unittest.main()

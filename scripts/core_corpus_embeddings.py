@@ -99,6 +99,7 @@ def _read_records(articles_path, tokenizer, spec):
                     "effective_date": docmeta.get("effective_date"),
                     "reported_expiry_date": docmeta.get("reported_expiry_date"),
                     "reported_status": docmeta.get("reported_status"),
+                    "reported_status_conflict": docmeta.get("reported_status_conflict") is True,
                     "expiry_state": docmeta.get("expiry_state"),
                     "current_validity": "unverified",
                     "amendment_state": docmeta.get("amendment_state"),
@@ -106,6 +107,7 @@ def _read_records(articles_path, tokenizer, spec):
                     "answer_evidence_enabled": False,
                     "corpus_disposition": docmeta.get("corpus_disposition"),
                     "source_dataset_revision": docmeta.get("source_dataset_revision"),
+                    "source_dataset_url": docmeta.get("source_dataset_url"),
                     "content_sha256": article.get("content_sha256"),
                 }
                 records.append({"id": point_id, "text": spec.document_text(chunk_text), "payload": payload})

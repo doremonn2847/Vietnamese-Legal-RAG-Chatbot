@@ -44,7 +44,7 @@ def validate_artifact(artifact_dir, corpus_manifest_path):
             payload, vector = row.get("payload"), row.get("vector")
             if not isinstance(payload, dict) or not isinstance(vector, list) or len(vector) != spec.dimension or any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in vector):
                 raise ValueError("invalid E5 point vector or payload")
-            if payload.get("pham_vi") != "Trung ương" or payload.get("retrieval_index_candidate") is not True or payload.get("answer_evidence_enabled") is not False or payload.get("current_validity") != "unverified" or payload.get("expiry_state") != "unknown_expiry":
+            if payload.get("pham_vi") != "Trung ương" or payload.get("retrieval_index_candidate") is not True or payload.get("answer_evidence_enabled") is not False or payload.get("current_validity") != "unverified" or payload.get("expiry_state") != "unknown_expiry" or type(payload.get("reported_status_conflict")) is not bool:
                 raise ValueError("point violates central-only or unverified-evidence policy")
             if not payload.get("canonical_text", "").strip() or payload.get("source_dataset_revision") != context.get("dataset_revision"):
                 raise ValueError("point is missing its evidence text or pinned dataset provenance")

@@ -100,6 +100,7 @@ def select_core_records(metadata, content, audit, duplicate_groups):
             "reported_expiry_date": row.get("ngay_het_hieu_luc"),
             "source_collection": row.get("nguon_thu_thap"),
             "reported_status": decision.get("reported_status"),
+            "reported_status_conflict": doc_id == "139264",
             "expiry_state": decision.get("expiry_state"),
             "current_validity": "unverified",
             "amendment_state": "not_verified; corpus record is not a consolidated official text",
@@ -194,7 +195,7 @@ def build(output):
             for topic in candidates:
                 if article["label"] not in article_candidate_counts[document["id"]][topic]:
                     article_candidate_counts[document["id"]][topic].append(article["label"])
-            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "pham_vi", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "expiry_state", "current_validity", "amendment_state", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "content_sha256")}
+            article["document_metadata"] = {key: document[key] for key in ("title", "so_ky_hieu", "issuer", "pham_vi", "issue_date", "effective_date", "reported_expiry_date", "reported_status", "reported_status_conflict", "expiry_state", "current_validity", "amendment_state", "corpus_disposition", "retrieval_index_candidate", "answer_evidence_enabled", "source_dataset_revision", "source_dataset_url", "content_sha256")}
             article["topic_candidates"] = candidates
             article["validity"] = "unverified"
             articles.append(article)
@@ -232,6 +233,7 @@ def build(output):
         "article_count": len(articles),
         "article_topic_candidates": article_candidate_counts,
         "legal_validity": "unverified for every record; blank expiry remains unknown",
+        "reported_status_conflict_ids": ["139264"],
         "amendments": "not verified or incorporated; source records are not consolidated texts",
         "answer_evidence_enabled": False,
         "active": False,

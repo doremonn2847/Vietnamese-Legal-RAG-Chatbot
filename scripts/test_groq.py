@@ -11,7 +11,7 @@ class GroqTest(unittest.TestCase):
     def setUp(self):
         self.config = GroqConfig("https://api.groq.com/openai/v1", "chat/completions", "openai/gpt-oss-20b", True)
         self.quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
-        self.answer = {"state": "answer", "legal_date": "2024-01-01", "text": self.quote, "claims": [{"claim_id": "c1", "text": self.quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": self.quote, "span_start": 0, "span_end": len(self.quote), "reviewed_version_id": "fiction-v1"}], "reason": "", "unanswered": ""}
+        self.answer = {"state": "answer", "legal_date": "2024-01-01", "text": self.quote, "claims": [{"claim_id": "c1", "text": self.quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": self.quote, "span_start": 0, "span_end": len(self.quote), "document_version_id": "fiction-v1"}], "reason": "", "unanswered": ""}
 
     def test_disabled_and_exact_structured_request(self):
         with self.assertRaises(RuntimeError): GroqProvider(GroqConfig(), lambda *args: None).generate([])
@@ -45,6 +45,21 @@ class GroqTest(unittest.TestCase):
         response = create_app(malformed)
         from fastapi.testclient import TestClient
         self.assertEqual(TestClient(response).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"}).status_code, 502)
+
+    def test_provisional_request_marks_evidence_as_snapshot_only_and_uses_generic_version_id(self):
+        quote = "Điều 24. Thử việc."
+        calls = []
+        answer = {"state": "provisional", "legal_date": None, "text": quote,
+                  "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["a1:v1"]}],
+                  "citations": [{"evidence_id": "a1:v1", "quote": quote, "span_start": 0, "span_end": len(quote), "document_version_id": "v1"}], "reason": "", "unanswered": ""}
+        provider = GroqProvider(self.config, lambda *args: calls.append(args) or {"choices": [{"message": {"content": json.dumps(answer)}}], "usage": {}}, "key")
+        source = {"canonical_text": quote, "document_version_id": "v1", "provisional_snapshot_eligible": True}
+        self.assertEqual(provider.answer("Điều 24 nói gì?", None, {"a1:v1": source})["state"], "provisional")
+        body = calls[0][2]
+        self.assertIn("never assert current validity", body["messages"][0]["content"])
+        request = json.loads(body["messages"][1]["content"])
+        self.assertIsNone(request["legal_date"])
+        self.assertTrue(request["selected_evidence"][0]["provisional_snapshot_only"])
 
     def test_http_transport_is_bounded_and_does_not_retry(self):
         class Response:

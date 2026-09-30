@@ -29,7 +29,7 @@ class CoreCorpusQdrantTest(unittest.TestCase):
             "article_id": "article-id", "document_version_id": "document-version", "child_id": "chunk-0",
             "pham_vi": "Trung ương", "retrieval_index_candidate": True,
             "answer_evidence_enabled": False, "current_validity": "unverified", "expiry_state": "unknown_expiry",
-            "canonical_text": "fixture evidence", "source_dataset_revision": "revision-fixture",
+            "canonical_text": "fixture evidence", "source_dataset_revision": "revision-fixture", "reported_status_conflict": False,
         }
         self.point = {"id": stable_point_id("article-id", "document-version", "chunk-0"), "vector": [0.0] * 384, "payload": self.payload}
         self.write_artifact()
