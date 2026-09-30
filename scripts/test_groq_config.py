@@ -24,6 +24,17 @@ class GroqConfigTest(unittest.TestCase):
         self.assertTrue(TestClient(create_runtime_app({"GROQ_ENABLED":"false"}, "missing.env")).get("/health").json()["demo"])
         with self.assertRaises(ValueError): create_runtime_app({"GROQ_ENABLED":"true"}, "missing.env")
 
+    def test_rejects_embedded_key_assignment_without_disclosing_credentials(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".env"
+            path.write_text("GROQ_ENABLED=false\nGROQ_API_KEY=groq-placeholderQDRANT_API_KEY=qdrant-placeholder\nQDRANT_API_KEY=separate-placeholder\n", encoding="utf-8")
+            with self.assertRaises(ValueError) as caught:
+                load_config({}, path)
+            self.assertNotIn("placeholder", str(caught.exception))
+        with self.assertRaises(ValueError) as caught:
+            load_config({"GROQ_ENABLED":"false", "GROQ_API_KEY":"groq-placeholderQDRANT_API_KEY=qdrant-placeholder"}, "missing.env")
+        self.assertNotIn("placeholder", str(caught.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

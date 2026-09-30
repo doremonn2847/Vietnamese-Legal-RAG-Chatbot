@@ -1,0 +1,1068 @@
+{
+  "evaluation": "snapshot-excerpt-natural-questions-v2",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "benchmark_sha256": "2132c3b7a73a54c9dcf83eb035a3b05a218f467f8ee804d3fda8648c5d56dacd",
+  "provider": "injected deterministic reference selector; no external model calls",
+  "provider_selector_calls": 11,
+  "interpretation": "Measures pinned local retrieval reach, safe response handling, and exact citation contract on frozen labels. The selector is given reference labels and does not measure model quality, Vietnamese semantic relevance, or legal correctness/validity.",
+  "aggregate": {
+    "cases": 19,
+    "answerable": 17,
+    "answerable_retrieval_hits": 17,
+    "answerable_provider_evidence_hits": 2,
+    "exact_answer_citations": 2,
+    "answerable_safe_abstentions": 15,
+    "ambiguous_cases": 1,
+    "negative_cases": 1,
+    "nonanswerable_safe_abstentions": 2,
+    "citation_contract_passes": 19
+  },
+  "by_split": {
+    "development": {
+      "cases": 10,
+      "answerable": 10,
+      "answerable_retrieval_hits": 10,
+      "answerable_provider_evidence_hits": 0,
+      "exact_answer_citations": 0,
+      "answerable_safe_abstentions": 10,
+      "ambiguous_cases": 0,
+      "negative_cases": 0,
+      "nonanswerable_safe_abstentions": 0,
+      "citation_contract_passes": 10
+    },
+    "held_out": {
+      "cases": 9,
+      "answerable": 7,
+      "answerable_retrieval_hits": 7,
+      "answerable_provider_evidence_hits": 2,
+      "exact_answer_citations": 2,
+      "answerable_safe_abstentions": 5,
+      "ambiguous_cases": 1,
+      "negative_cases": 1,
+      "nonanswerable_safe_abstentions": 2,
+      "citation_contract_passes": 9
+    }
+  },
+  "miss_reason_counts": {
+    "evidence_not_provisional_eligible": 12,
+    "not_selected_for_three_source_provider_cap": 1,
+    "out_of_scope": 2
+  },
+  "latency_ms": {
+    "n": 19,
+    "median": 2132.17,
+    "max": 4216.27
+  },
+  "results": [
+    {
+      "case_id": "dev-probation-agreement",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thỏa thuận thử việc có thể ghi nhận ở đâu?",
+      "relevant_article_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "1b20253b-b817-5392-abf1-83385d1b82d7": 1
+      },
+      "raw_candidate_count": 31,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "1b20253b-b817-5392-abf1-83385d1b82d7": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "probation"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 4216.27,
+      "retrieval_timings_ms": {
+        "sparse": 4.9725,
+        "dense": 4170.7095,
+        "fusion_and_evidence": 0.7148
+      }
+    },
+    {
+      "case_id": "dev-probation-duration",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thời gian thử việc tối đa bao nhiêu ngày?",
+      "relevant_article_ids": [
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a": 1
+      },
+      "raw_candidate_count": 38,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "probation"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2133.4,
+      "retrieval_timings_ms": {
+        "sparse": 3.9231,
+        "dense": 2114.7034,
+        "fusion_and_evidence": 0.9412
+      }
+    },
+    {
+      "case_id": "dev-probation-pay",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Tiền lương của người thử việc tối thiểu thế nào?",
+      "relevant_article_ids": [
+        "ecbc7630-641e-5e31-bec8-dea75585bf97"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "ecbc7630-641e-5e31-bec8-dea75585bf97"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "ecbc7630-641e-5e31-bec8-dea75585bf97": 1
+      },
+      "raw_candidate_count": 34,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "ecbc7630-641e-5e31-bec8-dea75585bf97": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "probation"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2163.5,
+      "retrieval_timings_ms": {
+        "sparse": 5.03,
+        "dense": 2140.6039,
+        "fusion_and_evidence": 0.8597
+      }
+    },
+    {
+      "case_id": "dev-probation-result",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Kết thúc thử việc cần thông báo điều gì?",
+      "relevant_article_ids": [
+        "37aef809-7b4c-52e0-8a99-16415076aa92"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "37aef809-7b4c-52e0-8a99-16415076aa92"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "37aef809-7b4c-52e0-8a99-16415076aa92": 1
+      },
+      "raw_candidate_count": 33,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "37aef809-7b4c-52e0-8a99-16415076aa92": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "probation"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2148.86,
+      "retrieval_timings_ms": {
+        "sparse": 5.582,
+        "dense": 2130.8165,
+        "fusion_and_evidence": 0.9516
+      }
+    },
+    {
+      "case_id": "dev-contract-form",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động được lập theo hình thức nào?",
+      "relevant_article_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e": 1
+      },
+      "raw_candidate_count": 36,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2117.61,
+      "retrieval_timings_ms": {
+        "sparse": 3.6587,
+        "dense": 2100.6824,
+        "fusion_and_evidence": 0.7655
+      }
+    },
+    {
+      "case_id": "dev-contract-contents",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động cần có những nội dung chủ yếu nào?",
+      "relevant_article_ids": [
+        "02eee374-a457-569d-92b2-7795f569fa63"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "02eee374-a457-569d-92b2-7795f569fa63"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "02eee374-a457-569d-92b2-7795f569fa63": 1
+      },
+      "raw_candidate_count": 34,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "02eee374-a457-569d-92b2-7795f569fa63": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2132.15,
+      "retrieval_timings_ms": {
+        "sparse": 5.8697,
+        "dense": 2114.5634,
+        "fusion_and_evidence": 0.6098
+      }
+    },
+    {
+      "case_id": "dev-overtime-pay",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Tiền lương làm thêm giờ được tính thế nào?",
+      "relevant_article_ids": [
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c": 2
+      },
+      "raw_candidate_count": 32,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 2,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "working_time"
+          ],
+          "snapshot_eligibility_reason": "out_of_scope",
+          "miss_reason": "out_of_scope"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2106.19,
+      "retrieval_timings_ms": {
+        "sparse": 4.7117,
+        "dense": 2089.8982,
+        "fusion_and_evidence": 0.7814
+      }
+    },
+    {
+      "case_id": "dev-annual-leave",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Người lao động được nghỉ hằng năm bao nhiêu ngày?",
+      "relevant_article_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "267dc82e-753a-5183-8bd6-81603d3ab746": 1
+      },
+      "raw_candidate_count": 32,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "267dc82e-753a-5183-8bd6-81603d3ab746": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "leave"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2097.36,
+      "retrieval_timings_ms": {
+        "sparse": 2.3462,
+        "dense": 2082.3378,
+        "fusion_and_evidence": 0.5971
+      }
+    },
+    {
+      "case_id": "dev-seniority-leave",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thâm niên làm việc ảnh hưởng ngày nghỉ hằng năm ra sao?",
+      "relevant_article_ids": [
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841": 1
+      },
+      "raw_candidate_count": 38,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "leave"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2132.17,
+      "retrieval_timings_ms": {
+        "sparse": 3.6467,
+        "dense": 2115.0059,
+        "fusion_and_evidence": 0.6541
+      }
+    },
+    {
+      "case_id": "heldout-contract-duration-type",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động không xác định thời hạn thuộc loại hợp đồng nào?",
+      "relevant_article_ids": [
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8": 1
+      },
+      "raw_candidate_count": 31,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2101.1,
+      "retrieval_timings_ms": {
+        "sparse": 4.0901,
+        "dense": 2083.2181,
+        "fusion_and_evidence": 1.2439
+      }
+    },
+    {
+      "case_id": "heldout-contract-amendment-process",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Hai bên muốn thay đổi nội dung hợp đồng lao động thì xử lý ra sao?",
+      "relevant_article_ids": [
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89": 1
+      },
+      "raw_candidate_count": 30,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2134.65,
+      "retrieval_timings_ms": {
+        "sparse": 2.6454,
+        "dense": 2119.1027,
+        "fusion_and_evidence": 0.5961
+      }
+    },
+    {
+      "case_id": "heldout-overtime-consent",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Khi nào cần có sự đồng ý của người lao động để làm thêm giờ?",
+      "relevant_article_ids": [
+        "870c93c9-cd7f-5430-bb26-9acc131f71d7"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "870c93c9-cd7f-5430-bb26-9acc131f71d7"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "870c93c9-cd7f-5430-bb26-9acc131f71d7": 1
+      },
+      "raw_candidate_count": 34,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "870c93c9-cd7f-5430-bb26-9acc131f71d7": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "working_time"
+          ],
+          "snapshot_eligibility_reason": "out_of_scope",
+          "miss_reason": "out_of_scope"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2116.36,
+      "retrieval_timings_ms": {
+        "sparse": 4.6516,
+        "dense": 2099.287,
+        "fusion_and_evidence": 0.825
+      }
+    },
+    {
+      "case_id": "heldout-paid-rest-time",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Khoảng nghỉ nào được tính vào thời giờ làm việc hưởng lương?",
+      "relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+      ],
+      "status_code": 200,
+      "expected_state": "provisional",
+      "state": "provisional",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 1,
+      "relevant_rrf_ranks": {
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3": 2
+      },
+      "raw_candidate_count": 31,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+      ],
+      "provider_evidence_hit": true,
+      "cited_article_id": "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+      "citation_is_relevant": true,
+      "reference_diagnostics": {
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 2,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": true,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "working_time"
+          ],
+          "snapshot_eligibility_reason": "snapshot_excerpt_only",
+          "miss_reason": null
+        }
+      },
+      "exact_answer": true,
+      "safe_abstention": false,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 297,
+      "quote_sha256": "1ce53e753c2cc94bbfa35e8a2fe021216bfef4cb12b2b2330ad1efabafe9ee94",
+      "end_to_end_ms": 2124.21,
+      "retrieval_timings_ms": {
+        "sparse": 4.8214,
+        "dense": 2105.0501,
+        "fusion_and_evidence": 0.704
+      }
+    },
+    {
+      "case_id": "heldout-contract-termination-cases",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Trong trường hợp nào hợp đồng lao động chấm dứt?",
+      "relevant_article_ids": [
+        "98d8e71d-815e-55cc-b303-0919d1ed0019"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "98d8e71d-815e-55cc-b303-0919d1ed0019"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "98d8e71d-815e-55cc-b303-0919d1ed0019": 3
+      },
+      "raw_candidate_count": 33,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "98d8e71d-815e-55cc-b303-0919d1ed0019": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 3,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2156.88,
+      "retrieval_timings_ms": {
+        "sparse": 3.1905,
+        "dense": 2140.0445,
+        "fusion_and_evidence": 0.6707
+      }
+    },
+    {
+      "case_id": "heldout-worker-unilateral-termination",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Người lao động có thể đơn phương chấm dứt hợp đồng lao động khi nào?",
+      "relevant_article_ids": [
+        "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be": 7
+      },
+      "raw_candidate_count": 32,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 7,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": true,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "evidence_not_provisional_eligible",
+          "miss_reason": "evidence_not_provisional_eligible"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 2,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2160.12,
+      "retrieval_timings_ms": {
+        "sparse": 2.2356,
+        "dense": 2141.5571,
+        "fusion_and_evidence": 1.448
+      }
+    },
+    {
+      "case_id": "heldout-special-work-rest-ambiguous",
+      "split": "held_out",
+      "kind": "ambiguous",
+      "query": "Thời giờ làm việc và thời giờ nghỉ ngơi của công việc có tính chất đặc biệt được quy định ở đâu?",
+      "relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3": 3,
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72": 2
+      },
+      "raw_candidate_count": 28,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72"
+      ],
+      "provider_evidence_hit": true,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 3,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": true,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "working_time"
+          ],
+          "snapshot_eligibility_reason": "snapshot_excerpt_only",
+          "miss_reason": null
+        },
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 2,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": true,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "working_time"
+          ],
+          "snapshot_eligibility_reason": "snapshot_excerpt_only",
+          "miss_reason": null
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2111.4,
+      "retrieval_timings_ms": {
+        "sparse": 6.592,
+        "dense": 2091.3184,
+        "fusion_and_evidence": 0.8757
+      }
+    },
+    {
+      "case_id": "heldout-unemployment-insurance-out-of-scope",
+      "split": "held_out",
+      "kind": "negative",
+      "query": "Bảo hiểm thất nghiệp được hưởng bao nhiêu?",
+      "relevant_article_ids": [],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [],
+      "retrieval_hit": false,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {},
+      "raw_candidate_count": 36,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {},
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 0,
+      "provider_evidence_count": 0,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2129.02,
+      "retrieval_timings_ms": {
+        "sparse": 5.0546,
+        "dense": 2110.6536,
+        "fusion_and_evidence": 1.4815
+      }
+    },
+    {
+      "case_id": "snapshot-contract-contents",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động cần có nội dung chính nào?",
+      "relevant_article_ids": [
+        "3f2b3e90-453c-527c-ade0-11e72029d715"
+      ],
+      "status_code": 200,
+      "expected_state": "abstain_insufficient_evidence",
+      "state": "abstain_insufficient_evidence",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "3f2b3e90-453c-527c-ade0-11e72029d715"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 0,
+      "relevant_rrf_ranks": {
+        "3f2b3e90-453c-527c-ade0-11e72029d715": 11
+      },
+      "raw_candidate_count": 32,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [],
+      "provider_evidence_hit": false,
+      "cited_article_id": null,
+      "citation_is_relevant": false,
+      "reference_diagnostics": {
+        "3f2b3e90-453c-527c-ade0-11e72029d715": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 11,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": false,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "contracts"
+          ],
+          "snapshot_eligibility_reason": "snapshot_excerpt_only",
+          "miss_reason": "not_selected_for_three_source_provider_cap"
+        }
+      },
+      "exact_answer": false,
+      "safe_abstention": true,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 0,
+      "quote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "end_to_end_ms": 2153.58,
+      "retrieval_timings_ms": {
+        "sparse": 4.9135,
+        "dense": 2132.5425,
+        "fusion_and_evidence": 1.6691
+      }
+    },
+    {
+      "case_id": "snapshot-annual-leave",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Cách tính ngày nghỉ hằng năm trong trường hợp đặc biệt thế nào?",
+      "relevant_article_ids": [
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+      ],
+      "status_code": 200,
+      "expected_state": "provisional",
+      "state": "provisional",
+      "answer_contract_valid": true,
+      "retrieved_relevant_article_ids": [
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+      ],
+      "retrieval_hit": true,
+      "citation_count": 1,
+      "relevant_rrf_ranks": {
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13": 1
+      },
+      "raw_candidate_count": 31,
+      "retrieval_top12_count": 12,
+      "provider_evidence_relevant_article_ids": [
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+      ],
+      "provider_evidence_hit": true,
+      "cited_article_id": "a735c6cd-cd93-5f84-b950-2e1341d15c13",
+      "citation_is_relevant": true,
+      "reference_diagnostics": {
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13": {
+          "present_in_pinned_corpus": true,
+          "rrf_rank": 1,
+          "in_retrieval_top12": true,
+          "in_provider_evidence": true,
+          "reported_status_conflict": false,
+          "topic_candidates": [
+            "leave"
+          ],
+          "snapshot_eligibility_reason": "snapshot_excerpt_only",
+          "miss_reason": null
+        }
+      },
+      "exact_answer": true,
+      "safe_abstention": false,
+      "provider_selector_calls": 1,
+      "provider_evidence_count": 3,
+      "quote_length_chars": 298,
+      "quote_sha256": "00618224fe2e015f8b172d3ef63b1dc1fa66c62f433f3a998c6a8507ed85a54d",
+      "end_to_end_ms": 2158.8,
+      "retrieval_timings_ms": {
+        "sparse": 2.9399,
+        "dense": 2139.0692,
+        "fusion_and_evidence": 0.957
+      }
+    }
+  ]
+}

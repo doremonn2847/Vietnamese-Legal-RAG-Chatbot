@@ -1,13 +1,18 @@
 """Known-key direct Groq configuration; disabled unless explicitly enabled."""
 import os
 from pathlib import Path
+import re
 
 from groq import GROQ_BASE_URL, GROQ_MODEL, GROQ_ROUTE, GroqConfig, GroqProvider, http_transport
 _KEYS = {"GROQ_API_KEY", "GROQ_ENABLED", "GROQ_BASE_URL", "GROQ_ROUTE", "GROQ_MODEL"}
+_EMBEDDED_KEY_ASSIGNMENT = re.compile(r"[A-Z][A-Z0-9_]*_API_KEY\s*=")
 
 
 def load_config(env=None, dotenv_path=".env"):
     values = {**_dotenv(dotenv_path), **(dict(env) if env is not None else os.environ)}
+    if any(key.endswith("_API_KEY") and isinstance(value, str) and _EMBEDDED_KEY_ASSIGNMENT.search(value)
+           for key, value in values.items()):
+        raise ValueError("credential value contains an embedded key assignment")
     config = GroqConfig(values.get("GROQ_BASE_URL"), values.get("GROQ_ROUTE"), values.get("GROQ_MODEL"), values.get("GROQ_ENABLED", "").casefold() == "true")
     if not config.enabled: return config, None
     config.validate(values.get("GROQ_API_KEY"))
