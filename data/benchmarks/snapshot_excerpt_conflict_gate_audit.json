@@ -1,0 +1,144 @@
+{
+  "audit": "snapshot-excerpt-conflict-gate-misses-v1",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "benchmark_result_sha256": "f437e23f1d9bab2957381359839b1b32551f31d29be449e0a9f60c62f5f38c7c",
+  "miss_count": 12,
+  "shared_source_document_id": "139264",
+  "source_conflict_origin": "curation resolves document 139264 and translation/alternate record vbpqta_11135 as same bibliographic identity, but source audit reported different statuses; selected Vietnamese original is marked reported_status_conflict=true",
+  "policy_effect": "snapshot excerpt eligibility requires reported_status_conflict=false, so all retrieved articles from document 139264 are excluded before provider selection",
+  "interpretation": "These are policy eligibility misses, not retrieval misses. Top-12 ranks remain 1-7. The conflict flag records a document-level source-status discrepancy; it does not establish current validity or expiration. Blank expiry remains unknown, and no eligibility or employment-scope policy was changed.",
+  "cases": [
+    {
+      "case_id": "dev-probation-agreement",
+      "split": "development",
+      "article_id": "1b20253b-b817-5392-abf1-83385d1b82d7",
+      "rrf_rank": 1,
+      "topic": [
+        "probation"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-probation-duration",
+      "split": "development",
+      "article_id": "4b53b32a-ba57-5b20-aed1-b4c91d937e7a",
+      "rrf_rank": 1,
+      "topic": [
+        "probation"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-probation-pay",
+      "split": "development",
+      "article_id": "ecbc7630-641e-5e31-bec8-dea75585bf97",
+      "rrf_rank": 1,
+      "topic": [
+        "probation"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-probation-result",
+      "split": "development",
+      "article_id": "37aef809-7b4c-52e0-8a99-16415076aa92",
+      "rrf_rank": 1,
+      "topic": [
+        "probation"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-contract-form",
+      "split": "development",
+      "article_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e",
+      "rrf_rank": 1,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-contract-contents",
+      "split": "development",
+      "article_id": "02eee374-a457-569d-92b2-7795f569fa63",
+      "rrf_rank": 1,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-annual-leave",
+      "split": "development",
+      "article_id": "267dc82e-753a-5183-8bd6-81603d3ab746",
+      "rrf_rank": 1,
+      "topic": [
+        "leave"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "dev-seniority-leave",
+      "split": "development",
+      "article_id": "c1d0dda7-75e2-5051-a9e3-7b3c1d211841",
+      "rrf_rank": 1,
+      "topic": [
+        "leave"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "heldout-contract-duration-type",
+      "split": "held_out",
+      "article_id": "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8",
+      "rrf_rank": 1,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "heldout-contract-amendment-process",
+      "split": "held_out",
+      "article_id": "2fd5cbf6-e01f-5741-b776-ec0840634d89",
+      "rrf_rank": 1,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "heldout-contract-termination-cases",
+      "split": "held_out",
+      "article_id": "98d8e71d-815e-55cc-b303-0919d1ed0019",
+      "rrf_rank": 3,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    },
+    {
+      "case_id": "heldout-worker-unilateral-termination",
+      "split": "held_out",
+      "article_id": "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be",
+      "rrf_rank": 7,
+      "topic": [
+        "contracts"
+      ],
+      "reported_status_conflict": true,
+      "gate_reason": "evidence_not_provisional_eligible"
+    }
+  ]
+}

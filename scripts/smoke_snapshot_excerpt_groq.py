@@ -44,7 +44,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm-free-tier", action="store_true",
                         help="confirm Free tier and permit at most one ordinary and one abstention request")
+    parser.add_argument("--report", type=Path, default=REPORT_PATH,
+                        help="sanitized checkpoint path")
     args = parser.parse_args(argv)
+    report_path = args.report
     if not args.confirm_free_tier:
         print(json.dumps({"status": "blocked", "reason": "explicit Free-tier confirmation required",
                           "max_provider_calls": MAX_PROVIDER_CALLS}))
@@ -69,7 +72,7 @@ def main(argv=None):
               "usage": usage, "model": config.model, "cases": [],
               "no_retries": True, "paid_fallback": False,
               "attempt_started_at_utc": datetime.now(timezone.utc).isoformat()}
-    _checkpoint(report)
+    _checkpoint(report, report_path)
     current_case = None
     def bounded_transport(*args):
         nonlocal calls
@@ -78,18 +81,18 @@ def main(argv=None):
         calls += 1
         report["provider_calls"] = calls
         report["call_attempts"] = report.get("call_attempts", []) + [{"case": current_case, "state": "attempt_started"}]
-        _checkpoint(report)
+        _checkpoint(report, report_path)
         try:
             response = transport(*args)
         except Exception as error:
             provider_errors.append({"case": current_case, "type": type(error).__name__,
                                     "status": getattr(error, "status", None)})
             report["call_attempts"][-1]["state"] = "transport_error"
-            _checkpoint(report)
+            _checkpoint(report, report_path)
             raise
         usage.append(response.get("usage") if isinstance(response, dict) else None)
         report["call_attempts"][-1]["state"] = "response_received"
-        _checkpoint(report)
+        _checkpoint(report, report_path)
         return response
 
     try:
@@ -99,14 +102,14 @@ def main(argv=None):
         client = TestClient(create_core_app(provider=provider, experimental_snapshot_excerpt_enabled=True))
     except Exception as error:
         report.update(status="startup_error", startup_error_type=type(error).__name__)
-        _checkpoint(report)
+        _checkpoint(report, report_path)
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 1
     for case_id, question, expected_state in CASES:
         current_case = case_id
         case_report = {"case": case_id, "status": "in_progress", "expected_state": expected_state}
         report["cases"].append(case_report)
-        _checkpoint(report)
+        _checkpoint(report, report_path)
         started = time.perf_counter_ns()
         try:
             response = client.post("/api/answer", json={"question": question})
@@ -115,7 +118,7 @@ def main(argv=None):
         except Exception as error:
             case_report.update(status="request_error", error_type=type(error).__name__,
                                end_to_end_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2))
-            _checkpoint(report)
+            _checkpoint(report, report_path)
             continue
         elapsed_ms = round((time.perf_counter_ns() - started) / 1_000_000, 2)
         answer = body.get("answer", {})
@@ -148,10 +151,10 @@ def main(argv=None):
                             "caveat_present": bool(body.get("caveat")),
                             "provider_calls_after_case": calls,
                             "status": "complete" if status_code == 200 and answer.get("state") == expected_state and validation.get("valid") is True else "failed"})
-        _checkpoint(report)
+        _checkpoint(report, report_path)
     reports = report["cases"]
     report["status"] = "complete" if len(reports) == len(CASES) and all(row.get("status") == "complete" for row in reports) else "failed"
-    _checkpoint(report)
+    _checkpoint(report, report_path)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     ordinary = reports[0]
     abstention = reports[1]

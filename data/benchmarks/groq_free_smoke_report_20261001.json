@@ -1,0 +1,62 @@
+{
+  "status": "failed",
+  "max_provider_calls": 2,
+  "provider_calls": 1,
+  "provider_errors": [],
+  "usage": [],
+  "model": "openai/gpt-oss-20b",
+  "cases": [
+    {
+      "case": "ordinary",
+      "status": "failed",
+      "expected_state": "provisional",
+      "status_code": 503,
+      "answer_state": "unavailable",
+      "response_origin": "local_policy_gate",
+      "vietnamese_relevance": "out_of_scope_gate_only",
+      "state_matches": false,
+      "provider_schema_and_citation_valid": null,
+      "visible_answer_contract_valid": true,
+      "citation_count": 0,
+      "citations": [],
+      "end_to_end_ms": 4218.59,
+      "retrieval_timings_ms": {},
+      "current_validity": [],
+      "caveat_present": false,
+      "provider_calls_after_case": 1
+    },
+    {
+      "case": "abstention",
+      "status": "complete",
+      "expected_state": "abstain_insufficient_evidence",
+      "status_code": 200,
+      "answer_state": "abstain_insufficient_evidence",
+      "response_origin": "local_policy_gate",
+      "vietnamese_relevance": "out_of_scope_gate_only",
+      "state_matches": true,
+      "provider_schema_and_citation_valid": null,
+      "visible_answer_contract_valid": true,
+      "citation_count": 0,
+      "citations": [],
+      "end_to_end_ms": 2281.63,
+      "retrieval_timings_ms": {
+        "sparse": 2.2595,
+        "dense": 2266.1537,
+        "fusion_and_evidence": 0.7086
+      },
+      "current_validity": [],
+      "caveat_present": true,
+      "provider_calls_after_case": 1
+    }
+  ],
+  "no_retries": true,
+  "paid_fallback": false,
+  "attempt_started_at_utc": "2026-10-01T02:10:42.954779+07:00",
+  "call_attempts": [
+    {
+      "case": "ordinary",
+      "state": "attempt_started"
+    }
+  ],
+  "diagnosis": "Local runner error: bounded_transport parameter args shadowed argparse args, so checkpoint path access failed before invoking HTTP transport. No Groq request was sent; no retry was made."
+}
