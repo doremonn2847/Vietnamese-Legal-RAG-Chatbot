@@ -320,6 +320,27 @@ class AppTest(unittest.TestCase):
         self.assertEqual(body["retrieval"]["evidence_count"], 3)
         self.assertLessEqual(provider.max_text, 2400)
 
+    def test_default_reviewed_retrieval_keeps_five_configured_sources(self):
+        day = 738886
+        rows = [{"article_id": f"a{index}", "document_version_id": f"v{index}",
+                 "canonical_text": f"Nguồn đã xét duyệt {index}.", "pham_vi": "Trung ương",
+                 "reviewed_version_id": f"v{index}", "reviewed_status": "reviewed",
+                 "central_eligible": True, "effective_from_day": day - 1,
+                 "effective_to_day": day + 1, "reviewed_through_day": day + 1}
+                for index in range(5)]
+        class Retriever:
+            def search(self, *args): return {"evidence": rows}
+        class Provider:
+            def answer(self, question, legal_date, evidence):
+                self.seen = len(evidence)
+                return {"state": "unavailable", "legal_date": legal_date, "text": "",
+                        "claims": [], "citations": [], "reason": "test", "unanswered": ""}
+        provider = Provider()
+        body = TestClient(create_app(provider, retriever=Retriever())).post(
+            "/api/answer", json={"question": "Câu hỏi về hợp đồng?", "legal_date": "2024-01-01"}).json()
+        self.assertEqual(provider.seen, 5)
+        self.assertEqual(body["retrieval"]["evidence_count"], 5)
+
     def test_injected_retrieval_uses_eligible_parent_evidence_without_demo_fallback(self):
         day = 738886
         class Retriever:
