@@ -261,7 +261,10 @@ class AppTest(unittest.TestCase):
                          "Tranh chấp hợp đồng lao động giải quyết thế nào?",
                          "Bảo hiểm thất nghiệp trong hợp đồng lao động thế nào?",
                          "Chế độ hợp đồng của công chức thế nào?",
-                         "Thử việc với người lao động chưa thành niên thế nào?"):
+                         "Thử việc với người lao động chưa thành niên thế nào?",
+                         "Phụ nữ mang thai thử việc thế nào?",
+                         "Hợp đồng với người nước ngoài thế nào?",
+                         "Hợp đồng của người lao động cao tuổi thế nào?"):
             with self.subTest(question=question):
                 response = client.post("/api/answer", json={"question": question}).json()
                 self.assertEqual(response["answer"]["state"], "abstain_insufficient_evidence")
