@@ -1,0 +1,212 @@
+{
+  "benchmark_id": "snapshot-excerpt-natural-questions-v1",
+  "frozen_on": "2026-10-01",
+  "corpus_id": "core-employment-portfolio-v1",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "labeling": "Natural-question article relevance labels inherited from frozen manual heading-level benchmarks; three snapshot cases retain their prior manually inspected reference IDs. Not legal review, legal validity, or advice.",
+  "source_benchmarks": {
+    "data/benchmarks/vietnamese_employment_retrieval_v1.json": "d8fc30cb4b6ff814c1736460823d0a8e980b515ac6eac4d3632fc475fa97a9bd",
+    "data/benchmarks/vietnamese_employment_heldout_v2.json": "5e8c9d5fc5d75c523cd7609c1d61d4cade5749caeac7c76cbf74a3665e3531b9"
+  },
+  "cases": [
+    {
+      "case_id": "dev-probation-agreement",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thỏa thuận thử việc có thể ghi nhận ở đâu?",
+      "relevant_article_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-probation-duration",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thời gian thử việc tối đa bao nhiêu ngày?",
+      "relevant_article_ids": [
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-probation-pay",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Tiền lương của người thử việc tối thiểu thế nào?",
+      "relevant_article_ids": [
+        "ecbc7630-641e-5e31-bec8-dea75585bf97"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-probation-result",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Kết thúc thử việc cần thông báo điều gì?",
+      "relevant_article_ids": [
+        "37aef809-7b4c-52e0-8a99-16415076aa92"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-contract-form",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động được lập theo hình thức nào?",
+      "relevant_article_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-contract-contents",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động cần có những nội dung chủ yếu nào?",
+      "relevant_article_ids": [
+        "02eee374-a457-569d-92b2-7795f569fa63"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-overtime-pay",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Tiền lương làm thêm giờ được tính thế nào?",
+      "relevant_article_ids": [
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-annual-leave",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Người lao động được nghỉ hằng năm bao nhiêu ngày?",
+      "relevant_article_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "dev-seniority-leave",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thâm niên làm việc ảnh hưởng ngày nghỉ hằng năm ra sao?",
+      "relevant_article_ids": [
+        "c1d0dda7-75e2-5051-a9e3-7b3c1d211841"
+      ],
+      "source_benchmark": "vietnamese-employment-retrieval-v1"
+    },
+    {
+      "case_id": "heldout-contract-duration-type",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động không xác định thời hạn thuộc loại hợp đồng nào?",
+      "relevant_article_ids": [
+        "e5dcf31f-e8c1-592b-8bd5-5e54d86cd3c8"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-contract-amendment-process",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Hai bên muốn thay đổi nội dung hợp đồng lao động thì xử lý ra sao?",
+      "relevant_article_ids": [
+        "2fd5cbf6-e01f-5741-b776-ec0840634d89"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-overtime-consent",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Khi nào cần có sự đồng ý của người lao động để làm thêm giờ?",
+      "relevant_article_ids": [
+        "870c93c9-cd7f-5430-bb26-9acc131f71d7"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-paid-rest-time",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Khoảng nghỉ nào được tính vào thời giờ làm việc hưởng lương?",
+      "relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-contract-termination-cases",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Trong trường hợp nào hợp đồng lao động chấm dứt?",
+      "relevant_article_ids": [
+        "98d8e71d-815e-55cc-b303-0919d1ed0019"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-worker-unilateral-termination",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Người lao động có thể đơn phương chấm dứt hợp đồng lao động khi nào?",
+      "relevant_article_ids": [
+        "e1e2dcc3-c5b3-58c4-857d-d657a6c3f4be"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-special-work-rest-ambiguous",
+      "split": "held_out",
+      "kind": "ambiguous",
+      "query": "Thời giờ làm việc và thời giờ nghỉ ngơi của công việc có tính chất đặc biệt được quy định ở đâu?",
+      "relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3",
+        "8e6ad528-07ef-59e9-9433-4e92d3a5ee72"
+      ],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "heldout-unemployment-insurance-out-of-scope",
+      "split": "held_out",
+      "kind": "negative",
+      "query": "Bảo hiểm thất nghiệp được hưởng bao nhiêu?",
+      "relevant_article_ids": [],
+      "source_benchmark": "vietnamese-employment-heldout-v2"
+    },
+    {
+      "case_id": "snapshot-contract-contents",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Hợp đồng lao động cần có nội dung chính nào?",
+      "relevant_article_ids": [
+        "3f2b3e90-453c-527c-ade0-11e72029d715"
+      ],
+      "source_benchmark": "snapshot-excerpt-fidelity-v1"
+    },
+    {
+      "case_id": "snapshot-paid-working-time",
+      "split": "development",
+      "kind": "answerable",
+      "query": "Thời giờ nào được tính vào thời giờ làm việc hưởng lương?",
+      "relevant_article_ids": [
+        "368e060a-40a3-51cd-8134-27ce5b88e9b3"
+      ],
+      "source_benchmark": "snapshot-excerpt-fidelity-v1"
+    },
+    {
+      "case_id": "snapshot-annual-leave",
+      "split": "held_out",
+      "kind": "answerable",
+      "query": "Cách tính ngày nghỉ hằng năm trong trường hợp đặc biệt thế nào?",
+      "relevant_article_ids": [
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13"
+      ],
+      "source_benchmark": "snapshot-excerpt-fidelity-v1"
+    }
+  ]
+}
