@@ -25,10 +25,8 @@
       "reference_rank_in_retrieved_evidence": 1,
       "reference_retrieved": true,
       "reference_selected_by_snapshot_eligibility": true,
-      "expected_exact_quote": "Nội dung chủ yếu của hợp đồng thử việc gồm thời gian thử việc và nội dung quy định tại các điểm a, b, c, đ, g và h khoản 1 Điều 21 của Bộ luật này.",
       "source_span_start": 195,
       "source_span_end": 342,
-      "quote_sha256": "4ceb72affe0b7b008e58822c3b2b0572083335f37938f4fcd9c82486698a39d6",
       "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
       "topic_gate": "probation",
       "topic_candidates": [
@@ -44,7 +42,9 @@
         "sparse": 2.0841,
         "dense": 4214.4628,
         "fusion_and_evidence": 0.8567
-      }
+      },
+      "expected_quote_length_chars": 147,
+      "expected_quote_sha256": "4ceb72affe0b7b008e58822c3b2b0572083335f37938f4fcd9c82486698a39d6"
     },
     {
       "id": "contracts",
@@ -56,10 +56,8 @@
       "reference_rank_in_retrieved_evidence": 1,
       "reference_retrieved": true,
       "reference_selected_by_snapshot_eligibility": true,
-      "expected_exact_quote": "Hợp đồng lao động được giao kết thông qua phương tiện điện tử dưới hình thức thông điệp dữ liệu theo quy định của pháp luật về giao dịch điện tử có giá trị như hợp đồng lao động bằng văn bản.",
       "source_span_start": 224,
       "source_span_end": 415,
-      "quote_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11",
       "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
       "topic_gate": "contracts",
       "topic_candidates": [
@@ -75,7 +73,9 @@
         "sparse": 4.5353,
         "dense": 2513.2592,
         "fusion_and_evidence": 0.7307
-      }
+      },
+      "expected_quote_length_chars": 191,
+      "expected_quote_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11"
     },
     {
       "id": "working_time",
@@ -87,10 +87,8 @@
       "reference_rank_in_retrieved_evidence": 1,
       "reference_retrieved": true,
       "reference_selected_by_snapshot_eligibility": true,
-      "expected_exact_quote": "Thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần.",
       "source_span_start": 43,
       "source_span_end": 138,
-      "quote_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09",
       "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
       "topic_gate": "working_time",
       "topic_candidates": [
@@ -106,7 +104,9 @@
         "sparse": 4.9683,
         "dense": 2144.7879,
         "fusion_and_evidence": 0.8702
-      }
+      },
+      "expected_quote_length_chars": 95,
+      "expected_quote_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09"
     },
     {
       "id": "leave",
@@ -118,10 +118,8 @@
       "reference_rank_in_retrieved_evidence": 1,
       "reference_retrieved": true,
       "reference_selected_by_snapshot_eligibility": true,
-      "expected_exact_quote": "Trường hợp do thôi việc, bị mất việc làm mà chưa nghỉ hằng năm hoặc chưa nghỉ hết số ngày nghỉ hằng năm thì được người sử dụng lao động thanh toán tiền lương cho những ngày chưa nghỉ.",
       "source_span_start": 635,
       "source_span_end": 818,
-      "quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1",
       "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
       "topic_gate": "leave",
       "topic_candidates": [
@@ -137,7 +135,10 @@
         "sparse": 4.9813,
         "dense": 2164.902,
         "fusion_and_evidence": 0.6846
-      }
+      },
+      "expected_quote_length_chars": 183,
+      "expected_quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1"
     }
-  ]
+  ],
+  "publication_redaction": "Exact quotes are represented by source spans and SHA-256; recover from the pinned corpus revision and content hash."
 }

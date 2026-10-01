@@ -1,6 +1,6 @@
 {
   "evaluation": "groq-four-topic-development-smoke-v1",
-  "manifest_sha256": "89a702dda4076c39759bd96ec8b772d2125655b864f4d32130cc866e238c1cc0",
+  "manifest_sha256": "dd26a1ce5fc7770649f2a068be32db9fbf4313478225c288a815e28ddd1ee218",
   "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
   "max_provider_http_invocations": 4,
   "provider_callback_attempts": 1,
@@ -63,9 +63,22 @@
         "dense": 4158.3382,
         "fusion_and_evidence": 0.6828
       },
-      "exact_public_answer": "Điều 24. Thử việc 1. Người sử dụng lao động và người lao động có thể thỏa thuận nội dung thử việc ghi trong hợp đồng lao động hoặc thỏa thuận về thử việc bằng việc giao kết hợp đồng thử việc. 2. Nội dung chủ yếu của hợp đồng thử việc gồm thời gian thử việc và nội dung quy định tại các điểm a, b, c, đ, g và h khoản 1 Điều 21 của Bộ luật này. 3. Không áp dụng thử việc đối với người lao động giao kết hợp đồng lao động có thời hạn dưới 01 tháng.",
       "failure_classification": "sentence_selection_failure",
-      "citation_contract_passed": true
+      "citation_contract_passed": true,
+      "answer_text_length_chars": 445,
+      "answer_text_sha256": "a4bcc49e89285fac4627e9dfef3c141c7d9f577af3adc31af5c9f99f5ee51530"
+    },
+    {
+      "id": "contracts",
+      "status": "not_run_after_stop_gate"
+    },
+    {
+      "id": "working_time",
+      "status": "not_run_after_stop_gate"
+    },
+    {
+      "id": "leave",
+      "status": "not_run_after_stop_gate"
     }
   ],
   "ui_preflight": {
@@ -92,7 +105,12 @@
     "citation_contract_passed": true,
     "transport_failure": false,
     "interpretation": "Exact-sentence selection is a narrow extraction criterion, not a general legal-correctness metric. The Article 24 cross-reference is not fully explained by this citation.",
-    "remaining_cases": "not_run_after_stop_gate",
+    "remaining_cases": "contracts, working_time, and leave not run after stop gate",
     "additional_provider_calls_authorized": false
+  },
+  "execution_manifest_sha256": "89a702dda4076c39759bd96ec8b772d2125655b864f4d32130cc866e238c1cc0",
+  "artifact_redaction": {
+    "expected_source_quotes": "removed; span, character length, and SHA-256 retained",
+    "provider_answer_text": "removed; character length and SHA-256 retained"
   }
 }
