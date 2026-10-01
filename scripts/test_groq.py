@@ -252,6 +252,48 @@ class GroqTest(unittest.TestCase):
         self.assertTrue(body.closed)
         self.assertNotIn("PRIVATE_CLASSIFIER_FAILURE", json.dumps(events))
 
+    def test_failed_generation_metadata_is_syntax_only_and_never_retains_content(self):
+        from fastapi.testclient import TestClient
+
+        non_json_decode_error = '{"number":' + '9' * 5000 + '}'
+        cases = (
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x"},
+             False, None, "absent"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x", "failed_generation": None},
+             True, None, "not_string"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": '{"answer":"SECRET_VALID_JSON"}'},
+             True, len('{"answer":"SECRET_VALID_JSON"}'), "valid"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": '{"answer":"SECRET_INVALID_JSON"'},
+             True, len('{"answer":"SECRET_INVALID_JSON"'), "invalid"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": "NaN"}, True, 3, "invalid"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": "Infinity"}, True, 8, "invalid"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": "-Infinity"}, True, 9, "invalid"),
+            ({"type": "invalid_request_error", "code": "unknown_parameter", "param": "x",
+              "failed_generation": non_json_decode_error},
+             True, len(non_json_decode_error), "unassessed"),
+        )
+        for error_payload, present, length, verdict in cases:
+            with self.subTest(verdict=verdict):
+                upstream = HTTPError("https://api.groq.com", 400, "private reason", None,
+                                     io.BytesIO(json.dumps({"error": error_payload}).encode("utf-8")))
+                events = []
+                provider = GroqProvider(self.config,
+                    http_transport(opener=lambda *args, **kwargs: (_ for _ in ()).throw(upstream)), "key")
+                response = TestClient(create_app(provider, events)).post(
+                    "/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+                diagnostic = next(row for row in events if row["stage"] == "provider")["diagnostics"][0]
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(diagnostic["upstream_http_status"], 400)
+                self.assertIs(diagnostic["failed_generation_present"], present)
+                self.assertEqual(diagnostic.get("failed_generation_length_chars"), length)
+                self.assertEqual(diagnostic["failed_generation_json_verdict"], verdict)
+                self.assertNotIn("SECRET_", json.dumps(events) + str(upstream))
+
     def test_provider_error_is_an_unavailable_app_response(self):
         provider = GroqProvider(self.config, lambda *args: (_ for _ in ()).throw(RuntimeError("provider HTTP request failed")), "key")
         from fastapi.testclient import TestClient

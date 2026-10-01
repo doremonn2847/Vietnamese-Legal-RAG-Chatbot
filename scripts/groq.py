@@ -55,7 +55,8 @@ def _diagnostic(phase, outcome, exception_class=None, *, upstream_http_status=No
                 response_shape=None, finish_reason=None, usage=None, elapsed_ms=None,
                 reason_class=None, upstream_error_type=None, upstream_error_code=None,
                 upstream_error_param=None, upstream_error_classification=None,
-                upstream_error_message_classification=None):
+                upstream_error_message_classification=None, failed_generation_present=None,
+                failed_generation_length_chars=None, failed_generation_json_verdict=None):
     row = {"phase": phase, "outcome": outcome}
     if exception_class:
         row["exception_class"] = exception_class
@@ -75,7 +76,10 @@ def _diagnostic(phase, outcome, exception_class=None, *, upstream_http_status=No
                        ("upstream_error_code", upstream_error_code),
                        ("upstream_error_param", upstream_error_param),
                        ("upstream_error_classification", upstream_error_classification),
-                       ("upstream_error_message_classification", upstream_error_message_classification)):
+                       ("upstream_error_message_classification", upstream_error_message_classification),
+                       ("failed_generation_present", failed_generation_present),
+                       ("failed_generation_length_chars", failed_generation_length_chars),
+                       ("failed_generation_json_verdict", failed_generation_json_verdict)):
         if value is not None:
             row[key] = value
     return row
@@ -127,6 +131,23 @@ def _classify_upstream_http_error(body, max_bytes):
     error_code = _mapped_upstream_value(error.get("code"), _UPSTREAM_CODES)
     error_param = _mapped_upstream_value(error.get("param"), _UPSTREAM_PARAMS)
     message_classification = _classify_upstream_message(error.get("message"))
+    if "failed_generation" not in error:
+        failed_generation_present, failed_generation_length, failed_generation_verdict = False, None, "absent"
+    elif not isinstance(error["failed_generation"], str):
+        failed_generation_present, failed_generation_length, failed_generation_verdict = True, None, "not_string"
+    else:
+        failed_generation_present = True
+        failed_generation_length = len(error["failed_generation"])
+        def reject_non_json_constant(value):
+            raise json.JSONDecodeError("Invalid JSON constant", value, 0)
+        try:
+            json.loads(error["failed_generation"], parse_constant=reject_non_json_constant)
+        except json.JSONDecodeError:
+            failed_generation_verdict = "invalid"
+        except Exception:
+            failed_generation_verdict = "unassessed"
+        else:
+            failed_generation_verdict = "valid"
     if error_code in {"json_validate_failed", "response_format_not_supported"} or error_param == "response_format" or message_classification == "structured_output_rejected":
         classification = "structured_output_rejected"
     elif error_code in {"unsupported_value", "invalid_value", "missing_required_parameter", "unknown_parameter"} or error_param in {"max_completion_tokens", "max_tokens", "reasoning_effort"} or message_classification == "request_parameter_rejected":
@@ -143,7 +164,10 @@ def _classify_upstream_http_error(body, max_bytes):
             "upstream_error_code": error_code or "other",
             "upstream_error_param": error_param or "other",
             "upstream_error_classification": classification,
-            "upstream_error_message_classification": message_classification}
+            "upstream_error_message_classification": message_classification,
+            "failed_generation_present": failed_generation_present,
+            "failed_generation_length_chars": failed_generation_length,
+            "failed_generation_json_verdict": failed_generation_verdict}
 
 
 def _usage_summary(usage):
