@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
+from answer_contract import validate_citations
 from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
 from smoke_snapshot_excerpt_groq import (_checkpoint, _citation_summary, _provider_responded,
                                          main as snapshot_smoke_main)
@@ -71,6 +72,22 @@ class GroqTest(unittest.TestCase):
         response = create_app(malformed)
         from fastapi.testclient import TestClient
         self.assertEqual(TestClient(response).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"}).status_code, 502)
+
+    def test_ambiguous_quote_is_not_repaired_and_fails_citation_validation(self):
+        quote = "Repeated extract."
+        source = {"canonical_text": quote + " Other text. " + quote, "document_version_id": "v1",
+                  "provisional_snapshot_eligible": True, "pham_vi": "Trung ương",
+                  "retrieval_index_candidate": True, "current_validity": "unverified",
+                  "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                  "source_dataset_revision": "r1", "content_sha256": "hash"}
+        answer = {"state": "provisional", "legal_date": None, "text": quote,
+                  "claims": [{"claim_id": "c1", "text": quote, "evidence_ids": ["a1:v1"]}],
+                  "citations": [{"evidence_id": "a1:v1", "quote": quote, "span_start": 0,
+                                 "span_end": len(quote) - 1, "document_version_id": "v1"}]}
+        provider = GroqProvider(self.config, lambda *args: {"choices": [{"message": {"content": json.dumps(answer)}}]}, "key")
+        result = provider.answer("q", None, {"a1:v1": source})
+        self.assertEqual(result["citations"][0]["span_end"], len(quote) - 1)
+        self.assertFalse(validate_citations(result, {"a1:v1": source})["valid"])
 
     def test_provisional_request_marks_evidence_as_snapshot_only_and_uses_generic_version_id(self):
         quote = "Điều 24. Thử việc."

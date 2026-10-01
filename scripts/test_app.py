@@ -216,6 +216,40 @@ class AppTest(unittest.TestCase):
         self.assertEqual(client.get("/api/corpus").json()["answer_mode"], "experimental_snapshot_excerpt")
         self.assertIn("Thử nghiệm trích đoạn snapshot", client.get("/").text)
 
+        class EmptyDisplayProvider:
+            def answer(self, question, legal_date, evidence):
+                evidence_id, source = next(iter(evidence.items()))
+                quote = text[:len("Điều 24. Thử việc tối đa 60 ngày.")]
+                return {"state": "provisional", "legal_date": None, "text": " ",
+                        "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                        "reason": "", "unanswered": ""}
+        normalized = TestClient(create_app(EmptyDisplayProvider(), retriever=Retriever(),
+                                           experimental_snapshot_excerpt_enabled=True)).post(
+                                               "/api/answer", json=ordinary)
+        self.assertEqual(normalized.status_code, 200)
+        self.assertEqual(normalized.json()["answer"]["text"], text[:len("Điều 24. Thử việc tối đa 60 ngày.")])
+        self.assertTrue(normalized.json()["validation"]["valid"])
+
+        class InvalidEmptyDisplayProvider(EmptyDisplayProvider):
+            def __init__(self, bad_linkage=False): self.bad_linkage = bad_linkage
+            def answer(self, question, legal_date, evidence):
+                answer = super().answer(question, legal_date, evidence)
+                if self.bad_linkage:
+                    answer["claims"][0]["evidence_ids"] = ["unknown:v1"]
+                else:
+                    answer["citations"][0]["quote"] = "altered quote"
+                    answer["citations"][0]["span_end"] = len("altered quote")
+                    answer["claims"][0]["text"] = "altered quote"
+                return answer
+        for provider in (InvalidEmptyDisplayProvider(), InvalidEmptyDisplayProvider(bad_linkage=True)):
+            with self.subTest(provider=provider.bad_linkage):
+                rejected_empty = TestClient(create_app(provider, retriever=Retriever(),
+                                                        experimental_snapshot_excerpt_enabled=True)).post(
+                                                            "/api/answer", json=ordinary)
+                self.assertEqual(rejected_empty.status_code, 502)
+
         class ParaphraseProvider:
             def answer(self, question, legal_date, evidence):
                 return {"state": "provisional", "legal_date": None, "text": "Tối đa là 60 ngày.",

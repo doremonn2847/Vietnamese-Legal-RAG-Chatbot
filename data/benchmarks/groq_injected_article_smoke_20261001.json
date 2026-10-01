@@ -43,6 +43,16 @@
     ],
     "note": "Synthetic representative response only; the original raw provider payload was not retained. No provider call was made."
   },
+  "post_change_synthetic_validation": {
+    "exact_provider_payload_replayed": false,
+    "experimental_snapshot_empty_text_normalized": true,
+    "valid_exact_quote_and_linkage_accepted": true,
+    "altered_quote_rejected": true,
+    "ambiguous_quote_rejected": true,
+    "invalid_evidence_linkage_rejected": true,
+    "provider_calls": 0,
+    "note": "Synthetic regression checks exercise the local adapter, validator, and answer route; they do not reproduce the retained provider response."
+  },
   "answer_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "usage": {
     "queue_time": 0.231765133,

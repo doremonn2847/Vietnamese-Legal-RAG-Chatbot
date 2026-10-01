@@ -334,6 +334,16 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                            or len(citation["quote"]) > 500 for citation in answer["citations"]))):
             return unavailable(502, "Đoạn trích thử nghiệm vượt quá giới hạn hoặc không đúng trạng thái.")
         validation = validate_citations(answer, selected_evidence, requested_legal_date=None if provisional else legal_date)
+        if (not validation["valid"] and experimental_excerpt and isinstance(answer.get("text"), str)
+                and not answer["text"].strip()):
+            claims = answer.get("claims")
+            if isinstance(claims, list) and all(isinstance(claim, dict) and isinstance(claim.get("text"), str)
+                                                for claim in claims):
+                candidate = {**answer, "text": " ".join(claim["text"].strip() for claim in claims).strip()}
+                candidate_validation = validate_citations(
+                    candidate, selected_evidence, requested_legal_date=None)
+                if candidate_validation["valid"]:
+                    answer, validation = candidate, candidate_validation
         if not validation["valid"]:
             event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance=provenance))
             return unavailable(502, "Đầu ra không vượt qua kiểm tra bằng chứng.", validation={"valid": False, "reason": "invalid_provider_output"})
