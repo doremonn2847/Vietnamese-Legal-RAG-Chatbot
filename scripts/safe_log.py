@@ -10,6 +10,10 @@ _DIAGNOSTIC_PHASES = {"http_transport", "http_response_read", "provider_envelope
 _DIAGNOSTIC_OUTCOMES = {"failed", "response_received", "parsed", "extracted", "valid", "rejected"}
 _TYPE_NAMES = {"dict", "list", "str", "int", "float", "bool", "NoneType", "tuple"}
 _SHAPE_COUNTS = {"top_level_key_count", "choices_count", "content_length"}
+_UPSTREAM_ERROR_TYPES = {"invalid_request_error", "authentication_error", "permission_error", "rate_limit_error", "not_found_error", "server_error", "internal_server_error", "other"}
+_UPSTREAM_ERROR_CODES = {"json_validate_failed", "response_format_not_supported", "unsupported_value", "invalid_value", "missing_required_parameter", "unknown_parameter", "model_not_found", "rate_limit_exceeded", "invalid_api_key", "insufficient_quota", "context_length_exceeded", "other"}
+_UPSTREAM_ERROR_PARAMS = {"response_format", "max_completion_tokens", "max_tokens", "reasoning_effort", "model", "messages", "other"}
+_UPSTREAM_ERROR_CLASSIFICATIONS = {"structured_output_rejected", "request_parameter_rejected", "authentication_or_permission_rejected", "rate_limited", "model_unavailable", "other"}
 _VALIDATION_CODES = {
     "structured_answer_required", "invalid_evidence_schema", "invalid_state", "invalid_schema",
     "empty_claims", "invalid_claim_schema", "invalid_citation_schema", "partial_reason_required",
@@ -32,6 +36,14 @@ def _safe_diagnostic(source):
     status = source.get("upstream_http_status")
     if type(status) is int and 100 <= status <= 599:
         row["upstream_http_status"] = status
+    for key, allowed in (("upstream_error_type", _UPSTREAM_ERROR_TYPES),
+                         ("upstream_error_code", _UPSTREAM_ERROR_CODES),
+                         ("upstream_error_param", _UPSTREAM_ERROR_PARAMS),
+                         ("upstream_error_classification", _UPSTREAM_ERROR_CLASSIFICATIONS),
+                         ("upstream_error_message_classification", _UPSTREAM_ERROR_CLASSIFICATIONS)):
+        value = source.get(key)
+        if isinstance(value, str) and value in allowed:
+            row[key] = value
     reason_class = source.get("reason_class")
     if isinstance(reason_class, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}", reason_class):
         row["reason_class"] = reason_class

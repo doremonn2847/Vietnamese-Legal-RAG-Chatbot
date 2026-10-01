@@ -53,7 +53,9 @@ class ProviderTransportResponse(dict):
 
 def _diagnostic(phase, outcome, exception_class=None, *, upstream_http_status=None,
                 response_shape=None, finish_reason=None, usage=None, elapsed_ms=None,
-                reason_class=None):
+                reason_class=None, upstream_error_type=None, upstream_error_code=None,
+                upstream_error_param=None, upstream_error_classification=None,
+                upstream_error_message_classification=None):
     row = {"phase": phase, "outcome": outcome}
     if exception_class:
         row["exception_class"] = exception_class
@@ -69,7 +71,79 @@ def _diagnostic(phase, outcome, exception_class=None, *, upstream_http_status=No
         row["elapsed_ms"] = elapsed_ms
     if reason_class:
         row["reason_class"] = reason_class
+    for key, value in (("upstream_error_type", upstream_error_type),
+                       ("upstream_error_code", upstream_error_code),
+                       ("upstream_error_param", upstream_error_param),
+                       ("upstream_error_classification", upstream_error_classification),
+                       ("upstream_error_message_classification", upstream_error_message_classification)):
+        if value is not None:
+            row[key] = value
     return row
+
+
+_UPSTREAM_TYPES = {value: value for value in {
+    "invalid_request_error", "authentication_error", "permission_error", "rate_limit_error",
+    "not_found_error", "server_error", "internal_server_error"}}
+_UPSTREAM_CODES = {value: value for value in {
+    "json_validate_failed", "response_format_not_supported", "unsupported_value", "invalid_value",
+    "missing_required_parameter", "unknown_parameter", "model_not_found", "rate_limit_exceeded",
+    "invalid_api_key", "insufficient_quota", "context_length_exceeded"}}
+_UPSTREAM_PARAMS = {value: value for value in {
+    "response_format", "max_completion_tokens", "max_tokens", "reasoning_effort", "model", "messages"}}
+
+
+def _mapped_upstream_value(value, allowed):
+    return allowed.get(value.casefold(), "other") if isinstance(value, str) else None
+
+
+def _classify_upstream_message(message):
+    if not isinstance(message, str):
+        return None
+    text = message.casefold()
+    if "response_format" in text or "json schema" in text:
+        return "structured_output_rejected"
+    if any(parameter in text for parameter in ("max_completion_tokens", "max_tokens", "reasoning_effort")):
+        return "request_parameter_rejected"
+    if "invalid api key" in text or "authentication" in text or "permission" in text:
+        return "authentication_or_permission_rejected"
+    if "rate limit" in text:
+        return "rate_limited"
+    if "model" in text and ("not found" in text or "unavailable" in text):
+        return "model_unavailable"
+    return "other"
+
+
+def _classify_upstream_http_error(body, max_bytes):
+    if not isinstance(body, bytes) or len(body) > max_bytes:
+        return {}
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if not isinstance(error, dict):
+        return {}
+    error_type = _mapped_upstream_value(error.get("type"), _UPSTREAM_TYPES)
+    error_code = _mapped_upstream_value(error.get("code"), _UPSTREAM_CODES)
+    error_param = _mapped_upstream_value(error.get("param"), _UPSTREAM_PARAMS)
+    message_classification = _classify_upstream_message(error.get("message"))
+    if error_code in {"json_validate_failed", "response_format_not_supported"} or error_param == "response_format" or message_classification == "structured_output_rejected":
+        classification = "structured_output_rejected"
+    elif error_code in {"unsupported_value", "invalid_value", "missing_required_parameter", "unknown_parameter"} or error_param in {"max_completion_tokens", "max_tokens", "reasoning_effort"} or message_classification == "request_parameter_rejected":
+        classification = "request_parameter_rejected"
+    elif error_type in {"authentication_error", "permission_error"} or error_code in {"invalid_api_key", "insufficient_quota"} or message_classification == "authentication_or_permission_rejected":
+        classification = "authentication_or_permission_rejected"
+    elif error_type == "rate_limit_error" or error_code == "rate_limit_exceeded" or message_classification == "rate_limited":
+        classification = "rate_limited"
+    elif error_type == "not_found_error" or error_code == "model_not_found" or message_classification == "model_unavailable":
+        classification = "model_unavailable"
+    else:
+        classification = "other"
+    return {"upstream_error_type": error_type or "other",
+            "upstream_error_code": error_code or "other",
+            "upstream_error_param": error_param or "other",
+            "upstream_error_classification": classification,
+            "upstream_error_message_classification": message_classification}
 
 
 def _usage_summary(usage):
@@ -113,10 +187,25 @@ def http_transport(timeout_seconds=10, opener=None, max_response_bytes=1_000_000
             response = opener(request, timeout=timeout_seconds)
         except HTTPError as error:
             status = error.code if type(error.code) is int else None
-            error.close()
+            max_error_bytes = min(max_response_bytes, 16 * 1024)
+            error_body = None
+            try:
+                error_body = error.read(max_error_bytes + 1)
+            except Exception:
+                pass
+            finally:
+                try:
+                    error.close()
+                except Exception:
+                    pass
+            try:
+                error_diagnostics = _classify_upstream_http_error(error_body, max_error_bytes)
+            except Exception:
+                error_diagnostics = {}
             diagnostic = _diagnostic("http_transport", "failed", "HTTPError",
                                      upstream_http_status=status,
-                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2))
+                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2),
+                                     **error_diagnostics)
             raise ProviderHTTPError(status, [diagnostic]) from None
         except TimeoutError as error:
             diagnostic = _diagnostic("http_transport", "failed", type(error).__name__,

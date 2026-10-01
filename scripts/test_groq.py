@@ -157,6 +157,101 @@ class GroqTest(unittest.TestCase):
         self.assertEqual(caught.exception.status, 429)
         self.assertNotIn("secret", str(caught.exception))
 
+    def test_http_error_classifications_are_bounded_allowlisted_and_private(self):
+        from fastapi.testclient import TestClient
+
+        class TrackingBody(io.BytesIO):
+            def __init__(self, body):
+                super().__init__(body)
+                self.read_sizes = []
+            def read(self, size=-1):
+                self.read_sizes.append(size)
+                return super().read(size)
+
+        cases = (
+            ({"message": "JSON schema rejected for response_format", "type": "invalid_request_error",
+              "code": "json_validate_failed", "param": "response_format", "failed_generation": "PRIVATE_FAILED_GENERATION"},
+             "structured_output_rejected", "invalid_request_error", "json_validate_failed", "response_format"),
+            ({"message": "Unsupported max_completion_tokens", "type": "invalid_request_error",
+              "code": "unsupported_value", "param": "max_completion_tokens"},
+             "request_parameter_rejected", "invalid_request_error", "unsupported_value", "max_completion_tokens"),
+            ({"message": "PRIVATE_MESSAGE", "type": "PRIVATE_TYPE", "code": "PRIVATE_CODE",
+              "param": "PRIVATE_PARAM", "failed_generation": "PRIVATE_FAILED_GENERATION"},
+             "other", "other", "other", "other"),
+        )
+        for error_payload, category, safe_type, safe_code, safe_param in cases:
+            with self.subTest(category=category):
+                body = TrackingBody(json.dumps({"error": error_payload}).encode("utf-8"))
+                upstream = HTTPError("https://api.groq.com", 400, "private reason", None, body)
+                events = []
+                transport = http_transport(opener=lambda *args, **kwargs: (_ for _ in ()).throw(upstream))
+                provider = GroqProvider(self.config, transport, "key")
+                response = TestClient(create_app(provider, events)).post(
+                    "/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+                provider_event = next(row for row in events if row["stage"] == "provider")
+                diagnostic = provider_event["diagnostics"][0]
+                self.assertEqual((response.status_code, response.json()["state"]), (503, "unavailable"))
+                self.assertEqual(diagnostic["upstream_http_status"], 400)
+                self.assertEqual(diagnostic["upstream_error_classification"], category)
+                self.assertEqual(diagnostic["upstream_error_type"], safe_type)
+                self.assertEqual(diagnostic["upstream_error_code"], safe_code)
+                self.assertEqual(diagnostic["upstream_error_param"], safe_param)
+                self.assertTrue(body.closed)
+                self.assertEqual(body.read_sizes, [16 * 1024 + 1])
+                self.assertNotIn("PRIVATE_", json.dumps(events) + str(upstream))
+
+    def test_bad_http_error_bodies_keep_status_and_route_mapping(self):
+        from fastapi.testclient import TestClient
+
+        class TrackingBody:
+            def __init__(self, *, data=None, fail=False):
+                self.data, self.fail, self.closed, self.read_sizes = data, fail, False, []
+            def read(self, size):
+                self.read_sizes.append(size)
+                if self.fail:
+                    raise OSError("PRIVATE_READ_FAILURE")
+                return self.data
+            def close(self):
+                self.closed = True
+
+        cases = ((TrackingBody(data=b"{bad"), 4),
+                 (TrackingBody(data=b"123456789"), 4),
+                 (TrackingBody(fail=True), 64),
+                 (TrackingBody(data=b"[" * 6000 + b"]" * 6000), 16 * 1024))
+        for body, max_response_bytes in cases:
+            with self.subTest(fail=body.fail, size=max_response_bytes):
+                upstream = HTTPError("https://api.groq.com", 400, "private reason", None, body)
+                events = []
+                transport = http_transport(max_response_bytes=max_response_bytes,
+                    opener=lambda *args, **kwargs: (_ for _ in ()).throw(upstream))
+                provider = GroqProvider(self.config, transport, "key")
+                response = TestClient(create_app(provider, events)).post(
+                    "/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+                diagnostic = next(row for row in events if row["stage"] == "provider")["diagnostics"][0]
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(diagnostic["upstream_http_status"], 400)
+                self.assertNotIn("upstream_error_classification", diagnostic)
+                self.assertTrue(body.closed)
+                self.assertEqual(body.read_sizes, [min(max_response_bytes, 16 * 1024) + 1])
+                self.assertNotIn("PRIVATE_READ_FAILURE", json.dumps(events))
+
+    def test_http_error_classifier_failure_preserves_status_and_route_mapping(self):
+        from fastapi.testclient import TestClient
+        body = io.BytesIO(b'{"error":{"type":"invalid_request_error"}}')
+        upstream = HTTPError("https://api.groq.com", 400, "private reason", None, body)
+        events = []
+        transport = http_transport(opener=lambda *args, **kwargs: (_ for _ in ()).throw(upstream))
+        provider = GroqProvider(self.config, transport, "key")
+        with patch("groq._classify_upstream_http_error", side_effect=RuntimeError("PRIVATE_CLASSIFIER_FAILURE")):
+            response = TestClient(create_app(provider, events)).post(
+                "/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        diagnostic = next(row for row in events if row["stage"] == "provider")["diagnostics"][0]
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(diagnostic["upstream_http_status"], 400)
+        self.assertEqual(diagnostic["exception_class"], "HTTPError")
+        self.assertTrue(body.closed)
+        self.assertNotIn("PRIVATE_CLASSIFIER_FAILURE", json.dumps(events))
+
     def test_provider_error_is_an_unavailable_app_response(self):
         provider = GroqProvider(self.config, lambda *args: (_ for _ in ()).throw(RuntimeError("provider HTTP request failed")), "key")
         from fastapi.testclient import TestClient
