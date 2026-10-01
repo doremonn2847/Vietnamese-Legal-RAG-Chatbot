@@ -3,8 +3,9 @@ import hashlib
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
-from audit_corpus import ROOT as RAW_ROOT, REVISION, sha256
+from audit_corpus import REVISION, sha256
 from curate_core_corpus import audit_amendment_boundary, classify_topic_candidates, is_core_retrieval_candidate, load_staged_articles, select_core_records
 
 
@@ -77,17 +78,27 @@ class CoreCorpusTest(unittest.TestCase):
     def test_staged_articles_are_bound_to_the_pinned_source_and_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            source_root = root / "source"
+            source_root.mkdir()
+            source_manifest = source_root / "manifest.json"
+            source_manifest.write_text(json.dumps({"revision": REVISION}), encoding="utf-8")
             content_hashes = {doc_id: hashlib.sha256(doc_id.encode()).hexdigest() for doc_id in ("139264", "152668", "146696")}
             data = "".join(json.dumps({"document_id": doc_id, "source_content_sha256": digest, "article": {"label": "Điều 1"}}, ensure_ascii=False) + "\n" for doc_id, digest in content_hashes.items())
             article_path = root / "core_articles.jsonl"
             article_path.write_text(data, encoding="utf-8")
-            manifest = {"dataset_revision": REVISION, "source_manifest_sha256": sha256(RAW_ROOT / "manifest.json"),
+            manifest = {"dataset_revision": REVISION, "source_manifest_sha256": sha256(source_manifest),
                        "content_sha256": content_hashes, "article_count": 3,
                        "outputs": {article_path.name: {"sha256": sha256(article_path)}}}
             (root / "core_article_stage_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-            parsed, _ = load_staged_articles(root, content_hashes)
+            with patch("curate_core_corpus.RAW_ROOT", source_root):
+                parsed, _ = load_staged_articles(root, content_hashes)
             self.assertEqual(set(parsed), set(content_hashes))
             self.assertEqual(len(parsed["139264"]), 1)
+
+            source_manifest.write_text(json.dumps({"revision": REVISION, "changed": True}), encoding="utf-8")
+            with patch("curate_core_corpus.RAW_ROOT", source_root):
+                with self.assertRaisesRegex(ValueError, "pinned central corpus inputs"):
+                    load_staged_articles(root, content_hashes)
 
 
 if __name__ == "__main__":
