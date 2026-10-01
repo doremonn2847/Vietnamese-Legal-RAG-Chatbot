@@ -14,6 +14,32 @@ from safe_log import event
 from provisional_policy import PROVISIONAL_CAVEAT, decide_provisional_eligibility, decide_snapshot_excerpt_eligibility
 
 
+_VALIDATION_REASON_CODES = {
+    "structured_answer_required", "invalid_evidence_schema", "invalid_state", "invalid_schema",
+    "empty_claims", "invalid_claim_schema", "invalid_citation_schema", "partial_reason_required",
+    "invalid_legal_date", "requested_legal_date_required", "provisional_as_of_date_not_allowed",
+    "invalid_answer_legal_date", "contradictory_legal_date", "non_answer_state_contains_claims",
+    "unvalidated_text",
+}
+
+
+def _citation_diagnostic(validation):
+    codes = {code for code in validation.get("invalid_citations", [])
+             if isinstance(code, str) and code in _VALIDATION_REASON_CODES}
+    if any(code not in _VALIDATION_REASON_CODES for code in validation.get("invalid_citations", [])):
+        codes.add("evidence_or_claim_reference")
+    if validation.get("unknown_ids"):
+        codes.add("unknown_evidence_reference")
+    if validation.get("uncited_claims"):
+        codes.add("uncited_claim")
+    return {"phase": "citation_validation",
+            "outcome": "valid" if validation.get("valid") is True else "rejected",
+            "validation_reason_codes": sorted(codes),
+            "invalid_citation_count": len(validation.get("invalid_citations", [])),
+            "unknown_evidence_count": len(validation.get("unknown_ids", [])),
+            "uncited_claim_count": len(validation.get("uncited_claims", []))}
+
+
 DEMO_BANNER = "DỮ LIỆU HƯ CẤU CHỈ DÙNG ĐỂ KIỂM THỬ — KHÔNG PHẢI VĂN BẢN PHÁP LUẬT"
 DEMO_EVIDENCE = {
     "fiction-e1": {
@@ -311,20 +337,21 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 provider_evidence = {key: {**source, "canonical_text": source["snapshot_excerpt_text"]}
                                      for key, source in selected_evidence.items()}
             answer = provider.answer(request.question, None if provisional else legal_date, provider_evidence)
-        except TimeoutError:
-            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="timeout", reason="provider_timeout", provenance=provenance))
+        except TimeoutError as error:
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="timeout", reason="provider_timeout", provenance=provenance, diagnostics=getattr(error, "diagnostics", None)))
             return unavailable(503, "Nhà cung cấp quá thời gian chờ.")
-        except ValueError:
-            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance=provenance))
+        except ValueError as error:
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance=provenance, diagnostics=getattr(error, "diagnostics", None)))
             return unavailable(502, "Nhà cung cấp trả về dữ liệu không hợp lệ.")
-        except Exception:
-            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="error", reason="provider_error", provenance=provenance))
+        except Exception as error:
+            event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="error", reason="provider_error", provenance=provenance, diagnostics=getattr(error, "diagnostics", None)))
             return unavailable(503, "Nhà cung cấp không khả dụng.")
         if not isinstance(answer, dict):
             event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="invalid", reason="invalid_provider_output", provenance=provenance))
             return unavailable(502, "Nhà cung cấp trả về dữ liệu không hợp lệ.")
         usage = answer.pop("_usage", None)
-        event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, usage=usage, provenance=provenance))
+        provider_diagnostics = answer.pop("_provider_diagnostics", None)
+        event_sink.append(event("provider", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - provider_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, usage=usage, provenance=provenance, diagnostics=provider_diagnostics))
         validation_started = time.perf_counter_ns()
         if experimental_excerpt and (answer.get("state") not in {
                 "provisional", "abstain_conflict", "abstain_insufficient_evidence", "clarify", "unavailable"}
@@ -345,9 +372,9 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 if candidate_validation["valid"]:
                     answer, validation = candidate, candidate_validation
         if not validation["valid"]:
-            event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance=provenance))
+            event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="rejected", reason="invalid_provider_output", evidence_ids=selected_evidence, provenance=provenance, diagnostics=[_citation_diagnostic(validation)]))
             return unavailable(502, "Đầu ra không vượt qua kiểm tra bằng chứng.", validation={"valid": False, "reason": "invalid_provider_output"})
-        event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance))
+        event_sink.append(event("validate", trace_id=trace_id, duration_ms=(time.perf_counter_ns() - validation_started) / 1_000_000, outcome="ok", evidence_ids=selected_evidence, provenance=provenance, diagnostics=[_citation_diagnostic(validation)]))
         event_sink.append(event("answer", trace_id=trace_id, outcome=answer["state"], evidence_ids=selected_evidence, usage=usage, provenance=provenance, reason=answer["state"]))
         return {"demo": retriever is None, "banner": DEMO_BANNER if retriever is None else None, "caveat": policy_decision["caveat"] if provisional else None, "state": answer["state"], "answer": answer, "sources": _safe_sources(answer, selected_evidence), "validation": validation, "retrieval": retrieval}
 

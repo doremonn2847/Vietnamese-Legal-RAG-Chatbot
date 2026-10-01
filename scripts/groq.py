@@ -1,6 +1,7 @@
 """Disabled-by-default direct Groq contract; no discovery, streaming, retries, or fallback."""
 import json
 import math
+import time
 from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -20,9 +21,85 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class ProviderHTTPError(RuntimeError):
-    def __init__(self, status):
+    def __init__(self, status, diagnostics=None):
         self.status = status
+        self.diagnostics = diagnostics or [_diagnostic("http_transport", "failed", "HTTPError", upstream_http_status=status)]
         super().__init__("provider HTTP request failed")
+
+
+class ProviderTransportError(RuntimeError):
+    def __init__(self, message, diagnostics):
+        self.diagnostics = diagnostics
+        super().__init__(message)
+
+
+class ProviderTimeoutError(TimeoutError):
+    def __init__(self, message, diagnostics):
+        self.diagnostics = diagnostics
+        super().__init__(message)
+
+
+class ProviderOutputError(ValueError):
+    def __init__(self, message, diagnostics):
+        self.diagnostics = diagnostics
+        super().__init__(message)
+
+
+class ProviderTransportResponse(dict):
+    def __init__(self, payload, diagnostics):
+        super().__init__(payload)
+        self.diagnostics = diagnostics
+
+
+def _diagnostic(phase, outcome, exception_class=None, *, upstream_http_status=None,
+                response_shape=None, finish_reason=None, usage=None, elapsed_ms=None,
+                reason_class=None):
+    row = {"phase": phase, "outcome": outcome}
+    if exception_class:
+        row["exception_class"] = exception_class
+    if upstream_http_status is not None:
+        row["upstream_http_status"] = upstream_http_status
+    if response_shape is not None:
+        row["response_shape"] = response_shape
+    if finish_reason is not None:
+        row["finish_reason"] = finish_reason
+    if usage is not None:
+        row["usage"] = usage
+    if elapsed_ms is not None:
+        row["elapsed_ms"] = elapsed_ms
+    if reason_class:
+        row["reason_class"] = reason_class
+    return row
+
+
+def _usage_summary(usage):
+    if not isinstance(usage, dict):
+        return None
+    result = {key: value for key, value in usage.items()
+              if key in {"prompt_tokens", "completion_tokens", "total_tokens"}
+              and type(value) is int and value >= 0}
+    return result or None
+
+
+def _finish_reason(value):
+    return value if isinstance(value, str) and value in {"stop", "length", "tool_calls", "function_call", "content_filter"} else ("other" if value is not None else None)
+
+
+def _response_shape(response):
+    choices = response.get("choices") if isinstance(response, dict) else None
+    first = choices[0] if isinstance(choices, list) and choices else None
+    message = first.get("message") if isinstance(first, dict) else None
+    content = message.get("content") if isinstance(message, dict) else None
+    usage = response.get("usage") if isinstance(response, dict) else None
+    return {"envelope_type": type(response).__name__,
+            "top_level_key_count": len(response) if isinstance(response, dict) else 0,
+            "choices_type": type(choices).__name__,
+            "choices_count": len(choices) if isinstance(choices, list) else None,
+            "first_choice_type": type(first).__name__,
+            "message_type": type(message).__name__,
+            "content_type": type(content).__name__,
+            "content_length": len(content) if isinstance(content, str) else None,
+            "usage_type": type(usage).__name__}
 
 
 def http_transport(timeout_seconds=10, opener=None, max_response_bytes=1_000_000):
@@ -31,20 +108,62 @@ def http_transport(timeout_seconds=10, opener=None, max_response_bytes=1_000_000
     opener = opener or build_opener(NoRedirect()).open
     def send(method, url, body, headers):
         request = Request(url, data=json.dumps(body).encode("utf-8"), headers=headers, method=method)
+        started = time.perf_counter_ns()
         try:
-            with opener(request, timeout=timeout_seconds) as response:
-                raw = response.read(max_response_bytes + 1)
+            response = opener(request, timeout=timeout_seconds)
         except HTTPError as error:
             status = error.code if type(error.code) is int else None
             error.close()
-            raise ProviderHTTPError(status) from None
-        except (URLError, TimeoutError) as error:
-            raise RuntimeError("provider HTTP request failed") from None
-        if len(raw) > max_response_bytes: raise ValueError("provider response exceeds size limit")
-        try: parsed = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as error: raise ValueError("provider response is not JSON") from error
-        if not isinstance(parsed, dict): raise ValueError("provider response must be an object")
-        return parsed
+            diagnostic = _diagnostic("http_transport", "failed", "HTTPError",
+                                     upstream_http_status=status,
+                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2))
+            raise ProviderHTTPError(status, [diagnostic]) from None
+        except TimeoutError as error:
+            diagnostic = _diagnostic("http_transport", "failed", type(error).__name__,
+                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2))
+            raise ProviderTimeoutError("provider transport timed out", [diagnostic]) from None
+        except URLError as error:
+            reason_class = type(error.reason).__name__
+            if isinstance(error.reason, TimeoutError):
+                diagnostic = _diagnostic("http_transport", "failed", "TimeoutError",
+                                         elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2),
+                                         reason_class=reason_class)
+                raise ProviderTimeoutError("provider transport timed out", [diagnostic]) from None
+            diagnostic = _diagnostic("http_transport", "failed", type(error).__name__,
+                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2),
+                                     reason_class=reason_class)
+            raise ProviderTransportError("provider transport failed", [diagnostic]) from None
+        status = getattr(response, "status", getattr(response, "code", None))
+        if type(status) is not int or not 100 <= status <= 599:
+            status = None
+        try:
+            with response:
+                raw = response.read(max_response_bytes + 1)
+        except Exception as error:
+            diagnostic = _diagnostic("http_response_read", "failed", type(error).__name__,
+                                     upstream_http_status=status,
+                                     elapsed_ms=round((time.perf_counter_ns() - started) / 1_000_000, 2))
+            raise ProviderTransportError("provider response read failed", [diagnostic]) from None
+        elapsed = round((time.perf_counter_ns() - started) / 1_000_000, 2)
+        transport_diag = _diagnostic("http_transport", "response_received",
+                                     upstream_http_status=status, elapsed_ms=elapsed)
+        if len(raw) > max_response_bytes:
+            raise ProviderOutputError("provider response exceeds size limit", [
+                transport_diag, _diagnostic("http_response_read", "failed", "ResponseTooLarge",
+                                             upstream_http_status=status)])
+        try:
+            parsed = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ProviderOutputError("provider response envelope is invalid", [
+                transport_diag, _diagnostic("provider_envelope_json", "failed", type(error).__name__,
+                                             upstream_http_status=status)]) from None
+        if not isinstance(parsed, dict):
+            raise ProviderOutputError("provider response envelope must be an object", [
+                transport_diag, _diagnostic("provider_envelope_json", "failed", "TypeError",
+                                             upstream_http_status=status)])
+        return ProviderTransportResponse(parsed, [
+            transport_diag,
+            _diagnostic("provider_envelope_json", "parsed", upstream_http_status=status)])
     return send
 
 
@@ -66,15 +185,73 @@ class GroqProvider:
 
     def generate(self, messages):
         if not self.config.enabled: raise RuntimeError("Groq is disabled")
-        response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "response_format": RESPONSE_FORMAT}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key, "User-Agent": "LegalRAGChatbot/0.1", "Accept": "application/json"})
-        return {"content": response["choices"][0]["message"]["content"], "usage": response.get("usage")}
+        try:
+            response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "response_format": RESPONSE_FORMAT}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key, "User-Agent": "LegalRAGChatbot/0.1", "Accept": "application/json"})
+        except (ProviderHTTPError, ProviderTransportError, ProviderOutputError, ProviderTimeoutError):
+            raise
+        except Exception as error:
+            raise ProviderTransportError("provider transport failed", [
+                _diagnostic("http_transport", "failed", type(error).__name__)]) from None
+        choices = response.get("choices") if isinstance(response, dict) else None
+        choice = choices[0] if isinstance(choices, list) and choices else None
+        message = choice.get("message") if isinstance(choice, dict) else None
+        content = message.get("content") if isinstance(message, dict) else None
+        usage = response.get("usage") if isinstance(response, dict) else None
+        finish = _finish_reason(choice.get("finish_reason") if isinstance(choice, dict) else None)
+        shape = _response_shape(response)
+        diagnostics = list(getattr(response, "diagnostics", []))
+        if not diagnostics:
+            status = getattr(response, "http_status", None)
+            diagnostics.append(_diagnostic("http_transport", "response_received",
+                                           upstream_http_status=status if type(status) is int else None))
+        upstream_status = next((row.get("upstream_http_status") for row in reversed(diagnostics)
+                                if row.get("phase") == "http_transport"), None)
+        if not isinstance(response, dict) or not isinstance(choices, list) or not choices or not isinstance(choice, dict) or not isinstance(message, dict) or not isinstance(content, str):
+            diagnostics.append(_diagnostic("response_envelope", "failed", "InvalidResponseShape",
+                                           upstream_http_status=upstream_status,
+                                           response_shape=shape, finish_reason=finish,
+                                           usage=_usage_summary(usage)))
+            raise ProviderOutputError("provider response envelope has an unexpected shape", diagnostics)
+        diagnostics.extend([
+            _diagnostic("response_envelope", "parsed", upstream_http_status=upstream_status,
+                        response_shape=shape, finish_reason=finish,
+                        usage=_usage_summary(usage)),
+            _diagnostic("provider_content", "extracted", upstream_http_status=upstream_status,
+                        response_shape=shape,
+                        finish_reason=finish, usage=_usage_summary(usage))])
+        return {"content": content, "usage": usage, "diagnostics": diagnostics}
 
     def answer(self, question, legal_date, selected_evidence):
         evidence = [{"evidence_id": evidence_id, "canonical_text": source.get("snapshot_excerpt_text", source["canonical_text"]), "document_version_id": source.get("document_version_id", source.get("reviewed_version_id")), "provisional_snapshot_only": source.get("provisional_snapshot_eligible") is True} for evidence_id, source in selected_evidence.items()]
         result = self.generate([{"role": "system", "content": SYSTEM_CONTRACT}, {"role": "user", "content": json.dumps({"question": question, "legal_date": legal_date, "selected_evidence": evidence}, ensure_ascii=False)}])
-        try: answer = json.loads(result["content"])
-        except (TypeError, json.JSONDecodeError) as error: raise ValueError("provider returned malformed JSON") from error
-        if not isinstance(answer, dict): raise ValueError("provider JSON must be an object")
+        try:
+            answer = json.loads(result["content"])
+        except (TypeError, json.JSONDecodeError) as error:
+            content_context = next((row for row in reversed(result["diagnostics"])
+                                    if row["phase"] == "provider_content"), {})
+            raise ProviderOutputError("provider content is not valid answer JSON", result["diagnostics"] + [
+                _diagnostic("content_json", "failed", type(error).__name__,
+                            upstream_http_status=content_context.get("upstream_http_status"),
+                            response_shape=content_context.get("response_shape"),
+                            finish_reason=content_context.get("finish_reason"),
+                            usage=content_context.get("usage"))]) from None
+        if not isinstance(answer, dict):
+            content_context = next((row for row in reversed(result["diagnostics"])
+                                    if row["phase"] == "provider_content"), {})
+            raise ProviderOutputError("provider answer JSON must be an object", result["diagnostics"] + [
+                _diagnostic("content_json", "failed", "TypeError",
+                            upstream_http_status=content_context.get("upstream_http_status"),
+                            response_shape=content_context.get("response_shape"),
+                            finish_reason=content_context.get("finish_reason"),
+                            usage=content_context.get("usage"))])
+        result["diagnostics"].append(_diagnostic(
+            "content_json", "parsed", response_shape={"answer_type": "dict", "top_level_key_count": len(answer)},
+            upstream_http_status=next((row.get("upstream_http_status") for row in reversed(result["diagnostics"])
+                                       if row["phase"] == "provider_content"), None),
+            finish_reason=next((row.get("finish_reason") for row in reversed(result["diagnostics"])
+                                if row["phase"] == "provider_content"), None),
+            usage=next((row.get("usage") for row in reversed(result["diagnostics"])
+                        if row["phase"] == "provider_content"), None)))
         if isinstance(answer.get("citations"), list):
             for citation in answer["citations"]:
                 if not isinstance(citation, dict) or not isinstance(citation.get("evidence_id"), str) or not citation["evidence_id"].strip() or not isinstance(citation.get("quote"), str) or not citation["quote"] or type(citation.get("span_start")) is not int or type(citation.get("span_end")) is not int or not isinstance(citation.get("document_version_id", citation.get("reviewed_version_id")), str) or not citation.get("document_version_id", citation.get("reviewed_version_id")).strip(): continue
@@ -83,4 +260,5 @@ class GroqProvider:
                 start = canonical.find(citation["quote"]) if isinstance(canonical, str) else -1
                 if start >= 0 and canonical.find(citation["quote"], start + 1) < 0: citation["span_start"], citation["span_end"] = start, start + len(citation["quote"])
         answer["_usage"] = result["usage"]
+        answer["_provider_diagnostics"] = result["diagnostics"]
         return answer

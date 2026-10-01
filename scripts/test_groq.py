@@ -141,8 +141,9 @@ class GroqTest(unittest.TestCase):
         calls = []
         self.assertEqual(http_transport(timeout_seconds=1, opener=lambda request, timeout: calls.append((request, timeout)) or Response(b'{"choices":[]}'))("POST", "https://api.groq.com", {}, {})["choices"], [])
         self.assertEqual(len(calls), 1)
-        for error in (HTTPError("https://api.groq.com", 429, "rate", None, None), TimeoutError()):
-            with self.subTest(error=type(error)), self.assertRaises(RuntimeError):
+        for error, expected in ((HTTPError("https://api.groq.com", 429, "rate", None, None), RuntimeError),
+                                (TimeoutError(), TimeoutError)):
+            with self.subTest(error=type(error)), self.assertRaises(expected):
                 http_transport(timeout_seconds=1, opener=lambda *_, **__: (_ for _ in ()).throw(error))("POST", "https://api.groq.com", {}, {})
         with self.assertRaises(ValueError):
             http_transport(timeout_seconds=1, max_response_bytes=8, opener=lambda *_, **__: Response(b"x" * 9))("POST", "https://api.groq.com", {}, {})
@@ -161,6 +162,95 @@ class GroqTest(unittest.TestCase):
         from fastapi.testclient import TestClient
         response = TestClient(create_app(provider)).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
         self.assertEqual((response.status_code, response.json()["state"]), (503, "unavailable"))
+
+    def test_transport_timeout_is_logged_as_timeout(self):
+        from fastapi.testclient import TestClient
+        events = []
+        provider = GroqProvider(self.config, http_transport(opener=lambda *args, **kwargs: (_ for _ in ()).throw(TimeoutError())), "key")
+        response = TestClient(create_app(provider, events)).post("/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+        provider_event = next(row for row in events if row["stage"] == "provider")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(provider_event["reason"], "provider_timeout")
+        self.assertEqual(provider_event["diagnostics"][0]["exception_class"], "TimeoutError")
+
+    def test_provider_diagnostics_distinguish_http_envelope_content_and_validation(self):
+        from fastapi.testclient import TestClient
+
+        def run(transport):
+            events = []
+            provider = GroqProvider(self.config, transport, "key")
+            response = TestClient(create_app(provider, events)).post(
+                "/api/answer", json={"question": "thử việc", "legal_date": "2024-01-01"})
+            return response, events
+
+        http_error = HTTPError("https://api.groq.com/private", 429, "private error",
+                               None, io.BytesIO(b"private response body"))
+        response, events = run(http_transport(opener=lambda *args, **kwargs: (_ for _ in ()).throw(http_error)))
+        self.assertEqual(response.status_code, 503)
+        provider_event = next(row for row in events if row["stage"] == "provider")
+        http_diag = provider_event["diagnostics"][0]
+        self.assertEqual((http_diag["phase"], http_diag["exception_class"], http_diag["upstream_http_status"]),
+                         ("http_transport", "HTTPError", 429))
+        self.assertNotIn("private", json.dumps(events))
+
+        class BadEnvelopeResponse:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self, size): return b"not-json"
+        response, events = run(http_transport(opener=lambda *args, **kwargs: BadEnvelopeResponse()))
+        self.assertEqual(response.status_code, 502)
+        envelope_json_diag = next(row for row in events if row["stage"] == "provider")["diagnostics"][-1]
+        self.assertEqual((envelope_json_diag["phase"], envelope_json_diag["exception_class"],
+                          envelope_json_diag["upstream_http_status"]),
+                         ("provider_envelope_json", "JSONDecodeError", 200))
+        self.assertNotIn("not-json", json.dumps(events))
+
+        response, events = run(lambda *args: {"choices": []})
+        self.assertEqual(response.status_code, 502)
+        envelope_diag = next(row for row in events if row["stage"] == "provider")["diagnostics"][-1]
+        self.assertEqual(envelope_diag["phase"], "response_envelope")
+        self.assertEqual(envelope_diag["response_shape"]["choices_count"], 0)
+
+        malformed_content = {"choices": [{"message": {"content": "{bad"}, "finish_reason": "length"}],
+                            "usage": {"prompt_tokens": 7, "completion_tokens": 3, "total_tokens": 10}}
+        response, events = run(lambda *args: malformed_content)
+        self.assertEqual(response.status_code, 502)
+        content_diag = next(row for row in events if row["stage"] == "provider")["diagnostics"][-1]
+        self.assertEqual((content_diag["phase"], content_diag["exception_class"], content_diag["finish_reason"]),
+                         ("content_json", "JSONDecodeError", "length"))
+        self.assertEqual(content_diag["usage"]["total_tokens"], 10)
+
+        invalid_answer = {**self.answer, "citations": [
+            {**self.answer["citations"][0], "evidence_id": "private-evidence-id"}]}
+        invalid_envelope = {"choices": [{"message": {"content": json.dumps(invalid_answer)},
+                                         "finish_reason": "stop"}]}
+        response, events = run(lambda *args: invalid_envelope)
+        self.assertEqual(response.status_code, 502)
+        validation_diag = next(row for row in events if row["stage"] == "validate")["diagnostics"][0]
+        self.assertIn("evidence_or_claim_reference", validation_diag["validation_reason_codes"])
+        self.assertNotIn("private-evidence-id", json.dumps(events))
+
+        valid_content = {"choices": [{"message": {"content": json.dumps(self.answer)}, "finish_reason": "stop"}],
+                         "usage": {"prompt_tokens": 7, "completion_tokens": 3, "total_tokens": 10}}
+        class Response:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self, size): return json.dumps(valid_content).encode("utf-8")
+        response, events = run(http_transport(opener=lambda *args, **kwargs: Response()))
+        self.assertEqual(response.status_code, 200)
+        provider_event = next(row for row in events if row["stage"] == "provider")
+        self.assertEqual([row["phase"] for row in provider_event["diagnostics"]],
+                         ["http_transport", "provider_envelope_json", "response_envelope",
+                          "provider_content", "content_json"])
+        self.assertTrue(all(row.get("upstream_http_status") == 200
+                            for row in provider_event["diagnostics"]
+                            if row["phase"] in {"http_transport", "provider_envelope_json",
+                                                "response_envelope", "provider_content", "content_json"}))
+        validation_event = next(row for row in events if row["stage"] == "validate")
+        self.assertEqual(validation_event["diagnostics"][0]["phase"], "citation_validation")
+        self.assertEqual(validation_event["diagnostics"][0]["validation_reason_codes"], [])
 
 
 if __name__ == "__main__":
