@@ -10,7 +10,7 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Article parser, child chunks, deterministic provenance and optional review aids | Parser and curation tests | Pinned central employment prototype | Legal correctness; record-by-record approval is not a development gate |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local indexed corpus | Broader retrieval quality |
 | 3. Dense/retrieval | Pinned E5-small, 68 eligible article versions, 85 checksummed vectors, versioned Qdrant, hybrid/RRF and distinct CPU reranker | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; bounded real searches | Broad retrieval quality and production latency |
-| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route; Groq returned HTTP 400 before answer validation | Successful real-model answer on this corpus; browser-driven core UI integration; legal correctness |
+| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; Groq returned HTTP 400 before answer validation | Successful real-model answer on this corpus; legal correctness |
 | 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations | Hosted CI run; broader reviewed retrieval labels |
 
 ## Current prototype evidence
@@ -46,6 +46,26 @@ unresolved. See `data/logs/groq_single_route_smoke_20261001_v4.json` and the
 owner-reviewable offline packet `data/logs/groq_provider_issue_packet_20261001.json`.
 No additional provider call, schema change, or parameter change is supported
 by this evidence.
+
+## Local browser verification
+
+On 2026-10-01, the local core app was opened in a browser with the pinned
+E5/Qdrant corpus and `GROQ_ENABLED=false`. The initial UI displayed the pinned
+revision, supported scope, and the explicit warning that blank expiry does not
+mean current validity. The source-text request “Trích nguyên văn Điều 24 trong
+Bộ luật Lao động” displayed the exact extract, source/version citation, and
+unverified-validity caveat. “Quy định về thử việc có áp dụng cho trường hợp
+của tôi không?” produced a safe abstention with no citation. Both were real
+local retrieval/UI paths and made no provider call.
+
+The experimental ordinary-question path with Groq disabled displayed “Dịch vụ
+hiện không khả dụng” and “Mô hình trả lời chưa được bật.” For stale-output
+clearing, an injected provider first returned a contract-valid excerpt using
+real retrieved evidence, then raised an injected error on the next request;
+the UI cleared the previous quote and source and displayed the Vietnamese
+unavailable state. This sequence is mocked at the provider boundary. These
+manual browser checks found no wiring defect and do not establish answer
+quality or legal correctness; no redundant regression test was added.
 
 Official references: [overview](https://console.groq.com/docs/overview),
 [structured outputs](https://console.groq.com/docs/structured-outputs),
@@ -157,7 +177,6 @@ permission questions abstain by default.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
 - Keep direct Groq disabled by default. Any future request needs a separately bounded authorization; the latest structured-output failure is unresolved.
-- Run a focused offline integration check through the real core app's Vietnamese UI, including `/api/corpus` status, local extract/abstention, and provider-disabled/unavailable presentation. Existing tests exercise the UI contract and API paths separately; they do not drive the core app's root page and local corpus together in a browser.
 
 The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed
 scaffolding and cannot generate legal-correctness claims.

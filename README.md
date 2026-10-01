@@ -160,6 +160,19 @@ the sanitized report and owner-reviewable offline request packet are
 `data/logs/groq_single_route_smoke_20261001_v4.json` and
 `data/logs/groq_provider_issue_packet_20261001.json`.
 
+On 2026-10-01, a local browser smoke verified the core Vietnamese UI with the
+pinned corpus and `GROQ_ENABLED=false`: the corpus revision and unknown-validity
+warning loaded; an explicit Article 24 source-text request displayed the exact
+extract, source/version citation, and caveat; and an applicability question
+showed a safe abstention. The experimental ordinary-question path showed a
+Vietnamese unavailable state while Groq was disabled. A separate injected
+provider sequence first rendered a valid cited excerpt and then failed; the UI
+cleared the previous answer and source. Retrieval used local E5/Qdrant; the
+first two flows needed no provider, the experimental ordinary-question flow
+used the local disabled provider, and the answer-then-failure sequence used a
+mock provider. This was a manual browser check, not legal-quality evidence or
+an automated regression test; no UI wiring defect was found.
+
 Remaining implementation milestones:
 
 - [x] Pinned snapshot, strict central-only audit, provenance and ledgers.
@@ -180,7 +193,6 @@ Remaining implementation milestones:
 - [x] Provisional output is deterministic extractive text for explicit source-text requests; applicability, ambiguous permission, date, and amendment-status questions abstain. No provider call is used for provisional answers.
 - [x] Ran a bounded nine-query manually labeled retrieval comparison with the pinned CPU reranker; the report retains pre-rerank and post-rerank results and is explicitly exploratory.
 - [x] Superseded leaked held-out v1 without rewriting its labels; froze and evaluated v2 after family/reference overlap checks. Results include BM25/dense/RRF and rerank depths 5/10/20 with Recall/MRR, p50/p95 latency, and peak memory. Keep interactive retrieval pre-rerank due to CPU latency; current validity and legal correctness remain unverified.
-- [ ] Add a focused offline integration check for the real core app's Vietnamese UI and local corpus-status/unavailable states; current tests cover the UI contract and API separately.
 - [ ] Expand the corrected exploratory set before broad retrieval claims and run hosted CI.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
