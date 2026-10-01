@@ -32,7 +32,17 @@
   "span_end": 409,
   "span_matches_canonical": false,
   "citation_document_version_matches": true,
-  "claim_exactly_quotes": true,
+  "claim_text_matches_quote": true,
+  "claim_has_matching_citation": false,
+  "offline_synthetic_adapter_check": {
+    "exact_provider_payload_replayed": false,
+    "unique_quote_span_repaired_by_answer_adapter": true,
+    "validator_valid": false,
+    "remaining_failure_codes": [
+      "unvalidated_text"
+    ],
+    "note": "Synthetic representative response only; the original raw provider payload was not retained. No provider call was made."
+  },
   "answer_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "usage": {
     "queue_time": 0.231765133,
@@ -49,6 +59,6 @@
   "response_finish_reason": "stop",
   "vietnamese_relevance": "not_assessed_answer_contract_invalid",
   "conflict_caveat_length_chars": 262,
-  "failure_summary": "Provider returned strict-schema-valid JSON, but answer.text was empty and citation span did not match the pinned canonical quote; local citation contract rejected it.",
+  "failure_summary": "Provider returned strict-schema-valid JSON, but answer.text was empty and the citation span did not match the pinned canonical quote. The local validator also rejected claim c1's evidence linkage. Matching claim text to a quote alone does not establish a valid citation.",
   "upstream_http_status": 200
 }
