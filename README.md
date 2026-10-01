@@ -142,12 +142,18 @@ an alias. Provisional replies are exact source extracts only for explicit
 source-text requests. Applicability, ambiguous permission, current validity,
 amendments, and date-specific questions abstain or remain unverified.
 
-The frozen 19-case snapshot behavior evaluation retrieved relevant evidence
+The frozen 19-case snapshot behavior evaluation, recorded before the narrow
+overtime-topic correction, retrieved relevant evidence
 for all 17 answerable cases; its deterministic reference selector produced 13
 exact answer citations, and the citation contract passed all 19 cases. The
 selector receives reference labels and is not a language model. These results
 measure retrieval reach and contract handling, not model quality, legal
 correctness, or current validity (`data/benchmarks/snapshot_excerpt_natural_questions_v2_results.json`).
+The report remains unchanged and was not rerun after the correction. Inspection
+found two safe abstentions where overtime queries failed the working-time topic
+gate despite references tagged `working_time`; the matcher now recognizes the
+narrow phrase `làm thêm giờ`. The inspected held-out wording is no longer
+untouched evaluation evidence.
 The corpus uses 85 real E5 vectors in local Qdrant, with 68 article versions
 eligible for the index.
 

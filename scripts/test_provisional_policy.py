@@ -43,6 +43,49 @@ class ProvisionalPolicyTest(unittest.TestCase):
         self.assertFalse(validity["allowed"])
         self.assertEqual(validity["reason"], "conflicting_status")
 
+    def test_snapshot_excerpt_accepts_overtime_wording_only_with_working_time_evidence(self):
+        from provisional_policy import decide_snapshot_excerpt_eligibility
+        question = "Tiền lương làm thêm giờ được tính thế nào?"
+        evidence = {**self.evidence, "topic_candidates": ["working_time"]}
+        decision = decide_snapshot_excerpt_eligibility(question, [evidence])
+        self.assertTrue(decision["allowed"])
+        self.assertEqual(decision["reason"], "snapshot_excerpt_only")
+        self.assertIn("chưa được xác minh", decision["caveat"].casefold())
+
+        missing_topic = {key: value for key, value in evidence.items() if key != "topic_candidates"}
+        for rejected_evidence in (
+                missing_topic,
+                {**evidence, "topic_candidates": ["probation"]},
+                {**evidence, "pham_vi": "Địa phương"},
+                {**evidence, "retrieval_index_candidate": False}):
+            with self.subTest(topic=rejected_evidence.get("topic_candidates")):
+                rejected = decide_snapshot_excerpt_eligibility(question, [rejected_evidence])
+                self.assertFalse(rejected["allowed"])
+                self.assertEqual(rejected["reason"], "evidence_not_provisional_eligible")
+
+        conflicted = decide_snapshot_excerpt_eligibility(
+            question, [{**evidence, "reported_status_conflict": True}])
+        self.assertTrue(conflicted["allowed"])
+        self.assertIn("trạng thái", conflicted["caveat"].casefold())
+
+    def test_snapshot_excerpt_overtime_matching_preserves_safety_and_scope_gates(self):
+        from provisional_policy import decide_snapshot_excerpt_eligibility
+        evidence = {**self.evidence, "topic_candidates": ["working_time"]}
+        cases = (
+            ("Làm thêm giờ có áp dụng cho trường hợp của tôi không?", "applicability_unverified"),
+            ("Làm thêm giờ hiện còn hiệu lực không?", "validity_unverified"),
+            ("Làm thêm giờ vào ngày 2024-01-01 được áp dụng thế nào?", "requested_date_unverified"),
+            ("Quy định sửa đổi về làm thêm giờ thế nào?", "amendments_unverified"),
+            ("Làm thêm giờ của công chức được quy định thế nào?", "out_of_scope"),
+            ("Tiền lương được tính thế nào?", "out_of_scope"),
+            ("Làm thêm giờ và nghỉ phép được quy định thế nào?", "ambiguous_facts"),
+        )
+        for question, reason in cases:
+            with self.subTest(question=question):
+                decision = decide_snapshot_excerpt_eligibility(question, [evidence])
+                self.assertFalse(decision["allowed"])
+                self.assertEqual(decision["reason"], reason)
+
     def test_applicability_and_amendment_questions_abstain(self):
         applicability = decide_provisional_eligibility("Tôi có buộc phải tuân thủ Điều 24 hôm nay không?", [self.evidence])
         amendments = decide_provisional_eligibility("Cho tôi bản hợp nhất mới nhất của Điều 24", [self.evidence])

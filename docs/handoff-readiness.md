@@ -23,13 +23,19 @@ central-only filter remain unchanged. Blank expiry and current validity remain
 unknown/unverified. The owner removed per-record source review as a development
 gate on 2026-09-30; that does not establish legal authority or correctness.
 
-The frozen snapshot behavior v2 evaluation has 19 cases: relevant evidence was
+The frozen snapshot behavior v2 evaluation, recorded before the narrow
+overtime-topic correction, has 19 cases: relevant evidence was
 retrieved for 17/17 answerable cases, 13/17 received exact citations from a
 deterministic reference selector, and citation-contract checks passed 19/19.
 The selector receives the reference labels. This is evidence about local
 retrieval reach and application contracts, not generative model quality,
 Vietnamese semantic relevance, legal correctness, or validity. See
 `data/benchmarks/snapshot_excerpt_natural_questions_v2_results.json`.
+That artifact remains unchanged and was not rerun after the correction.
+Inspection found two overtime queries abstained at the topic gate despite
+`working_time` reference labels; the matcher now recognizes the narrow phrase
+`làm thêm giờ`. The inspected held-out wording is no longer untouched
+evaluation evidence.
 
 Direct Groq remains disabled by default and uses the fixed official HTTPS
 endpoint, `openai/gpt-oss-20b`, `stream:false`, and strict JSON Schema. The
@@ -176,6 +182,7 @@ permission questions abstain by default.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
+- The Git checkout has no configured remote, so hosted CI is not currently reachable from this workspace.
 - Keep direct Groq disabled by default. Any future request needs a separately bounded authorization; the latest structured-output failure is unresolved.
 
 The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed

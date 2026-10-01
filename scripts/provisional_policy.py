@@ -18,7 +18,7 @@ _SOURCE_TEXT_REQUEST = re.compile(r"(?:điều\s+\d+\s+(?:quy định|nói|ghi)\
 _TOPICS = {
     "probation": re.compile(r"thử\s+việc|probation", re.IGNORECASE),
     "contracts": re.compile(r"hợp\s+đồng|giao\s+kết|employment\s+contract", re.IGNORECASE),
-    "working_time": re.compile(r"giờ\s+làm|thời\s+giờ\s+làm|thời\s+gian\s+làm\s+việc|working\s+hours?", re.IGNORECASE),
+    "working_time": re.compile(r"làm\s+thêm\s+giờ|giờ\s+làm|thời\s+giờ\s+làm|thời\s+gian\s+làm\s+việc|working\s+hours?", re.IGNORECASE),
     "leave": re.compile(r"nghỉ\s+phép|nghỉ\s+hằng\s+năm|annual\s+leave", re.IGNORECASE),
 }
 _PERSONAL_OR_APPLICABILITY = re.compile(r"\b(tôi|của tôi|trường hợp của (?:tôi|em)|nếu|em có|doanh nghiệp tôi|công ty tôi|được phép|có được|được không|nên làm gì|tôi phải)\b", re.IGNORECASE)
