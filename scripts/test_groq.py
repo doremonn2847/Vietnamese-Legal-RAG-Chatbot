@@ -51,6 +51,8 @@ class GroqTest(unittest.TestCase):
         self.assertEqual(headers["User-Agent"], "LegalRAGChatbot/0.1")
         self.assertEqual(headers["Accept"], "application/json")
         self.assertNotIn("not-logged", str(body))
+        self.assertEqual(body.get("reasoning_effort"), "low")
+        self.assertEqual(body.get("temperature"), 0)
         self.assertEqual((body["model"], body["stream"], body["response_format"]["type"], body["response_format"]["json_schema"]["strict"]), ("openai/gpt-oss-20b", False, "json_schema", True))
         schema = body["response_format"]["json_schema"]["schema"]
         self.assertEqual(set(schema["required"]), {"state", "legal_date", "text", "claims", "citations", "reason", "unanswered"})
@@ -100,6 +102,8 @@ class GroqTest(unittest.TestCase):
         self.assertEqual(provider.answer("Điều 24 nói gì?", None, {"a1:v1": source})["state"], "provisional")
         body = calls[0][2]
         self.assertIn("never assert current validity", body["messages"][0]["content"])
+        self.assertIn("copy the full selected_evidence[].evidence_id strings exactly", body["messages"][0]["content"])
+        self.assertIn("Set text to the claim texts joined with a single space", body["messages"][0]["content"])
         request = json.loads(body["messages"][1]["content"])
         self.assertIsNone(request["legal_date"])
         self.assertTrue(request["selected_evidence"][0]["provisional_snapshot_only"])
