@@ -6,6 +6,10 @@ PROVISIONAL_CAVEAT = (
     "Trả lời này chỉ mô tả nội dung trong bản dữ liệu đã thu thập; "
     "hiệu lực hiện tại, sửa đổi và tình trạng áp dụng chưa được xác minh."
 )
+STATUS_CONFLICT_CAVEAT = (
+    "Các bản ghi nguồn có thông tin trạng thái được báo cáo xung đột; "
+    "trích đoạn không xác nhận bản ghi nào đúng hoặc hiệu lực hiện tại."
+)
 _VALIDITY_QUERY = re.compile(r"\b(hiện nay|hiện tại|hiện hành|hôm nay|today|còn hiệu lực|hết hiệu lực|tình trạng hiệu lực|hiệu lực|đang có hiệu lực|đang áp dụng|còn áp dụng|áp dụng hiện tại|buộc phải tuân thủ|phải tuân thủ|có bắt buộc|có nghĩa vụ|must comply|applicable|validity|currently|in force|currently applicable)\b", re.IGNORECASE)
 _AS_OF_QUERY = re.compile(r"\b(?:tính đến ngày|vào ngày|as of)\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}/\d{1,2}/(?:19|20)\d{2}\b|\bnăm\s+(?:19|20)\d{2}\b", re.IGNORECASE)
 _AMENDMENT_QUERY = re.compile(r"\b(sửa đổi|bổ sung|bản hợp nhất|hợp nhất|mới nhất|đã sửa đổi|amendment|consolidated|latest version)\b", re.IGNORECASE)
@@ -89,12 +93,15 @@ def decide_snapshot_excerpt_eligibility(question, evidence, *, requested_as_of_d
                 or row.get("retrieval_index_candidate") is not True
                 or row.get("current_validity") != "unverified"
                 or row.get("expiry_state") != "unknown_expiry"
-                or row.get("reported_status_conflict") is not False
+                or type(row.get("reported_status_conflict")) is not bool
                 or not isinstance(row.get("source_dataset_revision"), str) or not row["source_dataset_revision"].strip()
                 or not isinstance(row.get("content_sha256"), str) or not row["content_sha256"].strip()
                 or not isinstance(row.get("document_version_id"), str) or not row["document_version_id"].strip()
                 or not isinstance(row.get("canonical_text"), str) or not row["canonical_text"].strip()
                 or not isinstance(row.get("topic_candidates"), list) or topic not in row["topic_candidates"]):
             return _deny("evidence_not_provisional_eligible")
+    caveat = PROVISIONAL_CAVEAT
+    if conflict:
+        caveat += " " + STATUS_CONFLICT_CAVEAT
     return {"allowed": True, "mode": "experimental_snapshot_excerpt", "reason": "snapshot_excerpt_only",
-            "message": "Chỉ có thể trích đoạn nguyên văn từ bản dữ liệu.", "caveat": PROVISIONAL_CAVEAT}
+            "message": "Chỉ có thể trích đoạn nguyên văn từ bản dữ liệu.", "caveat": caveat}

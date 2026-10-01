@@ -30,6 +30,19 @@ class ProvisionalPolicyTest(unittest.TestCase):
         self.assertFalse(decision["allowed"])
         self.assertEqual(decision["reason"], "conflicting_status")
 
+    def test_snapshot_excerpt_allows_conflicted_source_only_for_ordinary_topic_text(self):
+        from provisional_policy import decide_snapshot_excerpt_eligibility
+        conflicted = {**self.evidence, "reported_status_conflict": True,
+                      "topic_candidates": ["working_time"]}
+        decision = decide_snapshot_excerpt_eligibility(
+            "Thời giờ nào được tính vào thời giờ làm việc hưởng lương?", [conflicted])
+        self.assertTrue(decision["allowed"])
+        self.assertIn("trạng thái", decision["caveat"].casefold())
+        validity = decide_snapshot_excerpt_eligibility(
+            "Bộ luật này hiện còn hiệu lực không?", [conflicted])
+        self.assertFalse(validity["allowed"])
+        self.assertEqual(validity["reason"], "conflicting_status")
+
     def test_applicability_and_amendment_questions_abstain(self):
         applicability = decide_provisional_eligibility("Tôi có buộc phải tuân thủ Điều 24 hôm nay không?", [self.evidence])
         amendments = decide_provisional_eligibility("Cho tôi bản hợp nhất mới nhất của Điều 24", [self.evidence])

@@ -276,10 +276,31 @@ class AppTest(unittest.TestCase):
         class ConflictedRetriever:
             articles = {"a24": conflicted}
             def search(self, *args): return {"evidence": [conflicted]}
-        response = TestClient(create_app(ForbiddenProvider(), retriever=ConflictedRetriever(), provisional_snapshot_enabled=True,
-                                         experimental_snapshot_excerpt_enabled=True)).post(
-                                             "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
-        self.assertNotEqual(response.json()["answer"]["state"], "provisional")
+        conflict_calls = []
+        class QuoteProvider:
+            def answer(self, question, legal_date, evidence):
+                conflict_calls.append(question)
+                evidence_id, source = next(iter(evidence.items()))
+                quote = source["canonical_text"][:20]
+                return {"state": "provisional", "legal_date": None, "text": quote,
+                        "claims": [{"claim_id": "conflict-cite", "text": quote,
+                                    "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                        "reason": "", "unanswered": ""}
+        conflict_client = TestClient(create_app(QuoteProvider(), retriever=ConflictedRetriever(),
+                                                experimental_snapshot_excerpt_enabled=True))
+        response = conflict_client.post(
+            "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
+        self.assertEqual(response.json()["answer"]["state"], "provisional")
+        self.assertTrue(response.json()["validation"]["valid"])
+        self.assertIn("trạng thái", response.json()["caveat"].casefold())
+        self.assertTrue(response.json()["sources"][0]["reported_status_conflict"])
+        self.assertEqual(conflict_calls, ["Thời gian thử việc tối đa bao nhiêu ngày?"])
+        validity = conflict_client.post(
+            "/api/answer", json={"question": "Bộ luật này hiện còn hiệu lực không?"})
+        self.assertEqual(validity.json()["answer"]["state"], "abstain_conflict")
+        self.assertEqual(len(conflict_calls), 1)
 
     def test_experimental_mode_uses_bounded_snapshot_candidate_search(self):
         rows = []

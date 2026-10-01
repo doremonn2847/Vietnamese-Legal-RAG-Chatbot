@@ -72,7 +72,7 @@ def _safe_sources(answer, evidence):
         if not parsed or parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password: url = None
         version = citation.get("document_version_id", citation.get("reviewed_version_id"))
         if answer.get("state") == "provisional":
-            sources.append({"evidence_id": citation["evidence_id"], "document_version_id": version, "title": source.get("title"), "so_ky_hieu": source.get("so_ky_hieu"), "issuer": source.get("issuer"), "reported_status": source.get("reported_status"), "current_validity": "unverified", "amendment_state": source.get("amendment_state"), "quarantined_related_document_ids": source.get("quarantined_related_document_ids", []), "source_dataset_revision": source.get("source_dataset_revision"), "quote": citation["quote"], "source_url": url})
+            sources.append({"evidence_id": citation["evidence_id"], "document_version_id": version, "title": source.get("title"), "so_ky_hieu": source.get("so_ky_hieu"), "issuer": source.get("issuer"), "reported_status": source.get("reported_status"), "reported_status_conflict": source.get("reported_status_conflict"), "current_validity": "unverified", "amendment_state": source.get("amendment_state"), "quarantined_related_document_ids": source.get("quarantined_related_document_ids", []), "source_dataset_revision": source.get("source_dataset_revision"), "quote": citation["quote"], "source_url": url})
             continue
         try: dates = {key: date.fromordinal(source[key]).isoformat() for key in ("effective_from_day", "effective_to_day", "reviewed_through_day")}
         except (KeyError, TypeError, ValueError): continue
