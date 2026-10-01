@@ -157,12 +157,18 @@ untouched evaluation evidence.
 The corpus uses 85 real E5 vectors in local Qdrant, with 68 article versions
 eligible for the index.
 
-The latest one-call real Groq route attempt at commit `8ef2ca2` returned HTTP
-400 `invalid_request_error` / `json_validate_failed` after real retrieval. No
-provider answer or usage was returned, so answer and citation quality could
-not be assessed. The empty `failed_generation` field's local `invalid` verdict
-does not establish what the model generated. Groq remains disabled by default;
-the sanitized report and owner-reviewable offline request packet are
+An earlier one-call real Groq route attempt at commit `8ef2ca2` returned HTTP
+400 `invalid_request_error` / `json_validate_failed` after real retrieval. Its
+empty `failed_generation` field's local `invalid` verdict does not establish
+what the model generated. On 2026-10-02, after adding low reasoning effort,
+temperature zero, and more explicit quote/ID instructions, one real route call
+returned HTTP 200 with a provisional answer and one validator-approved,
+191-character exact citation plus an uncertainty caveat. The citation hash
+matches the pinned Article 24 source span. This verifies one case only; answer
+relevance still requires human review, and it does not measure repeatability or
+legal correctness. Groq remains disabled by default. The success report and
+earlier failure evidence are
+`data/logs/groq_fixed_route_20261002.json`,
 `data/logs/groq_single_route_smoke_20261001_v4.json` and
 `data/logs/groq_provider_issue_packet_20261001.json`.
 

@@ -10,7 +10,7 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Article parser, child chunks, deterministic provenance and optional review aids | Parser and curation tests | Pinned central employment prototype | Legal correctness; record-by-record approval is not a development gate |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local indexed corpus | Broader retrieval quality |
 | 3. Dense/retrieval | Pinned E5-small, 68 eligible article versions, 85 checksummed vectors, versioned Qdrant, hybrid/RRF and distinct CPU reranker | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; bounded real searches | Broad retrieval quality and production latency |
-| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; Groq returned HTTP 400 before answer validation | Successful real-model answer on this corpus; legal correctness |
+| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; one real Groq case returned a validator-approved citation after the request/prompt fix | Repeatable model quality, broader answer relevance, legal correctness |
 | 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations | Hosted CI run; broader reviewed retrieval labels |
 
 ## Current prototype evidence
@@ -38,20 +38,29 @@ Inspection found two overtime queries abstained at the topic gate despite
 evaluation evidence.
 
 Direct Groq remains disabled by default and uses the fixed official HTTPS
-endpoint, `openai/gpt-oss-20b`, `stream:false`, and strict JSON Schema. The
-earlier fictional-evidence contract success and article smoke reports are
-historical; neither proves answer quality for the current corpus. At commit
-`8ef2ca2`, the latest one-call real route attempt at
-`2026-10-01T16:16:23.926605Z` retrieved three E5/Qdrant evidence records and
-then received HTTP 400 `invalid_request_error` / `json_validate_failed` with
-`param=other`. The local route returned 503. `failed_generation` was present
-but empty; the local `invalid` JSON verdict applies only to that empty string
-and does not show what the model generated. No provider content or usage was
-returned, so answer and citation quality were not assessed. The cause remains
-unresolved. See `data/logs/groq_single_route_smoke_20261001_v4.json` and the
-owner-reviewable offline packet `data/logs/groq_provider_issue_packet_20261001.json`.
-No additional provider call, schema change, or parameter change is supported
-by this evidence.
+endpoint, `openai/gpt-oss-20b`, `stream:false`, strict JSON Schema, no retries,
+and no paid fallback. Earlier fictional-evidence contract and article smoke
+reports are historical. At commit `8ef2ca2`, the 2026-10-01 one-call real route
+attempt retrieved three E5/Qdrant records and received HTTP 400
+`invalid_request_error` / `json_validate_failed`, `param=other`; the local
+route returned 503. `failed_generation` was present but empty, so its local
+`invalid` JSON verdict did not establish what the model generated. See
+`data/logs/groq_single_route_smoke_20261001_v4.json` and the offline packet
+`data/logs/groq_provider_issue_packet_20261001.json`.
+
+The 2026-10-02 request/prompt fix adds `reasoning_effort=low`,
+`temperature=0`, and explicit exact-ID/quote/text instructions without changing
+the schema or local citation validation. One real production-route call with
+real E5/Qdrant evidence returned HTTP 200 provisional output, one validator-
+approved 191-character citation, and an uncertainty caveat; its citation hash
+matches the pinned source span. End-to-end time was 5.7 seconds and usage was
+1,795 tokens. A separate insurance query was answered by the local scope gate
+with no additional provider request. Six bounded diagnostic/verification
+requests occurred across this investigation; none retried or used paid
+fallback. See `docs/groq-inference-fix-20261002.md` and
+`data/logs/groq_fixed_route_20261002.json`. This verifies one case only, not
+repeatability, broad answer relevance, legal correctness, or Groq's internal
+reason for the earlier 400. No further provider call is needed for this fix.
 
 ## Local browser verification
 
@@ -178,12 +187,12 @@ permission questions abstain by default.
 - Expand the exploratory set before broader retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
-- Keep Groq disabled by default; no hosted or paid call was made for this batch.
+- Keep Groq disabled by default; no paid call was made. Six bounded Free-tier diagnostic/verification calls were used for the investigation.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
 - The Git checkout has no configured remote, so hosted CI is not currently reachable from this workspace.
-- Keep direct Groq disabled by default. Any future request needs a separately bounded authorization; the latest structured-output failure is unresolved.
+- Keep direct Groq disabled by default. The one-case live fix is verified, but broader reliability remains unmeasured; do not repeat smoke calls without a new diagnostic reason and bounded authorization.
 
 The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed
 scaffolding and cannot generate legal-correctness claims.
