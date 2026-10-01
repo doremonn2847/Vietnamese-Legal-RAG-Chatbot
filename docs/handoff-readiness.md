@@ -6,25 +6,46 @@ This is an engineering status sheet, not legal approval. The pinned source is
 
 | Stage | Implemented | Mock-tested | Local live-tested | Not yet demonstrated |
 | --- | --- | --- | --- | --- |
-| 0. Audit | Strict central-only ledgers and source hashes | Unit tests | Pinned local data outputs | Legal authority, relevance, validity |
-| 1. Staging | Parser, child chunks, review packets | Parser tests | Active provisional build | Owner employment/version review |
-| 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local file path only | Reviewed searchable corpus |
-| 3. Dense/retrieval | Pinned E5-small, 68-article topical eligibility, 85 checksummed vectors, versioned Qdrant import, local hybrid/RRF | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; 3-hit bounded search | Retrieval quality and distinct reranker benchmark |
-| 4. App/provider | Synthetic demo plus opt-in core app; core search uses local BM25+Qdrant; exact-extract provisional response; Groq disabled by default | FastAPI, citation, policy, and retrieval tests | Real corpus + local Qdrant search, provisional citation validation, applicability abstention; provider injected and not called | User-facing legal review, current validity, and answer-quality evaluation |
-| 5. Evaluation/CI | Draft benchmark schema, evaluator/grid, GitHub Actions definition | Offline tests | No hosted CI run | Reviewed benchmark, measurements, CI evidence |
+| 0. Audit | Strict central-only ledgers, source hashes, issuer/duplicate/relationship flags, blank expiry stays unknown | Audit policy tests | Pinned snapshot outputs | Legal authority, completeness, current validity |
+| 1. Staging | Article parser, child chunks, deterministic provenance and optional review aids | Parser and curation tests | Pinned central employment prototype | Legal correctness; record-by-record approval is not a development gate |
+| 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local indexed corpus | Broader retrieval quality |
+| 3. Dense/retrieval | Pinned E5-small, 68 eligible article versions, 85 checksummed vectors, versioned Qdrant, hybrid/RRF and distinct CPU reranker | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; bounded real searches | Broad retrieval quality and production latency |
+| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route; Groq returned HTTP 400 before answer validation | Successful real-model answer on this corpus; browser-driven core UI integration; legal correctness |
+| 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations | Hosted CI run; broader reviewed retrieval labels |
 
-## Verified Stage 4 state
+## Current prototype evidence
 
-Stage 4 is accepted offline. The direct Groq runtime is disabled by default and
-uses only `https://api.groq.com/openai/v1`, `chat/completions`, and
-`openai/gpt-oss-20b`; it uses non-streaming strict JSON Schema responses, a
-finite timeout, a 1 MB response limit, no redirect, retry, fallback, tools, or
-browser search. Commit `184a1c7` sent the fixed application User-Agent and
-JSON Accept headers. One bounded request with fictional evidence then succeeded:
-state `unavailable`, citation validation true, 1,670.17 ms, and 932 total
-tokens. This validates only the provider contract; it is not answer-quality or
-legal-correctness evidence. The provider remains disabled and no legal corpus is
-active.
+The pinned dataset revision is `8977887f17be2defae4c5171d55562e1cde7d695`.
+The supported portfolio slice remains central employment law. The indexed
+artifact contains 68 article versions and 85 real multilingual E5 vectors in
+the local versioned Qdrant collection. Employment scope and the strict
+central-only filter remain unchanged. Blank expiry and current validity remain
+unknown/unverified. The owner removed per-record source review as a development
+gate on 2026-09-30; that does not establish legal authority or correctness.
+
+The frozen snapshot behavior v2 evaluation has 19 cases: relevant evidence was
+retrieved for 17/17 answerable cases, 13/17 received exact citations from a
+deterministic reference selector, and citation-contract checks passed 19/19.
+The selector receives the reference labels. This is evidence about local
+retrieval reach and application contracts, not generative model quality,
+Vietnamese semantic relevance, legal correctness, or validity. See
+`data/benchmarks/snapshot_excerpt_natural_questions_v2_results.json`.
+
+Direct Groq remains disabled by default and uses the fixed official HTTPS
+endpoint, `openai/gpt-oss-20b`, `stream:false`, and strict JSON Schema. The
+earlier fictional-evidence contract success and article smoke reports are
+historical; neither proves answer quality for the current corpus. At commit
+`8ef2ca2`, the latest one-call real route attempt at
+`2026-10-01T16:16:23.926605Z` retrieved three E5/Qdrant evidence records and
+then received HTTP 400 `invalid_request_error` / `json_validate_failed` with
+`param=other`. The local route returned 503. `failed_generation` was present
+but empty; the local `invalid` JSON verdict applies only to that empty string
+and does not show what the model generated. No provider content or usage was
+returned, so answer and citation quality were not assessed. The cause remains
+unresolved. See `data/logs/groq_single_route_smoke_20261001_v4.json` and the
+owner-reviewable offline packet `data/logs/groq_provider_issue_packet_20261001.json`.
+No additional provider call, schema change, or parameter change is supported
+by this evidence.
 
 Official references: [overview](https://console.groq.com/docs/overview),
 [structured outputs](https://console.groq.com/docs/structured-outputs),
@@ -68,6 +89,12 @@ $env:QDRANT_API_KEY='<local-key>'
 
 # Synthetic UI only; no legal corpus or provider request.
 .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts
+
+# Local pinned employment UI; requires matching local Qdrant and QDRANT_API_KEY.
+# Force Groq off for local corpus/status and unavailable-state checks.
+$env:PYTHONPATH='scripts'
+$env:GROQ_ENABLED='false'
+.\.venv\Scripts\python.exe -m uvicorn core_app:create_core_app --factory --app-dir scripts
 
 # Explicit provider factory; remains fictional retrieval until corpus activation.
 .\.venv\Scripts\python.exe -m uvicorn groq_config:create_runtime_app --factory --app-dir scripts
@@ -129,6 +156,8 @@ permission questions abstain by default.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
+- Keep direct Groq disabled by default. Any future request needs a separately bounded authorization; the latest structured-output failure is unresolved.
+- Run a focused offline integration check through the real core app's Vietnamese UI, including `/api/corpus` status, local extract/abstention, and provider-disabled/unavailable presentation. Existing tests exercise the UI contract and API paths separately; they do not drive the core app's root page and local corpus together in a browser.
 
 The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed
 scaffolding and cannot generate legal-correctness claims.

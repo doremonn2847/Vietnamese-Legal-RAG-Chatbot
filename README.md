@@ -1,9 +1,13 @@
-# Vietnamese Legal RAG — corpus audit
+# Vietnamese Legal RAG — pinned corpus audit and prototype
 
-This workspace contains the pinned corpus audit, provisional employment
-staging/article parsing, offline retrieval contracts, and a synthetic FastAPI
-demo. It does not activate the real legal corpus or claim model quality from
-synthetic data.
+This workspace contains a strict audit of the pinned legal snapshot and a
+narrow central-only employment prototype. The prototype uses local BM25, real
+multilingual E5 embeddings, versioned Qdrant, and a Vietnamese FastAPI UI.
+Direct Groq inference remains disabled by default. Snapshot dates and reported
+status do not establish current legal validity, and prototype evaluations do
+not establish legal correctness. The owner removed record-by-record source
+review as a development gate on 2026-09-30; legal/source review remains needed
+before making legal-correctness or current-applicability claims.
 
 Source: [th1nhng0/vietnamese-legal-documents](https://huggingface.co/datasets/th1nhng0/vietnamese-legal-documents/tree/8977887f17be2defae4c5171d55562e1cde7d695),
 revision `8977887f17be2defae4c5171d55562e1cde7d695`.
@@ -21,6 +25,10 @@ python -m venv .venv
 .\.venv\Scripts\python.exe scripts/audit_corpus.py
 # Optional synthetic API demo (never uses the legal corpus)
 $env:PYTHONPATH='scripts'; .\.venv\Scripts\python.exe -m uvicorn app:app --app-dir scripts
+
+# Local pinned employment UI; requires the matching Qdrant collection and QDRANT_API_KEY.
+# Keep direct Groq disabled for this local run.
+$env:PYTHONPATH='scripts'; $env:GROQ_ENABLED='false'; .\.venv\Scripts\python.exe -m uvicorn core_app:create_core_app --factory --app-dir scripts
 ```
 
 Downloads only `metadata`, `content`, `relationships`, and the dataset card at
@@ -30,7 +38,8 @@ verify final upstream SHA-256 hashes. `legacy_*` is excluded.
 
 Originals and their provenance manifest live in `data/raw/<revision>/`.
 Reproducible audit ledgers and checksums live in `data/audit/<revision>/`.
-Both are excluded from Git. No curated searchable release is created.
+Both are excluded from Git. The broad audit does not create a searchable
+release; the separately scoped employment prototype is documented below.
 
 ## Audit policy
 
@@ -109,12 +118,13 @@ and reason for every attempted document, including zero-article and quarantined
 layouts. BM25 ranks unique article versions;
 child hits are not used to inflate counts. `staging_manifest.json` records
 source, code, configuration, and output hashes. Final files are replaced only
-after complete `.part` writes. `owner_review_priority.csv` is the small manual
-packet: 20 employment seeds, 15 central dependencies, 10 quarantined
-dependencies, and 5 dangling targets, each with a source locator, review task,
-pass criteria, and failure action.
+after complete `.part` writes. `owner_review_priority.csv` is an optional
+review aid containing 20 employment seeds, 15 central dependencies, 10
+quarantined dependencies, and 5 dangling targets, each with a source locator,
+review task, pass criteria, and failure action. Per-record approval is not a
+development gate.
 
-The separate three-document prototype is built in this order so the central
+The separate narrow employment prototype is built in this order so the central
 and data-quality checks happen before parsing and only eligible topical
 articles reach the embedding builder:
 
@@ -131,6 +141,24 @@ artifact digest, vector size, or point count does not match. It never activates
 an alias. Provisional replies are exact source extracts only for explicit
 source-text requests. Applicability, ambiguous permission, current validity,
 amendments, and date-specific questions abstain or remain unverified.
+
+The frozen 19-case snapshot behavior evaluation retrieved relevant evidence
+for all 17 answerable cases; its deterministic reference selector produced 13
+exact answer citations, and the citation contract passed all 19 cases. The
+selector receives reference labels and is not a language model. These results
+measure retrieval reach and contract handling, not model quality, legal
+correctness, or current validity (`data/benchmarks/snapshot_excerpt_natural_questions_v2_results.json`).
+The corpus uses 85 real E5 vectors in local Qdrant, with 68 article versions
+eligible for the index.
+
+The latest one-call real Groq route attempt at commit `8ef2ca2` returned HTTP
+400 `invalid_request_error` / `json_validate_failed` after real retrieval. No
+provider answer or usage was returned, so answer and citation quality could
+not be assessed. The empty `failed_generation` field's local `invalid` verdict
+does not establish what the model generated. Groq remains disabled by default;
+the sanitized report and owner-reviewable offline request packet are
+`data/logs/groq_single_route_smoke_20261001_v4.json` and
+`data/logs/groq_provider_issue_packet_20261001.json`.
 
 Remaining implementation milestones:
 
@@ -152,6 +180,7 @@ Remaining implementation milestones:
 - [x] Provisional output is deterministic extractive text for explicit source-text requests; applicability, ambiguous permission, date, and amendment-status questions abstain. No provider call is used for provisional answers.
 - [x] Ran a bounded nine-query manually labeled retrieval comparison with the pinned CPU reranker; the report retains pre-rerank and post-rerank results and is explicitly exploratory.
 - [x] Superseded leaked held-out v1 without rewriting its labels; froze and evaluated v2 after family/reference overlap checks. Results include BM25/dense/RRF and rerank depths 5/10/20 with Recall/MRR, p50/p95 latency, and peak memory. Keep interactive retrieval pre-rerank due to CPU latency; current validity and legal correctness remain unverified.
+- [ ] Add a focused offline integration check for the real core app's Vietnamese UI and local corpus-status/unavailable states; current tests cover the UI contract and API separately.
 - [ ] Expand the corrected exploratory set before broad retrieval claims and run hosted CI.
 
 See [handoff readiness](docs/handoff-readiness.md) for stage-by-stage evidence,
