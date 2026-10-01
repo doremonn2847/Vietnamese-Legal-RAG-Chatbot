@@ -1,0 +1,98 @@
+{
+  "evaluation": "groq-four-topic-development-smoke-v1",
+  "manifest_sha256": "89a702dda4076c39759bd96ec8b772d2125655b864f4d32130cc866e238c1cc0",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "max_provider_http_invocations": 4,
+  "provider_callback_attempts": 1,
+  "http_transport_invocations": 1,
+  "no_retries": true,
+  "paid_fallback": false,
+  "model": "openai/gpt-oss-20b",
+  "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+  "request_contract": {
+    "stream": false,
+    "strict_schema": true,
+    "reasoning_effort": "low",
+    "temperature": 0
+  },
+  "started_at_utc": "2026-10-01T21:56:42.498048+00:00",
+  "status": "stopped_on_case_acceptance_failure",
+  "cases": [
+    {
+      "id": "probation",
+      "question": "Thỏa thuận thử việc cần nêu những nội dung chủ yếu nào?",
+      "status": "failed",
+      "checks": {
+        "http_200": true,
+        "provisional": true,
+        "citation_valid": true,
+        "reference_selected": true,
+        "expected_quote_exact": false,
+        "citation_count_1_to_3": true,
+        "caveat_present": true,
+        "source_validity_unverified": true
+      },
+      "answer_state": "provisional",
+      "response_origin": "groq_provider_response",
+      "validation": true,
+      "citation_count": 1,
+      "citations": [
+        {
+          "evidence_id": "1b20253b-b817-5392-abf1-83385d1b82d7:d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "span_start": 0,
+          "span_end": 445,
+          "quote_length_chars": 445,
+          "quote_sha256": "a4bcc49e89285fac4627e9dfef3c141c7d9f577af3adc31af5c9f99f5ee51530"
+        }
+      ],
+      "caveat_present": true,
+      "selected_evidence_ids": [
+        "1b20253b-b817-5392-abf1-83385d1b82d7:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "4b53b32a-ba57-5b20-aed1-b4c91d937e7a:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "37aef809-7b4c-52e0-8a99-16415076aa92:d4514622-3644-5ff3-9791-13da5d65a7d1"
+      ],
+      "provider_usage": {
+        "prompt_tokens": 1403,
+        "completion_tokens": 611,
+        "total_tokens": 2014
+      },
+      "end_to_end_ms": 5394.54,
+      "retrieval_timings_ms": {
+        "sparse": 2.7475,
+        "dense": 4158.3382,
+        "fusion_and_evidence": 0.6828
+      },
+      "exact_public_answer": "Điều 24. Thử việc 1. Người sử dụng lao động và người lao động có thể thỏa thuận nội dung thử việc ghi trong hợp đồng lao động hoặc thỏa thuận về thử việc bằng việc giao kết hợp đồng thử việc. 2. Nội dung chủ yếu của hợp đồng thử việc gồm thời gian thử việc và nội dung quy định tại các điểm a, b, c, đ, g và h khoản 1 Điều 21 của Bộ luật này. 3. Không áp dụng thử việc đối với người lao động giao kết hợp đồng lao động có thời hạn dưới 01 tháng.",
+      "failure_classification": "sentence_selection_failure",
+      "citation_contract_passed": true
+    }
+  ],
+  "ui_preflight": {
+    "ui_http_status": 200,
+    "scope_visible": true,
+    "blank_expiry_warning_visible": true
+  },
+  "attempts": [
+    {
+      "case_id": "probation",
+      "state": "response_received",
+      "ordinal": 1,
+      "usage": {
+        "prompt_tokens": 1403,
+        "completion_tokens": 611,
+        "total_tokens": 2014
+      }
+    }
+  ],
+  "finished_at_utc": "2026-10-01T21:56:58.364027+00:00",
+  "master_review": {
+    "classification": "sentence_selection_failure",
+    "assessment": "The provider selected the expected evidence and returned a valid provisional answer, but quoted the whole article rather than the frozen relevant sentence.",
+    "citation_contract_passed": true,
+    "transport_failure": false,
+    "interpretation": "Exact-sentence selection is a narrow extraction criterion, not a general legal-correctness metric. The Article 24 cross-reference is not fully explained by this citation.",
+    "remaining_cases": "not_run_after_stop_gate",
+    "additional_provider_calls_authorized": false
+  }
+}

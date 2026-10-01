@@ -1,0 +1,143 @@
+{
+  "evaluation": "groq-four-topic-development-set-v1",
+  "frozen_at_utc": "2026-10-02",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "purpose": "Small development engineering set for bounded production-route/UI smoke; not held-out evidence, legal ground truth, current-validity verification, or a legal-correctness evaluation.",
+  "provider_budget": {
+    "max_http_invocations_total": 4,
+    "retry": false,
+    "paid_fallback": false
+  },
+  "retrieval": {
+    "mode": "real pinned E5 + Qdrant",
+    "collection": "legalrag_core-employment-portfolio-v1_c16bfcd783f5_97b881b86aec_83faf082c360",
+    "points_count": 85,
+    "experimental_evidence_cap": 12
+  },
+  "cases": [
+    {
+      "id": "probation",
+      "question": "Thỏa thuận thử việc cần nêu những nội dung chủ yếu nào?",
+      "expected_state": "provisional",
+      "reference_article_id": "1b20253b-b817-5392-abf1-83385d1b82d7",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "1b20253b-b817-5392-abf1-83385d1b82d7:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "reference_rank_in_retrieved_evidence": 1,
+      "reference_retrieved": true,
+      "reference_selected_by_snapshot_eligibility": true,
+      "expected_exact_quote": "Nội dung chủ yếu của hợp đồng thử việc gồm thời gian thử việc và nội dung quy định tại các điểm a, b, c, đ, g và h khoản 1 Điều 21 của Bộ luật này.",
+      "source_span_start": 195,
+      "source_span_end": 342,
+      "quote_sha256": "4ceb72affe0b7b008e58822c3b2b0572083335f37938f4fcd9c82486698a39d6",
+      "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
+      "topic_gate": "probation",
+      "topic_candidates": [
+        "probation"
+      ],
+      "pham_vi": "Trung ương",
+      "retrieval_index_candidate": true,
+      "current_validity": "unverified",
+      "expiry_state": "unknown_expiry",
+      "reported_status_conflict": true,
+      "snapshot_caveat_required": true,
+      "preflight_timings_ms": {
+        "sparse": 2.0841,
+        "dense": 4214.4628,
+        "fusion_and_evidence": 0.8567
+      }
+    },
+    {
+      "id": "contracts",
+      "question": "Thông điệp dữ liệu được dùng để giao kết hợp đồng lao động thì có giá trị thế nào?",
+      "expected_state": "provisional",
+      "reference_article_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "reference_rank_in_retrieved_evidence": 1,
+      "reference_retrieved": true,
+      "reference_selected_by_snapshot_eligibility": true,
+      "expected_exact_quote": "Hợp đồng lao động được giao kết thông qua phương tiện điện tử dưới hình thức thông điệp dữ liệu theo quy định của pháp luật về giao dịch điện tử có giá trị như hợp đồng lao động bằng văn bản.",
+      "source_span_start": 224,
+      "source_span_end": 415,
+      "quote_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11",
+      "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
+      "topic_gate": "contracts",
+      "topic_candidates": [
+        "contracts"
+      ],
+      "pham_vi": "Trung ương",
+      "retrieval_index_candidate": true,
+      "current_validity": "unverified",
+      "expiry_state": "unknown_expiry",
+      "reported_status_conflict": true,
+      "snapshot_caveat_required": true,
+      "preflight_timings_ms": {
+        "sparse": 4.5353,
+        "dense": 2513.2592,
+        "fusion_and_evidence": 0.7307
+      }
+    },
+    {
+      "id": "working_time",
+      "question": "Thời giờ làm việc bình thường được giới hạn ra sao trong một ngày và một tuần?",
+      "expected_state": "provisional",
+      "reference_article_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "reference_rank_in_retrieved_evidence": 1,
+      "reference_retrieved": true,
+      "reference_selected_by_snapshot_eligibility": true,
+      "expected_exact_quote": "Thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần.",
+      "source_span_start": 43,
+      "source_span_end": 138,
+      "quote_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09",
+      "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
+      "topic_gate": "working_time",
+      "topic_candidates": [
+        "working_time"
+      ],
+      "pham_vi": "Trung ương",
+      "retrieval_index_candidate": true,
+      "current_validity": "unverified",
+      "expiry_state": "unknown_expiry",
+      "reported_status_conflict": true,
+      "snapshot_caveat_required": true,
+      "preflight_timings_ms": {
+        "sparse": 4.9683,
+        "dense": 2144.7879,
+        "fusion_and_evidence": 0.8702
+      }
+    },
+    {
+      "id": "leave",
+      "question": "Ngày nghỉ hằng năm chưa sử dụng được xử lý thế nào khi người lao động thôi việc?",
+      "expected_state": "provisional",
+      "reference_article_id": "267dc82e-753a-5183-8bd6-81603d3ab746",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "reference_rank_in_retrieved_evidence": 1,
+      "reference_retrieved": true,
+      "reference_selected_by_snapshot_eligibility": true,
+      "expected_exact_quote": "Trường hợp do thôi việc, bị mất việc làm mà chưa nghỉ hằng năm hoặc chưa nghỉ hết số ngày nghỉ hằng năm thì được người sử dụng lao động thanh toán tiền lương cho những ngày chưa nghỉ.",
+      "source_span_start": 635,
+      "source_span_end": 818,
+      "quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1",
+      "source_content_sha256": "ce2d42fab464509f00a287734ff4fff8810c91d0ecf26d38566d14e920b5c011",
+      "topic_gate": "leave",
+      "topic_candidates": [
+        "leave"
+      ],
+      "pham_vi": "Trung ương",
+      "retrieval_index_candidate": true,
+      "current_validity": "unverified",
+      "expiry_state": "unknown_expiry",
+      "reported_status_conflict": true,
+      "snapshot_caveat_required": true,
+      "preflight_timings_ms": {
+        "sparse": 4.9813,
+        "dense": 2164.902,
+        "fusion_and_evidence": 0.6846
+      }
+    }
+  ]
+}
