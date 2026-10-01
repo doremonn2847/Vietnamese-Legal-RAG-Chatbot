@@ -85,33 +85,39 @@ class GroqSmokeRunnerTest(unittest.TestCase):
         self.assertEqual(report["cases"][1]["citation_count"], 0)
 
         transport_responses.clear()
-        with tempfile.TemporaryDirectory() as directory:
-            report_path = Path(directory) / "pre-transport-error.json"
-            checkpoint = smoke._checkpoint
-            checkpoint_calls = 0
+        checkpoint = smoke._checkpoint
+        for failure_call, expected_stage in (
+                (3, "callback_checkpoint_before_http"),
+                (4, "transport_checkpoint_before_http")):
+            transport_responses.clear()
+            with tempfile.TemporaryDirectory() as directory:
+                report_path = Path(directory) / "pre-transport-error.json"
+                checkpoint_calls = 0
 
-            def fail_at_transport_checkpoint(report, path):
-                nonlocal checkpoint_calls
-                checkpoint_calls += 1
-                if checkpoint_calls == 3:
-                    raise AttributeError("simulated report-path shadowing")
-                checkpoint(report, path)
+                def fail_at_transport_checkpoint(report, path):
+                    nonlocal checkpoint_calls
+                    checkpoint_calls += 1
+                    if checkpoint_calls == failure_call:
+                        raise AttributeError("simulated pre-transport checkpoint failure")
+                    checkpoint(report, path)
 
-            with (patch.object(smoke, "load_config", return_value=(provider_config, "test-key")),
-                  patch.object(smoke, "http_transport", return_value=transport),
-                  patch.object(core_app, "create_core_app", side_effect=build_app),
-                  patch.object(smoke, "_checkpoint", side_effect=fail_at_transport_checkpoint),
-                  contextlib.redirect_stdout(io.StringIO())):
-                status = smoke.main(["--confirm-free-tier", "--report", str(report_path)])
-            failed_report = json.loads(report_path.read_text(encoding="utf-8"))
+                with (patch.object(smoke, "load_config", return_value=(provider_config, "test-key")),
+                      patch.object(smoke, "http_transport", return_value=transport),
+                      patch.object(core_app, "create_core_app", side_effect=build_app),
+                      patch.object(smoke, "_checkpoint", side_effect=fail_at_transport_checkpoint),
+                      contextlib.redirect_stdout(io.StringIO())):
+                    status = smoke.main(["--confirm-free-tier", "--report", str(report_path)])
+                failed_report = json.loads(report_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(status, 1)
-        self.assertEqual(transport_responses, [])
-        self.assertEqual(failed_report["provider_callback_attempts"], 1)
-        self.assertEqual(failed_report["http_transport_calls"], 0)
-        self.assertEqual(failed_report["cases"][0]["status_code"], 503)
-        self.assertEqual(failed_report["cases"][0]["response_origin"],
-                         "local_runner_error_before_transport")
+            self.assertEqual(status, 1)
+            self.assertEqual(transport_responses, [])
+            self.assertEqual(failed_report["provider_callback_attempts"], 1)
+            self.assertEqual(failed_report["http_transport_calls"], 0)
+            self.assertEqual(failed_report["pre_transport_error_type"], "AttributeError")
+            self.assertEqual(failed_report["error_stage"], expected_stage)
+            self.assertEqual(failed_report["cases"][0]["status_code"], 503)
+            self.assertEqual(failed_report["cases"][0]["response_origin"],
+                             "local_runner_error_before_transport")
 
 
 if __name__ == "__main__":

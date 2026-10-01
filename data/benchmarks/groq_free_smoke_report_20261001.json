@@ -46,7 +46,8 @@
       },
       "current_validity": [],
       "caveat_present": true,
-      "provider_calls_after_case": 1
+      "provider_callback_attempts_after_case": 1,
+      "http_transport_calls_after_case": 0
     }
   ],
   "no_retries": true,
@@ -55,7 +56,7 @@
   "call_attempts": [
     {
       "case": "ordinary",
-      "state": "callback_started_before_transport"
+      "state": "pre_transport_error"
     }
   ],
   "diagnosis": "The bounded_transport callback argument named args shadowed argparse options; args.report raised AttributeError while checkpointing before transport(*args). No Groq HTTP request was sent and no upstream HTTP status exists.",
@@ -63,5 +64,5 @@
   "http_transport_calls": 0,
   "provider_call_count_semantics": "provider_callback_attempts counts wrapper callback attempts; http_transport_calls counts actual transport invocations",
   "pre_transport_error_type": "AttributeError",
-  "error_stage": "runner_checkpoint_before_transport"
+  "error_stage": "callback_checkpoint_before_http"
 }

@@ -77,27 +77,45 @@ def main(argv=None):
               "attempt_started_at_utc": datetime.now(timezone.utc).isoformat()}
     _checkpoint(report, report_path)
     current_case = None
+    def fail_before_transport(error, stage, attempt):
+        attempt["state"] = "pre_transport_error"
+        report["pre_transport_error_type"] = type(error).__name__
+        report["error_stage"] = stage
+        _checkpoint(report, report_path)
+
     def bounded_transport(*args):
         nonlocal callback_attempts, transport_calls
         if callback_attempts >= MAX_PROVIDER_CALLS:
             raise RuntimeError("smoke provider call limit reached")
         callback_attempts += 1
         report["provider_callback_attempts"] = callback_attempts
-        report["call_attempts"] = report.get("call_attempts", []) + [{"case": current_case, "state": "attempt_started"}]
-        _checkpoint(report, report_path)
+        attempt = {"case": current_case, "state": "callback_started"}
+        report["call_attempts"] = report.get("call_attempts", []) + [attempt]
         try:
-            transport_calls += 1
-            report["http_transport_calls"] = transport_calls
             _checkpoint(report, report_path)
+        except Exception as error:
+            fail_before_transport(error, "callback_checkpoint_before_http", attempt)
+            raise
+        transport_calls += 1
+        report["http_transport_calls"] = transport_calls
+        attempt["state"] = "http_transport_started"
+        try:
+            _checkpoint(report, report_path)
+        except Exception as error:
+            transport_calls -= 1
+            report["http_transport_calls"] = transport_calls
+            fail_before_transport(error, "transport_checkpoint_before_http", attempt)
+            raise
+        try:
             response = transport(*args)
         except Exception as error:
             provider_errors.append({"case": current_case, "type": type(error).__name__,
                                     "status": getattr(error, "status", None)})
-            report["call_attempts"][-1]["state"] = "transport_error"
+            attempt["state"] = "transport_error"
             _checkpoint(report, report_path)
             raise
         usage.append(response.get("usage") if isinstance(response, dict) else None)
-        report["call_attempts"][-1]["state"] = "response_received"
+        attempt["state"] = "response_received"
         _checkpoint(report, report_path)
         return response
 
