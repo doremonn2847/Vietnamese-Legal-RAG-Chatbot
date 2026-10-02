@@ -172,16 +172,19 @@ earlier failure evidence are
 `data/logs/groq_single_route_smoke_20261001_v4.json` and
 `data/logs/groq_provider_issue_packet_20261001.json`.
 
-A later bounded four-topic continuation passed its contracts case with an exact
-source citation. The working-time case returned the full 674-character article
-despite the prompt's 500-character limit; the route's 500-character guard
-returned 502 and the UI withheld the answer. The continuation's separate
-validator check also failed, but its exact predicate was not retained. An
-offline synthetic route check reproduced the size guard, not the original model
-response. The run stopped; leave was not attempted. The redacted checkpoint is
+A bounded four-topic smoke recorded these outcomes: probation produced a
+validator-approved citation but selected a 445-character span instead of the
+frozen 147-character sentence; contracts passed with the exact 191-character
+sentence; working time returned a 674-character quote rejected by the route's
+500-character guard; and leave returned `answer` instead of the required
+`provisional` state, so the route withheld it. The leave citation covered but
+did not exactly match the frozen 183-character sentence. The first leave UI
+submission hit a temporary harness error before provider transport; the final
+leave submission used the fourth and last live call. No retries or paid
+fallback were used. The redacted checkpoint is
 `data/benchmarks/groq_four_topic_continuation_20261002.json`. See
 [`docs/handoff-readiness.md`](docs/handoff-readiness.md) for the portfolio run
-steps and measured limits.
+steps, validity caveats, and measured limits.
 
 On 2026-10-01, a local browser smoke verified the core Vietnamese UI with the
 pinned corpus and `GROQ_ENABLED=false`: the corpus revision and unknown-validity

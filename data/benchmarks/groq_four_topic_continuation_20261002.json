@@ -7,9 +7,9 @@
   "prior_report_sha256": "6db613c7744f57e4688292823cc6cc847b3fa1bf9c991e9f6897c429dfb8c56c",
   "max_provider_http_invocations": 4,
   "prior_http_transport_invocations": 1,
-  "http_transport_invocations": 3,
-  "new_http_transport_invocations": 2,
-  "provider_callback_attempts": 3,
+  "http_transport_invocations": 4,
+  "new_http_transport_invocations": 3,
+  "provider_callback_attempts": 4,
   "no_retries": true,
   "paid_fallback": false,
   "endpoint": "https://api.groq.com/openai/v1/chat/completions",
@@ -21,8 +21,8 @@
     "temperature": 0
   },
   "started_at_utc": "2026-10-02T00:23:27.481551+00:00",
-  "status": "stopped_on_invalid_or_unsupported_output",
-  "stop_reason": "unexpected_or_invalid_answer",
+  "status": "stopped_on_leave_failure",
+  "stop_reason": "leave_invalid_or_unsupported_output",
   "attempts": [
     {
       "ordinal": 1,
@@ -48,6 +48,17 @@
         "prompt_tokens": 2338,
         "completion_tokens": 726,
         "total_tokens": 3064
+      }
+    },
+    {
+      "ordinal": 4,
+      "case_id": "leave",
+      "state": "response_received",
+      "http_status": 200,
+      "usage": {
+        "prompt_tokens": 1972,
+        "completion_tokens": 348,
+        "total_tokens": 2320
       }
     }
   ],
@@ -212,13 +223,104 @@
       "expected_span_end": 818,
       "reported_status_conflict": true,
       "current_validity": "unverified",
-      "status": "not_run"
+      "status": "failed_unexpected_output",
+      "http_status": 502,
+      "route_status": "unavailable",
+      "route_validation_executed": false,
+      "route_validation_valid": null,
+      "route_caveat_present": false,
+      "route_retrieval_timings_ms": {},
+      "ui_source_count": 0,
+      "ui_source_validity_unverified": true,
+      "ui_expected_reference_selected": false,
+      "route_response_observed": true,
+      "ui_observation": {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false,
+        "provider_http_call_made": true,
+        "unavailable_reason_visible": true
+      },
+      "provider_http_invocation_used": true,
+      "ui_submission_history": [
+        {
+          "submitted_through_browser": true,
+          "rendered_state": "unavailable",
+          "answer_visible": false,
+          "source_count": 0,
+          "answer_caveat_visible": false,
+          "provider_http_call_made": false,
+          "local_error": "Temporary harness guard stopped this earlier UI submission before provider transport; local route returned 503."
+        },
+        {
+          "submitted_through_browser": true,
+          "rendered_state": "unavailable",
+          "answer_visible": false,
+          "source_count": 0,
+          "answer_caveat_visible": false,
+          "provider_http_call_made": true,
+          "unavailable_reason_visible": true
+        }
+      ],
+      "answer_state": "answer",
+      "citation_contract_valid": false,
+      "citation_count": 1,
+      "citation_summary": [
+        {
+          "evidence_id": "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "span_start": 632,
+          "span_end": 818,
+          "quote_length_chars": 186,
+          "quote_sha256": "5bdad4b897b35e78296cefa63a1cd1056ed9c2d906c95db8c9204fe6deec40af",
+          "matches_frozen_sentence": false,
+          "covers_frozen_sentence": true
+        }
+      ],
+      "selected_evidence_ids": [
+        "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "a735c6cd-cd93-5f84-b950-2e1341d15c13:a550e557-9ade-502f-a86d-47bfa65e0b97",
+        "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11:a550e557-9ade-502f-a86d-47bfa65e0b97"
+      ],
+      "reference_selected": true,
+      "target_citation_present": true,
+      "exact_sentence_match": false,
+      "supporting_span_covers_expected_sentence": true,
+      "selection_assessment": "failed_unexpected_output",
+      "answer_text_length_chars": 146,
+      "answer_text_sha256": "8df6d3a202072201c54c8d4be22bcb146dc27285de3973a4fc03e321bddf54ac",
+      "provider_usage": {
+        "prompt_tokens": 1972,
+        "completion_tokens": 348,
+        "total_tokens": 2320
+      },
+      "provider_elapsed_ms": 1202.96,
+      "source_validity": "unverified",
+      "route_rejection_reason": "experimental excerpt state guard rejected answer_state=answer; expected provisional",
+      "failure_observation": {
+        "answer_state": "answer",
+        "expected_route_state": "provisional",
+        "route_citation_limit_chars": 500,
+        "quote_length_chars": 186,
+        "frozen_expected_quote_length_chars": 183,
+        "span_start": 632,
+        "span_end": 818,
+        "expected_span_start": 635,
+        "expected_span_end": 818,
+        "covers_frozen_sentence": true,
+        "matches_frozen_sentence": false,
+        "citation_validator_valid": false,
+        "citation_validator_failure_predicate": "not retained",
+        "route_citation_validation_executed": false
+      }
     }
   ],
   "ui_evidence": {
     "mode": "live local Vietnamese UI",
-    "cases_submitted": 2,
-    "route_responses_observed": 2,
+    "cases_submitted": 4,
+    "route_responses_observed": 4,
     "corpus_page_verified": false,
     "global_validity_banner_visible_on_initial_load": true,
     "per_case_observations": {
@@ -236,7 +338,172 @@
         "answer_visible": false,
         "source_count": 0,
         "answer_caveat_visible": false
+      },
+      "leave": {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false,
+        "provider_http_call_made": true,
+        "unavailable_reason_visible": true
       }
+    },
+    "note": "Four browser submissions were observed: contracts and working_time reached provider transport; the first leave submission failed in the temporary harness before provider transport; the final leave submission consumed the fourth total provider invocation and the app withheld the wrong-state answer.",
+    "submission_history": [
+      {
+        "case_id": "contracts",
+        "submitted_through_browser": true,
+        "rendered_state": "provisional",
+        "answer_visible": true,
+        "citation_source_panel": "collapsed",
+        "source_count": 1,
+        "answer_caveat_visible": true,
+        "provider_http_call_made": true
+      },
+      {
+        "case_id": "working_time",
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false,
+        "provider_http_call_made": true
+      },
+      {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false,
+        "provider_http_call_made": false
+      },
+      {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false,
+        "provider_http_call_made": true,
+        "unavailable_reason_visible": true
+      }
+    ]
+  },
+  "stop_history": [
+    {
+      "case_id": "working_time",
+      "reason": "unexpected_or_invalid_answer"
+    },
+    {
+      "case_id": "leave",
+      "reason": "local_harness_guard_error_before_provider_transport"
+    },
+    {
+      "case_id": "leave",
+      "reason": "leave_invalid_or_unsupported_output"
     }
+  ],
+  "final_case_authorization": {
+    "case_id": "leave",
+    "max_additional_http_invocations": 1,
+    "authorized_within_original_four_call_budget": true,
+    "status": "complete",
+    "created_at_utc": "2026-10-02T00:51:56.156193+00:00"
+  },
+  "provider_http_invocation_budget_remaining": 0,
+  "four_case_summary": {
+    "probation": {
+      "status": "sentence_selection_failure_valid_citation",
+      "answer_state": "provisional",
+      "citation_contract_valid": true,
+      "reference_selected": true,
+      "exact_frozen_sentence_match": false,
+      "citation_quote_length_chars": 445,
+      "expected_quote_length_chars": 147,
+      "citation_span_start": 0,
+      "citation_span_end": 445,
+      "expected_span_start": 195,
+      "expected_span_end": 342,
+      "provider_usage": {
+        "prompt_tokens": 1403,
+        "completion_tokens": 611,
+        "total_tokens": 2014
+      },
+      "provider_elapsed_ms": 5394.54,
+      "source_validity": "unverified",
+      "source_report_sha256": "6db613c7744f57e4688292823cc6cc847b3fa1bf9c991e9f6897c429dfb8c56c"
+    },
+    "contracts": {
+      "status": "passed_exact_sentence",
+      "answer_state": "provisional",
+      "citation_contract_valid": true,
+      "citation_quote_length_chars": 191,
+      "expected_quote_length_chars": 191,
+      "exact_frozen_sentence_match": true,
+      "route_status": "provisional",
+      "provider_usage": {
+        "prompt_tokens": 2172,
+        "completion_tokens": 422,
+        "total_tokens": 2594
+      },
+      "provider_elapsed_ms": 1138.3,
+      "source_validity": "unverified"
+    },
+    "working_time": {
+      "status": "route_rejected_overlong_quote",
+      "answer_state": "provisional",
+      "provider_http_status": 200,
+      "route_status": "unavailable",
+      "route_rejection_reason": "provisional citation quote exceeded 500-character route limit",
+      "citation_contract_valid": false,
+      "citation_quote_length_chars": 674,
+      "expected_quote_length_chars": 95,
+      "covers_frozen_sentence": true,
+      "exact_frozen_sentence_match": false,
+      "route_validation_executed": false,
+      "ui_rendered_state": "unavailable",
+      "ui_answer_visible": false,
+      "provider_usage": {
+        "prompt_tokens": 2338,
+        "completion_tokens": 726,
+        "total_tokens": 3064
+      },
+      "provider_elapsed_ms": 1554.15,
+      "source_validity": "unverified"
+    },
+    "leave": {
+      "status": "route_rejected_wrong_state",
+      "answer_state": "answer",
+      "provider_http_status": 200,
+      "route_status": "unavailable",
+      "route_rejection_reason": "experimental excerpt state guard rejected answer_state=answer; expected provisional",
+      "citation_contract_valid": false,
+      "citation_quote_length_chars": 186,
+      "expected_quote_length_chars": 183,
+      "citation_span_start": 632,
+      "citation_span_end": 818,
+      "expected_span_start": 635,
+      "expected_span_end": 818,
+      "covers_frozen_sentence": true,
+      "exact_frozen_sentence_match": false,
+      "route_validation_executed": false,
+      "ui_rendered_state": "unavailable",
+      "ui_answer_visible": false,
+      "provider_usage": {
+        "prompt_tokens": 1972,
+        "completion_tokens": 348,
+        "total_tokens": 2320
+      },
+      "provider_elapsed_ms": 1202.96,
+      "source_validity": "unverified"
+    }
+  },
+  "provider_budget_summary": {
+    "max_http_invocations": 4,
+    "total_http_invocations": 4,
+    "remaining": 0,
+    "automatic_retries": false,
+    "paid_fallback": false,
+    "current_validity_claim": false
   }
 }
