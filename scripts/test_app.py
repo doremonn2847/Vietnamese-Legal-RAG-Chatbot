@@ -273,6 +273,18 @@ class AppTest(unittest.TestCase):
                                          experimental_snapshot_excerpt_enabled=True)).post("/api/answer", json=ordinary)
         self.assertEqual(too_long.status_code, 502)
 
+        class WrongStateProvider(QuoteProvider):
+            def answer(self, question, legal_date, evidence):
+                answer = super().answer(question, legal_date, evidence)
+                answer["state"] = "answer"
+                return answer
+        wrong_state = TestClient(create_app(WrongStateProvider(), retriever=Retriever(),
+                                            experimental_snapshot_excerpt_enabled=True)).post(
+                                                "/api/answer", json=ordinary)
+        self.assertEqual(wrong_state.status_code, 502)
+        self.assertEqual(wrong_state.json()["answer"]["reason"],
+                         "Đoạn trích thử nghiệm vượt quá giới hạn hoặc không đúng trạng thái.")
+
     def test_experimental_snapshot_excerpt_retains_temporal_personal_and_scope_gates(self):
         article = {"article_id": "a24", "label": "Điều 24", "document_version_id": "v1",
                    "canonical_text": "Điều 24. Thử việc tối đa 60 ngày.", "pham_vi": "Trung ương",

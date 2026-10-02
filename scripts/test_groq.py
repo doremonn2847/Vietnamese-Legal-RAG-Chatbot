@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
 from answer_contract import validate_citations
-from groq import GroqConfig, GroqProvider, ProviderHTTPError, http_transport
+from groq import ANSWER_SCHEMA, RESPONSE_FORMAT, GroqConfig, GroqProvider, ProviderHTTPError, http_transport
 from smoke_snapshot_excerpt_groq import (_checkpoint, _citation_summary, _provider_responded,
                                          main as snapshot_smoke_main)
 
@@ -107,6 +107,38 @@ class GroqTest(unittest.TestCase):
         request = json.loads(body["messages"][1]["content"])
         self.assertIsNone(request["legal_date"])
         self.assertTrue(request["selected_evidence"][0]["provisional_snapshot_only"])
+
+    def test_snapshot_mode_narrows_only_its_request_schema(self):
+        calls = []
+        provider = GroqProvider(
+            self.config,
+            lambda *args: calls.append(args) or {
+                "choices": [{"message": {"content": json.dumps(self.answer)}}], "usage": {}},
+            "key")
+        snapshot = {"canonical_text": "Snapshot source.", "document_version_id": "snapshot-v1",
+                    "provisional_snapshot_eligible": True}
+        requests = [
+            ("snapshot", None, {"snapshot:v1": snapshot}),
+            ("dated reviewed", "2024-01-01", {"fiction-e1": DEMO_EVIDENCE["fiction-e1"]}),
+            ("empty evidence", None, {}),
+            ("mixed evidence", None, {"snapshot:v1": snapshot,
+                                       "fiction-e1": DEMO_EVIDENCE["fiction-e1"]}),
+        ]
+        for question, legal_date, evidence in requests:
+            provider.answer(question, legal_date, evidence)
+
+        global_states = ["answer", "partial", "provisional", "clarify", "unavailable",
+                         "abstain_conflict", "abstain_insufficient_evidence"]
+        snapshot_states = ["provisional", "clarify", "unavailable", "abstain_conflict",
+                           "abstain_insufficient_evidence"]
+        self.assertEqual(RESPONSE_FORMAT["json_schema"]["schema"]["properties"]["state"]["enum"], global_states)
+        self.assertEqual(ANSWER_SCHEMA["properties"]["state"]["enum"], global_states)
+        self.assertEqual(calls[0][2]["response_format"]["json_schema"]["schema"]["properties"]["state"]["enum"], snapshot_states)
+        self.assertIn("snapshot-only", calls[0][2]["messages"][0]["content"].lower())
+        self.assertIn("must use state provisional", calls[0][2]["messages"][0]["content"].lower())
+        for call in calls[1:]:
+            self.assertEqual(call[2]["response_format"]["json_schema"]["schema"]["properties"]["state"]["enum"], global_states)
+            self.assertNotIn("snapshot-only", call[2]["messages"][0]["content"].lower())
 
     def test_experimental_snapshot_prompt_uses_bounded_source_text(self):
         quote = "Điều 24. Trích nguyên văn."

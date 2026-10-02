@@ -2,6 +2,7 @@
 import json
 import math
 import time
+from copy import deepcopy
 from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -296,10 +297,10 @@ class GroqProvider:
         config.validate(api_key)
         self.config, self.transport, self.api_key = config, transport, api_key
 
-    def generate(self, messages):
+    def generate(self, messages, *, response_format=RESPONSE_FORMAT):
         if not self.config.enabled: raise RuntimeError("Groq is disabled")
         try:
-            response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "reasoning_effort": "low", "temperature": 0, "response_format": RESPONSE_FORMAT}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key, "User-Agent": "LegalRAGChatbot/0.1", "Accept": "application/json"})
+            response = self.transport("POST", self.config.base_url.rstrip("/") + "/" + self.config.route.lstrip("/"), {"model": self.config.model, "messages": messages, "stream": False, "reasoning_effort": "low", "temperature": 0, "response_format": response_format}, {"Content-Type": "application/json", "Authorization": "Bearer " + self.api_key, "User-Agent": "LegalRAGChatbot/0.1", "Accept": "application/json"})
         except (ProviderHTTPError, ProviderTransportError, ProviderOutputError, ProviderTimeoutError):
             raise
         except Exception as error:
@@ -336,7 +337,21 @@ class GroqProvider:
 
     def answer(self, question, legal_date, selected_evidence):
         evidence = [{"evidence_id": evidence_id, "canonical_text": source.get("snapshot_excerpt_text", source["canonical_text"]), "document_version_id": source.get("document_version_id", source.get("reviewed_version_id")), "provisional_snapshot_only": source.get("provisional_snapshot_eligible") is True} for evidence_id, source in selected_evidence.items()]
-        result = self.generate([{"role": "system", "content": SYSTEM_CONTRACT}, {"role": "user", "content": json.dumps({"question": question, "legal_date": legal_date, "selected_evidence": evidence}, ensure_ascii=False)}])
+        snapshot_only = (legal_date is None and bool(selected_evidence)
+                         and all(isinstance(source, dict)
+                                 and source.get("provisional_snapshot_eligible") is True
+                                 for source in selected_evidence.values()))
+        response_format = RESPONSE_FORMAT
+        system_contract = SYSTEM_CONTRACT
+        if snapshot_only:
+            response_format = deepcopy(RESPONSE_FORMAT)
+            response_format["json_schema"]["schema"]["properties"]["state"]["enum"] = [
+                "provisional", "clarify", "unavailable", "abstain_conflict",
+                "abstain_insufficient_evidence"]
+            system_contract += (" Snapshot-only mode: this source does not establish current legal validity. "
+                                "For any substantive snapshot output, you MUST use state provisional; "
+                                "never use answer or partial.")
+        result = self.generate([{"role": "system", "content": system_contract}, {"role": "user", "content": json.dumps({"question": question, "legal_date": legal_date, "selected_evidence": evidence}, ensure_ascii=False)}], response_format=response_format)
         try:
             answer = json.loads(result["content"])
         except (TypeError, json.JSONDecodeError) as error:
