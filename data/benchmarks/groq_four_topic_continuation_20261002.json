@@ -1,0 +1,242 @@
+{
+  "evaluation": "groq-four-topic-development-continuation-v1",
+  "purpose": "Continuation of the frozen 4-topic development smoke; no legal-correctness or current-validity claim.",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "manifest_sha256": "dd26a1ce5fc7770649f2a068be32db9fbf4313478225c288a815e28ddd1ee218",
+  "execution_manifest_sha256": "89a702dda4076c39759bd96ec8b772d2125655b864f4d32130cc866e238c1cc0",
+  "prior_report_sha256": "6db613c7744f57e4688292823cc6cc847b3fa1bf9c991e9f6897c429dfb8c56c",
+  "max_provider_http_invocations": 4,
+  "prior_http_transport_invocations": 1,
+  "http_transport_invocations": 3,
+  "new_http_transport_invocations": 2,
+  "provider_callback_attempts": 3,
+  "no_retries": true,
+  "paid_fallback": false,
+  "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+  "model": "openai/gpt-oss-20b",
+  "request_contract": {
+    "stream": false,
+    "strict_schema": true,
+    "reasoning_effort": "low",
+    "temperature": 0
+  },
+  "started_at_utc": "2026-10-02T00:23:27.481551+00:00",
+  "status": "stopped_on_invalid_or_unsupported_output",
+  "stop_reason": "unexpected_or_invalid_answer",
+  "attempts": [
+    {
+      "ordinal": 1,
+      "case_id": "probation",
+      "state": "response_received",
+      "source_report_sha256": "6db613c7744f57e4688292823cc6cc847b3fa1bf9c991e9f6897c429dfb8c56c"
+    },
+    {
+      "ordinal": 2,
+      "case_id": "contracts",
+      "state": "response_received",
+      "usage": {
+        "prompt_tokens": 2172,
+        "completion_tokens": 422,
+        "total_tokens": 2594
+      }
+    },
+    {
+      "ordinal": 3,
+      "case_id": "working_time",
+      "state": "response_received",
+      "usage": {
+        "prompt_tokens": 2338,
+        "completion_tokens": 726,
+        "total_tokens": 3064
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "contracts",
+      "reference_article_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_quote_length_chars": 191,
+      "expected_quote_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11",
+      "expected_span_start": 224,
+      "expected_span_end": 415,
+      "reported_status_conflict": true,
+      "current_validity": "unverified",
+      "status": "passed_exact_sentence",
+      "answer_state": "provisional",
+      "citation_contract_valid": true,
+      "citation_count": 1,
+      "citation_summary": [
+        {
+          "evidence_id": "8764b7c2-ee4c-5251-a2cb-09fbc799807e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "span_start": 224,
+          "span_end": 415,
+          "quote_length_chars": 191,
+          "quote_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11",
+          "matches_frozen_sentence": true,
+          "covers_frozen_sentence": true
+        }
+      ],
+      "selected_evidence_ids": [
+        "8764b7c2-ee4c-5251-a2cb-09fbc799807e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "4c9fec13-ee8e-5776-ad92-0fb6c6636c22:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "3f2b3e90-453c-527c-ade0-11e72029d715:8a5e1a1b-899c-5bab-8287-6b9754fcea5a"
+      ],
+      "reference_selected": true,
+      "target_citation_present": true,
+      "exact_sentence_match": true,
+      "supporting_span_covers_expected_sentence": true,
+      "selection_assessment": "exact_frozen_sentence",
+      "answer_text_length_chars": 191,
+      "answer_text_sha256": "62d86415d4ea5c89633199ffe673c40787b953314154cd3a6b2632d7d9b93d11",
+      "provider_usage": {
+        "prompt_tokens": 2172,
+        "completion_tokens": 422,
+        "total_tokens": 2594
+      },
+      "provider_elapsed_ms": 1138.3,
+      "source_validity": "unverified",
+      "http_status": 200,
+      "route_status": "provisional",
+      "route_validation_valid": true,
+      "route_caveat_present": true,
+      "route_retrieval_timings_ms": {
+        "sparse": 5.6766,
+        "dense": 4524.3463,
+        "fusion_and_evidence": 1.3495
+      },
+      "ui_source_count": 1,
+      "ui_source_validity_unverified": true,
+      "ui_expected_reference_selected": true,
+      "route_response_observed": true,
+      "ui_observation": {
+        "submitted_through_browser": true,
+        "rendered_state": "provisional",
+        "answer_visible": true,
+        "citation_source_panel": "collapsed",
+        "source_count": 1,
+        "answer_caveat_visible": true
+      }
+    },
+    {
+      "id": "working_time",
+      "reference_article_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_quote_length_chars": 95,
+      "expected_quote_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09",
+      "expected_span_start": 43,
+      "expected_span_end": 138,
+      "reported_status_conflict": true,
+      "current_validity": "unverified",
+      "status": "failed_unexpected_output",
+      "answer_state": "provisional",
+      "citation_contract_valid": false,
+      "citation_count": 1,
+      "citation_summary": [
+        {
+          "evidence_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "span_start": 0,
+          "span_end": 674,
+          "quote_length_chars": 674,
+          "quote_sha256": "37957e8c7b961ab6d9fd3385eaa727f4112ff55020c5ebf848c6c763b49ea840",
+          "matches_frozen_sentence": false,
+          "covers_frozen_sentence": true
+        }
+      ],
+      "selected_evidence_ids": [
+        "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "b4e0dc36-c102-5e0a-9d11-2055418d3e6a:a550e557-9ade-502f-a86d-47bfa65e0b97",
+        "ebe4c0e4-3893-5a09-b1f6-1d2b415ca78c:a550e557-9ade-502f-a86d-47bfa65e0b97"
+      ],
+      "reference_selected": true,
+      "target_citation_present": true,
+      "exact_sentence_match": false,
+      "supporting_span_covers_expected_sentence": true,
+      "selection_assessment": "route_quote_length_limit_rejected; direct citation validator also false, predicate unavailable",
+      "answer_text_length_chars": 625,
+      "answer_text_sha256": "1d2b62aab82c28e2d7efc05b7abe72bb4171cc2556fc8fad78160f1c3d77d331",
+      "provider_usage": {
+        "prompt_tokens": 2338,
+        "completion_tokens": 726,
+        "total_tokens": 3064
+      },
+      "provider_elapsed_ms": 1554.15,
+      "source_validity": "unverified",
+      "http_status": 502,
+      "route_status": "unavailable",
+      "route_validation_valid": null,
+      "route_caveat_present": false,
+      "route_retrieval_timings_ms": {},
+      "ui_source_count": 0,
+      "ui_source_validity_unverified": true,
+      "ui_expected_reference_selected": false,
+      "route_response_observed": true,
+      "failure_observation": {
+        "quote_length_chars": 674,
+        "prompt_quote_limit_chars": 500,
+        "answer_text_length_chars": 625,
+        "exact_validator_failure_reason": "not retained",
+        "route_quote_limit_chars": 500,
+        "quote_matches_full_canonical_article": true,
+        "full_canonical_article_length_chars": 674,
+        "full_canonical_article_sha256": "37957e8c7b961ab6d9fd3385eaa727f4112ff55020c5ebf848c6c763b49ea840",
+        "validator_failure_predicates": "not retained"
+      },
+      "ui_observation": {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false
+      },
+      "route_validation_executed": false,
+      "route_rejection_reason": "provisional citation quote exceeded 500-character route limit",
+      "diagnosis": {
+        "finding": "The route limit independently explains the HTTP 502; quote was the full canonical article.",
+        "evidence": "Offline production-route differential: internally consistent 674-character quote is rejected before validate_citations; exact 95-character frozen sentence passes the route and validator.",
+        "limitation": "Synthetic differential, not replay of the raw live model response; original claims/text were not retained."
+      }
+    },
+    {
+      "id": "leave",
+      "reference_article_id": "267dc82e-753a-5183-8bd6-81603d3ab746",
+      "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_evidence_id": "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_quote_length_chars": 183,
+      "expected_quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1",
+      "expected_span_start": 635,
+      "expected_span_end": 818,
+      "reported_status_conflict": true,
+      "current_validity": "unverified",
+      "status": "not_run"
+    }
+  ],
+  "ui_evidence": {
+    "mode": "live local Vietnamese UI",
+    "cases_submitted": 2,
+    "route_responses_observed": 2,
+    "corpus_page_verified": false,
+    "global_validity_banner_visible_on_initial_load": true,
+    "per_case_observations": {
+      "contracts": {
+        "submitted_through_browser": true,
+        "rendered_state": "provisional",
+        "answer_visible": true,
+        "citation_source_panel": "collapsed",
+        "source_count": 1,
+        "answer_caveat_visible": true
+      },
+      "working_time": {
+        "submitted_through_browser": true,
+        "rendered_state": "unavailable",
+        "answer_visible": false,
+        "source_count": 0,
+        "answer_caveat_visible": false
+      }
+    }
+  }
+}

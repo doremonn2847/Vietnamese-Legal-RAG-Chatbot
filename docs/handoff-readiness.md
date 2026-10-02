@@ -10,8 +10,8 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Article parser, child chunks, deterministic provenance and optional review aids | Parser and curation tests | Pinned central employment prototype | Legal correctness; record-by-record approval is not a development gate |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local indexed corpus | Broader retrieval quality |
 | 3. Dense/retrieval | Pinned E5-small, 68 eligible article versions, 85 checksummed vectors, versioned Qdrant, hybrid/RRF and distinct CPU reranker | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; bounded real searches | Broad retrieval quality and production latency |
-| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; one real Groq case returned a validator-approved citation after the request/prompt fix | Repeatable model quality, broader answer relevance, legal correctness |
-| 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations | Hosted CI run; broader reviewed retrieval labels |
+| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; one Groq fix smoke passed; separate bounded continuation passed contracts, then stopped after an invalid working-time citation | Repeatable model quality, broader answer relevance, legal correctness |
+| 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations; hosted CI passed on `31c28d8` | Broader reviewed retrieval labels |
 
 ## Current prototype evidence
 
@@ -61,6 +61,28 @@ fallback. See `docs/groq-inference-fix-20261002.md` and
 `data/logs/groq_fixed_route_20261002.json`. This verifies one case only, not
 repeatability, broad answer relevance, legal correctness, or Groq's internal
 reason for the earlier 400. No further provider call is needed for this fix.
+
+A separately bounded four-topic UI continuation used the same pinned snapshot,
+real E5/Qdrant retrieval, strict schema, and unchanged citation validator. The
+contracts case passed with one exact 191-character source citation (2,594
+tokens); the answer and caveat rendered, while the source panel remained
+collapsed. The working-time case returned HTTP 200 from Groq with a
+674-character quote whose hash matches the entire canonical article; the
+frozen expected sentence is 95 characters. The app's 500-character excerpt
+guard rejects this before route citation validation, producing HTTP 502 and an
+unavailable UI state with no answer or source. The continuation's separate
+validator check also returned false, but its exact failed predicate is unknown
+because raw claims were not retained. An offline synthetic production-route
+differential confirmed that a consistent 674-character quote is rejected by
+the route guard while the exact 95-character quote passes; this was not a replay
+of the original model response. The stop condition ended the evaluation: leave
+was not run, for three total HTTP calls across the original smoke and
+continuation, with no retries or paid fallback. No prompt or validator change
+followed. The redacted checkpoint is
+`data/benchmarks/groq_four_topic_continuation_20261002.json`; it contains hashes
+and citation metadata, not raw answer text. Source metadata remains
+`current_validity=unverified`; the page warns that blank expiry does not confirm
+current validity.
 
 ## Local browser verification
 
@@ -141,7 +163,8 @@ $env:GROQ_ENABLED='false'
 Tracked configuration lives in `data/config/e5_revisions.json`,
 `data/config/reranker_revision.json`, `docker-compose.qdrant.yml`, and
 `.github/workflows/test.yml`. Generated raw/audit/staging data, Qdrant storage,
-embeddings, models, logs, and local secrets are ignored. No remote is configured.
+embeddings, models, logs, and local secrets are ignored. The configured GitHub
+remote is `origin`; hosted Actions passed for `31c28d8`.
 
 ## Compatibility before Kaggle import or activation
 
