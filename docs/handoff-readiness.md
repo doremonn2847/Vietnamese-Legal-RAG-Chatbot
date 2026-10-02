@@ -84,8 +84,9 @@ separate citation validator also returned false; its exact predicates were not
 retained. One earlier leave UI submission failed in the temporary harness
 before provider transport and consumed no provider call. The final submission
 used the fourth and last total HTTP invocation across the original smoke and
-continuation; there were no retries or paid fallback. No prompt or validator
-change followed. The redacted checkpoint is
+continuation; there were no retries or paid fallback. No prompt or citation
+validator change followed that live run; the later offline snapshot-only request
+schema and system-contract adjustment is recorded below. The redacted checkpoint is
 `data/benchmarks/groq_four_topic_continuation_20261002.json`; it contains hashes
 and citation metadata, not raw answer text. Source metadata remains
 `current_validity=unverified`; the page warns that blank expiry does not confirm
