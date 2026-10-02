@@ -10,8 +10,8 @@ This is an engineering status sheet, not legal approval. The pinned source is
 | 1. Staging | Article parser, child chunks, deterministic provenance and optional review aids | Parser and curation tests | Pinned central employment prototype | Legal correctness; record-by-record approval is not a development gate |
 | 2. Sparse baseline | Article BM25 and legal metadata contracts | Unit tests | Local indexed corpus | Broader retrieval quality |
 | 3. Dense/retrieval | Pinned E5-small, 68 eligible article versions, 85 checksummed vectors, versioned Qdrant, hybrid/RRF and distinct CPU reranker | Encoder, scope, manifest, injected Qdrant tests | Real CPU vectors; 85-point local Qdrant collection; bounded real searches | Broad retrieval quality and production latency |
-| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests | Real E5/Qdrant route and manual browser flow; contracts exact sentence passed; working-time and leave outputs were safely withheld by route guards | Repeatable model quality, broader answer relevance, legal correctness |
-| 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations; hosted CI passed on `31c28d8` | Broader reviewed retrieval labels |
+| 4. App/provider | Vietnamese FastAPI UI and local core app; exact-source provisional behavior; safe abstention; direct Groq disabled by default | FastAPI, UI-contract, citation, policy and provider tests; snapshot-only request-schema and route-guard regression tests | Real E5/Qdrant route and manual browser flow; contracts exact sentence passed; working-time and leave outputs were safely withheld by route guards | Repeatable model quality, broader answer relevance, legal correctness; live acceptance of the snapshot-only schema |
+| 5. Evaluation/CI | Frozen snapshot behavior benchmark, held-out retrieval set, evaluator/grid, GitHub Actions definition | Offline suite and deterministic injected selector | Local bounded evaluations; hosted CI passed on `5d4687c` | Broader reviewed retrieval labels |
 
 ## Current prototype evidence
 
@@ -98,6 +98,18 @@ was rejected for an over-500-character quote, and leave was rejected for the
 wrong answer state; its citation covered but did not exactly match the frozen
 sentence. These outcomes measure one bounded engineering smoke, not answer
 reliability, legal correctness, or current validity.
+
+Commit `5d4687c` adds an offline-only state guard for snapshot-mode Groq
+requests: when evidence is nonempty and entirely snapshot-eligible, that
+request's copied schema permits `provisional` and non-answer states but excludes
+`answer` and `partial`. Dated, empty, and mixed-evidence requests retain the
+shared schema, and the route guard independently rejects a wrong state. Injected
+request tests cover those four cases; another injected provider returns
+`answer` to exercise the route guard. The local suite passed 135 tests with 1
+skipped and hosted CI passed on the exact commit. No live request tested the
+narrowed schema because the four-call budget was exhausted. The live wrong-state
+response remains evidence of safe withholding, not of model acceptance. Quote
+length and exact-span selection remain unresolved reliability gaps.
 
 ## Local browser verification
 
@@ -225,12 +237,11 @@ permission questions abstain by default.
 - Expand the exploratory set before broader retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
-- Keep Groq disabled by default; no paid call was made. Six bounded Free-tier diagnostic/verification calls were used for the investigation.
+- Keep Groq disabled by default. The four-call live smoke budget is exhausted; do not make another provider call without a new diagnostic reason and bounded authorization.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
-- The Git checkout has no configured remote, so hosted CI is not currently reachable from this workspace.
-- Keep direct Groq disabled by default. The one-case live fix is verified, but broader reliability remains unmeasured; do not repeat smoke calls without a new diagnostic reason and bounded authorization.
+- Keep direct Groq disabled by default. The request-schema fix is verified offline and by hosted CI; live acceptance remains unverified and broader generation reliability remains unmeasured.
 
 The separate `data/benchmarks/vietnamese_employment_draft.json` remains unreviewed
 scaffolding and cannot generate legal-correctness claims.

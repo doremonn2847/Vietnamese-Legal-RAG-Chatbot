@@ -41,3 +41,24 @@ so no report from that intermediate call is claimed.
 
 This is a verified repair of one reported case, not a legal-correctness evaluation
 or a reliability estimate. Frozen benchmark labels and results were not changed.
+
+## Snapshot-only state guard follow-up
+
+The later four-topic live continuation exhausted its four-call budget. Its final
+leave response used state `answer` rather than the required `provisional`; the
+experimental route withheld it. Commit `5d4687c` addresses this failure mode
+offline by deep-copying the request schema only for undated requests whose
+nonempty selected evidence is entirely snapshot-eligible, then removing
+`answer` and `partial` from that request's allowed states. The shared schema is
+unchanged. Dated, empty, and mixed-evidence requests keep the shared schema,
+and the route guard still independently rejects a wrong state.
+
+Request-capture tests inject all four evidence/date combinations, and a route
+test injects a provider that returns `answer`. Local verification passed 135
+tests with 1 skipped; hosted Actions passed at `5d4687c`. No live generation
+was rerun because the four-call budget was exhausted, so live provider
+acceptance of the narrowed schema is unknown. The previous live wrong-state
+response remains evidence that the UI withheld the output; it does not show
+that the new schema was accepted. The overlong quote and non-exact span
+selection observed in the same continuation remain unresolved reliability
+gaps. No evaluation labels or benchmark outputs were changed.
