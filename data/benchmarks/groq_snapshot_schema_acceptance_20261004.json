@@ -1,0 +1,175 @@
+{
+  "evaluation": "groq-snapshot-schema-acceptance-v1",
+  "purpose": "Two-call live acceptance check of narrowed snapshot-only schema; not legal correctness, current-validity verification, or a reliability estimate.",
+  "dataset_revision": "8977887f17be2defae4c5171d55562e1cde7d695",
+  "frozen_set_sha256": "dd26a1ce5fc7770649f2a068be32db9fbf4313478225c288a815e28ddd1ee218",
+  "cases_order": [
+    "leave",
+    "working_time"
+  ],
+  "approved_additive_http_call_cap": 2,
+  "previous_four_call_run_http_invocations": 4,
+  "http_transport_invocations": 1,
+  "provider_callback_attempts": 1,
+  "no_retries": true,
+  "paid_fallback": false,
+  "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+  "model": "openai/gpt-oss-20b",
+  "request_contract": {
+    "stream": false,
+    "reasoning_effort": "low",
+    "temperature": 0,
+    "strict_schema": true
+  },
+  "preflight": {
+    "groq_enabled": true,
+    "api_key_present": true,
+    "local_production_app": "ready",
+    "qdrant_collection_validation": {
+      "status": "green",
+      "points_count": 85,
+      "dimension": 384,
+      "validated_by": "create_core_app startup before live requests"
+    },
+    "local_ui_rendered": false,
+    "corpus_http_status": 200,
+    "snapshot_verified": true,
+    "current_validity": "unverified",
+    "legal_corpus_activated": false
+  },
+  "cases": [
+    {
+      "case_id": "leave",
+      "question_sha256": "68c4da25a758476c3b0347f20f0b46417ded5198e028072780e5734110b3dd11",
+      "expected_state": "provisional",
+      "expected_evidence_id": "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+      "expected_quote_length_chars": 183,
+      "expected_quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1",
+      "expected_span_start": 635,
+      "expected_span_end": 818,
+      "pham_vi": "Trung \u01b0\u01a1ng",
+      "current_validity": "unverified",
+      "status": "failed_route_validation",
+      "request": {
+        "model": "openai/gpt-oss-20b",
+        "stream": false,
+        "reasoning_effort": "low",
+        "temperature": 0,
+        "strict_schema": true,
+        "schema_sha256": "05d061a37a122b6dff9b7dfb72ba8cbccef07603cb997e8366313757a361a49c",
+        "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258",
+        "schema_state_enum": [
+          "provisional",
+          "clarify",
+          "unavailable",
+          "abstain_conflict",
+          "abstain_insufficient_evidence"
+        ],
+        "question_sha256": "68c4da25a758476c3b0347f20f0b46417ded5198e028072780e5734110b3dd11",
+        "legal_date_is_null": true,
+        "selected_evidence_ids": [
+          "267dc82e-753a-5183-8bd6-81603d3ab746:d4514622-3644-5ff3-9791-13da5d65a7d1",
+          "a735c6cd-cd93-5f84-b950-2e1341d15c13:a550e557-9ade-502f-a86d-47bfa65e0b97",
+          "0859f0b4-0498-5f3d-b3a9-d6cee3bd0e11:a550e557-9ade-502f-a86d-47bfa65e0b97"
+        ],
+        "selected_snapshot_flags": [
+          true,
+          true,
+          true
+        ],
+        "message_count": 2,
+        "system_message_count": 1,
+        "question_matches_frozen_case": true,
+        "expected_evidence_selected": true
+      },
+      "http_transport_started": true,
+      "http_transport_ordinal": 1,
+      "upstream_status": 200,
+      "transport_diagnostics": [
+        {
+          "phase": "http_transport",
+          "outcome": "response_received",
+          "upstream_http_status": 200,
+          "elapsed_ms": 930.99
+        },
+        {
+          "phase": "provider_envelope_json",
+          "outcome": "parsed",
+          "upstream_http_status": 200
+        }
+      ],
+      "provider_answer": {
+        "state": "provisional",
+        "text_length_chars": 90,
+        "text_sha256": "5259e6d1d8ff6135eb3078fed991da7d5704ae0ceddbbc09d15a42fe5c5c9e94",
+        "claim_count": 1,
+        "citations": [
+          {
+            "evidence_role": "frozen_expected_evidence",
+            "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+            "span_start": 0,
+            "span_end": 200,
+            "quote_length_chars": 183,
+            "quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1"
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1999,
+        "completion_tokens": 306,
+        "total_tokens": 2305
+      },
+      "route_http_status": 502,
+      "route_state": "unavailable",
+      "route_answer_summary": {
+        "state": "unavailable",
+        "text_length_chars": 0,
+        "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "claim_count": 0,
+        "citations": []
+      },
+      "route_validation": {
+        "valid": false,
+        "reason": "invalid_provider_output",
+        "detailed_predicates_exposed_by_route": false
+      },
+      "retrieval_evidence_roles": [],
+      "reference_retrieved_and_selected": true,
+      "matches_frozen_sentence": true,
+      "citation_covers_frozen_sentence": true,
+      "source_validities": [],
+      "caveat_present": false,
+      "route_elapsed_ms": null,
+      "fixed_request_fingerprint_matches_previous": null,
+      "provider_quote_matches_frozen_sentence": true,
+      "validation_observation": "Provider answer text length was 90 chars while its one citation quote was the 183-char frozen sentence. A provisional claim must equal its cited quote, and answer text must equal joined claims. The route returned only generic invalid_provider_output; the exact validator predicates and raw claim text were not retained. The observed raw 0..200 span width differs from quote length and frozen source offsets, but GroqProvider may repair unique-quote offsets before route validation, so this alone does not establish the failing predicate.",
+      "provider_request_matches_implementation_fingerprints": true,
+      "provider_span_matches_frozen_source_before_unique_quote_repair": false,
+      "citation_span_repair_behavior": "GroqProvider repairs offsets when the quote appears uniquely in selected evidence; raw 0..200 may not be the offsets validated by the app."
+    }
+  ],
+  "status": "stopped_unexpected_acceptance_failure",
+  "started_at_utc": "2026-10-04T15:36:51.750860+00:00",
+  "stop_reason": "first leave response failed route citation validation; working_time case not run per stop-on-first-unexpected-result",
+  "schema_and_system_contract_unchanged": null,
+  "ui_observation": {
+    "rendered_in_browser": false,
+    "route_exercised_through": "FastAPI TestClient with real E5/Qdrant and live Groq transport",
+    "reason": "This bounded run used the existing TestClient route harness; browser rendering was not exercised."
+  },
+  "finished_at_utc": "2026-10-04T15:37:12.911106+00:00",
+  "schema_system_fingerprint_comparison": "Only one live request ran; observed schema and system-contract hashes match offline fingerprints computed from implementation commit 5d4687c.",
+  "expected_request_fingerprints_from_implementation": {
+    "schema_sha256": "05d061a37a122b6dff9b7dfb72ba8cbccef07603cb997e8366313757a361a49c",
+    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258"
+  },
+  "implementation": {
+    "commit": "5d4687c1008911cdf6145b31ba8677835fce3153",
+    "source_files_git_blob_sha1": {
+      "scripts/groq.py": "d4a1feca5cb3a98e6e638a9f1b5ebb4a7a703645",
+      "scripts/app.py": "93cf1e23d2b369c255e140a6acc322a4af0e8b2e"
+    }
+  },
+  "live_schema_acceptance_observation": "One leave request returned upstream HTTP 200 with a provisional state allowed by the narrowed strict schema. This confirms request compatibility for that call, not general schema enforcement or generation reliability.",
+  "second_case_not_run_reason": "Stopped after the first route validation failure as instructed; working_time was not sent."
+}

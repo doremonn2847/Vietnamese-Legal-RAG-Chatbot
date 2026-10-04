@@ -56,9 +56,32 @@ and the route guard still independently rejects a wrong state.
 Request-capture tests inject all four evidence/date combinations, and a route
 test injects a provider that returns `answer`. Local verification passed 135
 tests with 1 skipped; hosted Actions passed at `5d4687c`. No live generation
-was rerun because the four-call budget was exhausted, so live provider
-acceptance of the narrowed schema is unknown. The previous live wrong-state
-response remains evidence that the UI withheld the output; it does not show
-that the new schema was accepted. The overlong quote and non-exact span
-selection observed in the same continuation remain unresolved reliability
-gaps. No evaluation labels or benchmark outputs were changed.
+was rerun at that point because the four-call budget was exhausted. The previous
+live wrong-state response remains evidence that the UI withheld the output.
+The overlong quote and non-exact span selection observed in that continuation
+remain unresolved reliability gaps. No evaluation labels or benchmark outputs
+were changed.
+
+## Additive live schema check — 2026-10-04
+
+After the local Qdrant collection and Groq configuration were restored, one
+owner-authorized request used the frozen leave question and real E5/Qdrant
+production route. The strict request-schema and system-contract hashes matched
+offline fingerprints from `5d4687c`; its state enum excluded `answer` and
+`partial`. Groq returned HTTP 200 and a `provisional` response, showing
+compatibility for this request. The app then returned HTTP 502/unavailable
+because local citation validation failed. The quote hash and 183-character
+length matched the frozen sentence, but answer text was 90 characters and the
+raw span was `0..200`. `GroqProvider` may repair offsets for a unique quote, so
+that raw span does not establish which validator predicate failed. The route
+exposed only `invalid_provider_output`; claim text and detailed predicates were
+not retained. No raw answer text was saved.
+
+This separate check allowed two actual transports; one was used. The
+working-time case was not sent because the stop-on-first-unexpected-result rule
+applied. The earlier four-call run remains a separate exhausted budget. No
+retries, paid fallback, prompt/schema changes, or browser UI run occurred. See
+the sanitized, frozen-set-hash-bound report
+`data/benchmarks/groq_snapshot_schema_acceptance_20261004.json`. The local
+suite was not rerun; the previously verified 135 passed/1 skipped suite and
+hosted CI remain the implementation baseline.
