@@ -115,7 +115,8 @@ frozen 183-character sentence, but answer text was only 90 characters and the
 raw span was 0..200. The provider may repair unique-quote offsets before
 validation; exact validator predicates and claim text were not retained. The
 report is `data/benchmarks/groq_snapshot_schema_acceptance_20261004.json`.
-The working-time case was not sent after the first unexpected route failure.
+The working-time case was not sent in that initial check after the first
+unexpected route failure.
 This shows one schema-compatible response, not general schema enforcement or
 reliability; claim/quote consistency and exact span selection remain unresolved.
 The browser UI was not rendered in this check.
@@ -129,9 +130,16 @@ eligibility, validity state, or validation rules. The existing blank-display
 repair remains. Regression coverage confirms exact claims can pass while
 paraphrased claims and wrong document versions remain rejected. The complete
 local suite passed 136 tests (135 passed, 1 skipped). This does not change the
-recorded live failure or establish that Groq will reliably produce valid
-citations. No live call was made for this patch; the unused working-time call
-remains pending Design review.
+recorded leave failure or establish that Groq will reliably produce valid
+citations. No live call was made while implementing this patch. After Design
+passed it, the one remaining owner-authorized working-time call was used once:
+Groq returned HTTP 200 with state `provisional` and a 674-character citation;
+the app returned HTTP 502/unavailable at its existing 500-character excerpt
+guard. Sanitized pre-route validation also found claim/quote mismatches and
+`unvalidated_text`. No retry occurred. The full two-call additive budget is
+now used; the original four-call budget remains separately exhausted. See
+`data/benchmarks/groq_snapshot_working_time_followup_20261005.json`. This
+follow-up does not establish generation reliability or legal correctness.
 
 ## Local browser verification
 
@@ -259,7 +267,7 @@ permission questions abstain by default.
 - Expand the exploratory set before broader retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
-- Keep Groq disabled by default. The original four-call smoke budget remains exhausted. A separate two-call check used one live call and stopped on its first unexpected route failure; keep the one unused call pending Design review of the offline patch.
+- Keep Groq disabled by default. The original four-call smoke budget remains exhausted. The separate two-call check also reached its cap: leave used one call and working time used one after Design reviewed the offline patch. Do not retry either case or make further live calls under that budget.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.

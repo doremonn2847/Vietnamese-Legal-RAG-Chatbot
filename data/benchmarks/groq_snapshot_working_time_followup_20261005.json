@@ -1,0 +1,293 @@
+{
+  "evaluation": "groq-snapshot-working-time-followup-v1",
+  "started_at_utc": "2026-10-04T17:05:26.762676+00:00",
+  "implementation_commit": "671d6581fe4dc24c33a71cd3258c621eda700a09",
+  "source_live_check_report": "data/benchmarks/groq_snapshot_schema_acceptance_20261004.json",
+  "case_id": "working_time",
+  "question_sha256": "b64bb54068a7df892dd4124b27d7ab7c6a60b50c5e692640b7aaf01f6f7c5f52",
+  "expected_state": "provisional",
+  "expected_evidence_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+  "expected_quote_length_chars": 95,
+  "expected_quote_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09",
+  "http_transport_invocations": 1,
+  "provider_callback_attempts": 1,
+  "max_additional_http_calls": 1,
+  "no_retries": true,
+  "paid_fallback": false,
+  "status": "route_rejected_known_500_char_excerpt_limit",
+  "preflight": {
+    "groq_enabled": true,
+    "api_key_present": true,
+    "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+    "model": "openai/gpt-oss-20b",
+    "local_production_app": "ready",
+    "corpus_http_status": 200,
+    "snapshot_verified": true,
+    "current_validity": "unverified",
+    "legal_corpus_activated": false,
+    "qdrant_collection_validation": "green; 85 points / 384 dimensions verified by core app startup"
+  },
+  "request_fingerprints": {
+    "request_sha256": "be6619a20970675d1f56cb1c9819e37ca54510b0e75206c8b311e19f9e351b94",
+    "schema_sha256": "83e330291dc22048c3c921d646c372e11bb4f94424fed799e3855c631aebd440",
+    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258"
+  },
+  "provider_observation": {
+    "state": "provisional",
+    "text_length_chars": 441,
+    "text_sha256": "93742f4d5d1581551b5377a82ef2764b979bf078f9b7034c2b94af61dff2159b",
+    "claims": [
+      {
+        "length_chars": 95,
+        "text_sha256": "e28a4ee06898eee4c280544a73d111e5ecc69728cd5462cc04a6f604ccecdb09",
+        "evidence_ids": [
+          "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1"
+        ]
+      },
+      {
+        "length_chars": 118,
+        "text_sha256": "62009cf4ea4373bfc9507780818afe7d2ced3b8fb001dca1376e766035991272",
+        "evidence_ids": [
+          "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1"
+        ]
+      }
+    ],
+    "citations": [
+      {
+        "evidence_id": "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "document_version_id": "d4514622-3644-5ff3-9791-13da5d65a7d1",
+        "span_start": 0,
+        "span_end": 674,
+        "quote_length_chars": 674,
+        "quote_sha256": "37957e8c7b961ab6d9fd3385eaa727f4112ff55020c5ebf848c6c763b49ea840"
+      }
+    ],
+    "usage": {
+      "queue_time": 0.406963332,
+      "prompt_tokens": 2365,
+      "prompt_time": 0.11800533,
+      "completion_tokens": 637,
+      "completion_time": 0.682008753,
+      "total_tokens": 3002,
+      "total_time": 0.800014083,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4
+      }
+    },
+    "provider_diagnostics": [
+      {
+        "phase": "http_transport",
+        "outcome": "response_received",
+        "upstream_http_status": 200,
+        "elapsed_ms": 1773.52
+      },
+      {
+        "phase": "provider_envelope_json",
+        "outcome": "parsed",
+        "upstream_http_status": 200
+      },
+      {
+        "phase": "response_envelope",
+        "outcome": "parsed",
+        "upstream_http_status": 200,
+        "response_shape": {
+          "envelope_type": "ProviderTransportResponse",
+          "top_level_key_count": 10,
+          "choices_type": "list",
+          "choices_count": 1,
+          "first_choice_type": "dict",
+          "message_type": "dict",
+          "content_type": "str",
+          "content_length": 1963,
+          "usage_type": "dict"
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2365,
+          "completion_tokens": 637,
+          "total_tokens": 3002
+        }
+      },
+      {
+        "phase": "provider_content",
+        "outcome": "extracted",
+        "upstream_http_status": 200,
+        "response_shape": {
+          "envelope_type": "ProviderTransportResponse",
+          "top_level_key_count": 10,
+          "choices_type": "list",
+          "choices_count": 1,
+          "first_choice_type": "dict",
+          "message_type": "dict",
+          "content_type": "str",
+          "content_length": 1963,
+          "usage_type": "dict"
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2365,
+          "completion_tokens": 637,
+          "total_tokens": 3002
+        }
+      },
+      {
+        "phase": "content_json",
+        "outcome": "parsed",
+        "upstream_http_status": 200,
+        "response_shape": {
+          "answer_type": "dict",
+          "top_level_key_count": 7
+        },
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 2365,
+          "completion_tokens": 637,
+          "total_tokens": 3002
+        }
+      }
+    ],
+    "quote_matches_frozen_expected": false,
+    "claim_text_total_chars_before_join": 213,
+    "display_matches_joined_claim_lengths": false
+  },
+  "pre_route_validation": {
+    "valid": false,
+    "citation_ids": [
+      "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1"
+    ],
+    "unknown_ids": [],
+    "uncited_claims": [],
+    "invalid_citations": [
+      "c1",
+      "c2",
+      "unvalidated_text"
+    ]
+  },
+  "route": {
+    "http_status": 502,
+    "state": "unavailable",
+    "answer_state": "unavailable",
+    "validation": null,
+    "retrieval": null,
+    "caveat_present": false,
+    "source_count": 0
+  },
+  "route_events": [
+    {
+      "stage": "provider",
+      "outcome": "ok",
+      "reason": null,
+      "diagnostics": [
+        {
+          "phase": "http_transport",
+          "outcome": "response_received",
+          "upstream_http_status": 200,
+          "elapsed_ms": 1773.52
+        },
+        {
+          "phase": "provider_envelope_json",
+          "outcome": "parsed",
+          "upstream_http_status": 200
+        },
+        {
+          "phase": "response_envelope",
+          "outcome": "parsed",
+          "upstream_http_status": 200,
+          "response_shape": {
+            "envelope_type": "other",
+            "top_level_key_count": 10,
+            "choices_type": "list",
+            "choices_count": 1,
+            "first_choice_type": "dict",
+            "message_type": "dict",
+            "content_type": "str",
+            "content_length": 1963,
+            "usage_type": "dict"
+          },
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 2365,
+            "completion_tokens": 637,
+            "total_tokens": 3002
+          }
+        },
+        {
+          "phase": "provider_content",
+          "outcome": "extracted",
+          "upstream_http_status": 200,
+          "response_shape": {
+            "envelope_type": "other",
+            "top_level_key_count": 10,
+            "choices_type": "list",
+            "choices_count": 1,
+            "first_choice_type": "dict",
+            "message_type": "dict",
+            "content_type": "str",
+            "content_length": 1963,
+            "usage_type": "dict"
+          },
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 2365,
+            "completion_tokens": 637,
+            "total_tokens": 3002
+          }
+        },
+        {
+          "phase": "content_json",
+          "outcome": "parsed",
+          "upstream_http_status": 200,
+          "response_shape": {
+            "answer_type": "dict",
+            "top_level_key_count": 7
+          },
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 2365,
+            "completion_tokens": 637,
+            "total_tokens": 3002
+          }
+        }
+      ]
+    }
+  ],
+  "finished_at_utc": "2026-10-04T17:05:46.925011+00:00",
+  "upstream_http_status": 200,
+  "route_failure": {
+    "route_http_status": 502,
+    "route_state": "unavailable",
+    "rejection_stage": "experimental_excerpt_guard_before_route_citation_validation",
+    "reason": "single citation quote length 674 exceeds the 500-character experimental excerpt limit",
+    "pre_route_validator_was_run_separately_for_sanitized_diagnostics": true,
+    "pre_route_validation": {
+      "valid": false,
+      "citation_ids": [
+        "a36c26ef-8c64-5c9a-987b-fb6f4c6bdf5e:d4514622-3644-5ff3-9791-13da5d65a7d1"
+      ],
+      "unknown_ids": [],
+      "uncited_claims": [],
+      "invalid_citations": [
+        "c1",
+        "c2",
+        "unvalidated_text"
+      ]
+    },
+    "claims_equal_cited_quote": false,
+    "display_matches_joined_claim_text": false
+  },
+  "budget_accounting": {
+    "initial_leave_http_transports": 1,
+    "working_time_http_transports": 1,
+    "owner_authorized_additive_cap": 2,
+    "total_additive_http_transports": 2,
+    "remaining_additive_http_transports": 0,
+    "initial_four_call_budget": "separately exhausted",
+    "retries": 0,
+    "paid_fallback": false
+  },
+  "ui_observation": {
+    "rendered_in_browser": false,
+    "route_exercised_through": "FastAPI TestClient with real E5/Qdrant and live Groq transport"
+  },
+  "stop_reason": "Known oversized quote triggered the existing fail-closed route guard; no retry or additional inference call."
+}

@@ -77,8 +77,8 @@ that raw span does not establish which validator predicate failed. The route
 exposed only `invalid_provider_output`; claim text and detailed predicates were
 not retained. No raw answer text was saved.
 
-This separate check allowed two actual transports; one was used. The
-working-time case was not sent because the stop-on-first-unexpected-result rule
+This initial check allowed two actual transports; one was used. The
+working-time case was not sent in that run because the stop-on-first-unexpected-result rule
 applied. The earlier four-call run remains a separate exhausted budget. No
 retries, paid fallback, prompt/schema changes, or browser UI run occurred. See
 the sanitized, frozen-set-hash-bound report
@@ -102,4 +102,24 @@ still rejects a paraphrased claim and an incorrect document version. The full
 offline suite passes: 136 tests run, 135 passed, 1 skipped. The sanitized live
 report records this offline follow-up; the live failure observation remains
 unchanged and is not claimed as repaired. No live request was sent during this
-patch. The unused working-time call remains pending Design review.
+patch. After Design passed the patch, the one remaining owner-authorized
+working-time request was sent once; its result is recorded below and in
+`data/benchmarks/groq_snapshot_working_time_followup_20261005.json`.
+
+### Working-time follow-up — 2026-10-05
+
+After Design review, the frozen working-time question reached Groq once. The
+upstream returned HTTP 200 with state `provisional`. The provider returned a
+674-character citation, exceeding the experimental excerpt path's existing
+500-character limit. The route returned HTTP 502/unavailable at that guard,
+before route citation validation. Sanitized in-memory validation diagnostics
+also showed claim-to-quote mismatches (`c1`, `c2`) and `unvalidated_text`; the
+answer display was 441 characters and the two claims were 95 and 118
+characters. The provider quote did not match the frozen 95-character sentence.
+No answer text was retained.
+
+This was the one unused transport from the separately authorized two-call
+check; together with the earlier leave request, the cap of two was reached.
+The original four-call budget remains separately exhausted. No retry, paid
+fallback, prompt change, or browser UI run occurred. The route safely withheld
+this response; the known oversized-quote failure remains unresolved.

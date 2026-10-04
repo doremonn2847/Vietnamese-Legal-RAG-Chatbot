@@ -188,8 +188,13 @@
       "skipped": 1,
       "failed": 0
     },
-    "live_calls_after_initial_check": 0,
-    "working_time_case_status": "not sent; remaining separately authorized call stays pending Design review",
-    "design_review_status": "pending"
-  }
+    "live_calls_after_initial_check": 1,
+    "working_time_case_status": "sent once after Design review; upstream HTTP 200 provisional; local route HTTP 502 because the citation quote was 674 characters and exceeded the 500-character experimental excerpt guard; pre-route validator diagnostics also found exact-claim and display mismatches; no retry",
+    "design_review_status": "PASS before the working-time call; post-call evidence handoff pending"
+  },
+  "aggregate_additive_http_transport_invocations": 2,
+  "aggregate_additive_provider_callback_attempts": 2,
+  "aggregate_additive_http_transport_cap": 2,
+  "remaining_additive_http_transport_invocations": 0,
+  "working_time_followup_report": "data/benchmarks/groq_snapshot_working_time_followup_20261005.json"
 }
