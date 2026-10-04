@@ -161,7 +161,9 @@
   "schema_system_fingerprint_comparison": "Only one live request ran; observed schema and system-contract hashes match offline fingerprints computed from implementation commit 5d4687c.",
   "expected_request_fingerprints_from_implementation": {
     "schema_sha256": "05d061a37a122b6dff9b7dfb72ba8cbccef07603cb997e8366313757a361a49c",
-    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258"
+    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258",
+    "schema_sha256_scope": "full response_format object (including json_schema envelope); canonical JSON with sorted keys, compact separators, UTF-8, ensure_ascii=false",
+    "hash_algorithm": "SHA-256 over canonical JSON (sorted keys, compact separators, UTF-8, ensure_ascii=false)"
   },
   "implementation": {
     "commit": "5d4687c1008911cdf6145b31ba8677835fce3153",

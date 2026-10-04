@@ -30,7 +30,10 @@
   "request_fingerprints": {
     "request_sha256": "be6619a20970675d1f56cb1c9819e37ca54510b0e75206c8b311e19f9e351b94",
     "schema_sha256": "83e330291dc22048c3c921d646c372e11bb4f94424fed799e3855c631aebd440",
-    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258"
+    "system_contract_sha256": "05efdf7862c18fdbd85bbe2b3f2b210d429a80b47df53a8767484faf372cb258",
+    "schema_sha256_scope": "inner response_format.json_schema.schema object only; canonical JSON with sorted keys, compact separators, UTF-8, ensure_ascii=false",
+    "response_format_sha256": "05d061a37a122b6dff9b7dfb72ba8cbccef07603cb997e8366313757a361a49c",
+    "hash_algorithm": "SHA-256 over canonical JSON (sorted keys, compact separators, UTF-8, ensure_ascii=false)"
   },
   "provider_observation": {
     "state": "provisional",
@@ -289,5 +292,6 @@
     "rendered_in_browser": false,
     "route_exercised_through": "FastAPI TestClient with real E5/Qdrant and live Groq transport"
   },
-  "stop_reason": "Known oversized quote triggered the existing fail-closed route guard; no retry or additional inference call."
+  "stop_reason": "Known oversized quote triggered the existing fail-closed route guard; no retry or additional inference call.",
+  "fingerprint_note": "The schema_sha256 differs from the leave report because the leave report hashes the full response_format object, while this follow-up hashes only the inner JSON Schema body. The full response_format fingerprint is included here and matches the leave report; schema content was unchanged."
 }
