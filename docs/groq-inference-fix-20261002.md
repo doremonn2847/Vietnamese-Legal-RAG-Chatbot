@@ -85,3 +85,21 @@ the sanitized, frozen-set-hash-bound report
 `data/benchmarks/groq_snapshot_schema_acceptance_20261004.json`. The local
 suite was not rerun; the previously verified 135 passed/1 skipped suite and
 hosted CI remain the implementation baseline.
+
+### Offline display-normalization follow-up
+
+The reported 90-character display versus 183-character citation motivated a
+narrow route-side repair in the experimental snapshot excerpt path. When the
+answer is provisional, has nonempty display text, and the validator reports
+exactly `unvalidated_text` with no unknown IDs or uncited claims, the app joins
+the existing claim text to form a candidate display. It adopts that candidate
+only after full citation validation succeeds. It does not edit claims,
+citations, source text, or validator rules. The prior blank-display repair is
+preserved. Ordinary dated behavior remains covered by the existing tests.
+
+The focused regression passes for an exact claim with shortened display and
+still rejects a paraphrased claim and an incorrect document version. The full
+offline suite passes: 136 tests run, 135 passed, 1 skipped. The sanitized live
+report records this offline follow-up; the live failure observation remains
+unchanged and is not claimed as repaired. No live request was sent during this
+patch. The unused working-time call remains pending Design review.

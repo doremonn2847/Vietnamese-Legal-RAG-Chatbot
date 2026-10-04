@@ -285,6 +285,44 @@ class AppTest(unittest.TestCase):
         self.assertEqual(wrong_state.json()["answer"]["reason"],
                          "Đoạn trích thử nghiệm vượt quá giới hạn hoặc không đúng trạng thái.")
 
+    def test_experimental_snapshot_repairs_only_nonempty_display_mismatch(self):
+        quote = ("Điều 24. " + "Thử việc tối đa sáu mươi ngày theo quy định của bản dữ liệu. " * 3).strip()
+        article = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
+                   "document_version_id": "v1", "canonical_text": quote, "pham_vi": "Trung ương",
+                   "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                   "current_validity": "unverified",
+                   "expiry_state": "unknown_expiry", "reported_status_conflict": False,
+                   "source_dataset_revision": "pinned-r1", "content_sha256": "catalog-hash"}
+
+        class Retriever:
+            articles = {"a24": article}
+            def search(self, *args): return {"evidence": [article]}
+
+        class Provider:
+            def __init__(self, mode): self.mode = mode
+            def answer(self, question, legal_date, evidence):
+                evidence_id, source = next(iter(evidence.items()))
+                claim = quote if self.mode != "paraphrase" else "Thử việc tối đa sáu mươi ngày."
+                version = "wrong-version" if self.mode == "wrong-version" else source["document_version_id"]
+                return {"state": "provisional", "legal_date": None, "text": "Bản hiển thị rút gọn.",
+                        "claims": [{"claim_id": "q1", "text": claim, "evidence_ids": [evidence_id]}],
+                        "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                       "span_end": len(quote), "document_version_id": version}],
+                        "reason": "", "unanswered": ""}
+
+        def request(mode):
+            return TestClient(create_app(Provider(mode), retriever=Retriever(),
+                                         experimental_snapshot_excerpt_enabled=True)).post(
+                                             "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
+
+        repaired = request("exact")
+        self.assertEqual(repaired.status_code, 200)
+        self.assertEqual(repaired.json()["answer"]["text"], quote, repaired.text)
+        self.assertTrue(repaired.json()["validation"]["valid"])
+        for mode in ("paraphrase", "wrong-version"):
+            with self.subTest(mode=mode):
+                self.assertEqual(request(mode).status_code, 502)
+
     def test_experimental_snapshot_excerpt_retains_temporal_personal_and_scope_gates(self):
         article = {"article_id": "a24", "label": "Điều 24", "document_version_id": "v1",
                    "canonical_text": "Điều 24. Thử việc tối đa 60 ngày.", "pham_vi": "Trung ương",

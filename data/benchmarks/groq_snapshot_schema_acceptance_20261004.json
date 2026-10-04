@@ -47,7 +47,7 @@
       "expected_quote_sha256": "424ef72e7e1612a0b916feea0b0726b94a0a9a53b413cd0d6d9861a146a097b1",
       "expected_span_start": 635,
       "expected_span_end": 818,
-      "pham_vi": "Trung \u01b0\u01a1ng",
+      "pham_vi": "Trung ương",
       "current_validity": "unverified",
       "status": "failed_route_validation",
       "request": {
@@ -171,5 +171,25 @@
     }
   },
   "live_schema_acceptance_observation": "One leave request returned upstream HTTP 200 with a provisional state allowed by the narrowed strict schema. This confirms request compatibility for that call, not general schema enforcement or generation reliability.",
-  "second_case_not_run_reason": "Stopped after the first route validation failure as instructed; working_time was not sent."
+  "second_case_not_run_reason": "Stopped after the first route validation failure as instructed; working_time was not sent.",
+  "offline_follow_up": {
+    "date": "2026-10-04",
+    "purpose": "Narrow repair for an experimental provisional response whose sole validation failure is nonempty display text differing from its exact claim text.",
+    "implementation": "scripts/app.py derives a candidate display by joining existing claim text only when invalid_citations is exactly [unvalidated_text], unknown_ids and uncited_claims are empty, state is provisional, and display text is nonempty; it adopts the candidate only after full validation succeeds. Existing blank-display repair is preserved.",
+    "regression_tests": [
+      "exact claim with shortened nonempty display is repaired and validated",
+      "paraphrased claim remains rejected",
+      "wrong document version remains rejected"
+    ],
+    "suite": {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s scripts",
+      "tests_run": 136,
+      "passed": 135,
+      "skipped": 1,
+      "failed": 0
+    },
+    "live_calls_after_initial_check": 0,
+    "working_time_case_status": "not sent; remaining separately authorized call stays pending Design review",
+    "design_review_status": "pending"
+  }
 }

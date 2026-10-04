@@ -120,6 +120,19 @@ This shows one schema-compatible response, not general schema enforcement or
 reliability; claim/quote consistency and exact span selection remain unresolved.
 The browser UI was not rendered in this check.
 
+An offline-only route repair now handles the case where a provisional
+experimental-excerpt response has nonempty display text that differs from its
+exact claim text and `unvalidated_text` is the sole validator failure. The app
+derives a candidate display only from existing claims and adopts it only if
+full validation passes. It does not change claims, citations, quotes, source
+eligibility, validity state, or validation rules. The existing blank-display
+repair remains. Regression coverage confirms exact claims can pass while
+paraphrased claims and wrong document versions remain rejected. The complete
+local suite passed 136 tests (135 passed, 1 skipped). This does not change the
+recorded live failure or establish that Groq will reliably produce valid
+citations. No live call was made for this patch; the unused working-time call
+remains pending Design review.
+
 ## Local browser verification
 
 On 2026-10-01, the local core app was opened in a browser with the pinned
@@ -246,7 +259,7 @@ permission questions abstain by default.
 - Expand the exploratory set before broader retrieval-quality claims.
 - Continue to keep validity unverified; do not treat the extractive slice as a
   legal-correctness or current-applicability release.
-- Keep Groq disabled by default. The original four-call smoke budget remains exhausted. A separate two-call check used one live call and stopped on its first unexpected route failure; do not use the remaining slot without new authorization after diagnosis.
+- Keep Groq disabled by default. The original four-call smoke budget remains exhausted. A separate two-call check used one live call and stopped on its first unexpected route failure; keep the one unused call pending Design review of the offline patch.
 - Keep the existing review artifacts as provenance, not as a development gate.
   The benchmark remains a draft and cannot support legal-correctness claims.
 - Run hosted CI after the offline gates pass.
