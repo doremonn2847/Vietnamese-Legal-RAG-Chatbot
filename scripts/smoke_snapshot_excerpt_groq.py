@@ -189,7 +189,7 @@ def main(argv=None):
     if (callback_attempts > MAX_PROVIDER_CALLS or report["status"] != "complete"
             or ordinary.get("status") != "complete" or abstention.get("status") != "complete"
             or not 1 <= ordinary.get("citation_count", 0) <= 3
-            or any(c["quote_length_chars"] > 500 for c in ordinary.get("citations", []))
+            or any(c["quote_length_chars"] > 1000 for c in ordinary.get("citations", []))
             or abstention.get("citation_count") != 0 or callback_attempts != 1 or transport_calls != 1):
         return 1
     return 0

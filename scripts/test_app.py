@@ -263,7 +263,7 @@ class AppTest(unittest.TestCase):
         class OversizeQuoteProvider:
             def answer(self, question, legal_date, evidence):
                 evidence_id, source = next(iter(evidence.items()))
-                quote = "x" * 501
+                quote = "x" * 1001
                 return {"state": "provisional", "legal_date": None, "text": quote,
                         "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
                         "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
@@ -322,6 +322,37 @@ class AppTest(unittest.TestCase):
         for mode in ("paraphrase", "wrong-version"):
             with self.subTest(mode=mode):
                 self.assertEqual(request(mode).status_code, 502)
+
+    def test_experimental_snapshot_accepts_exact_quotes_up_to_1000_characters(self):
+        for quote_length in (674, 1000):
+            with self.subTest(quote_length=quote_length):
+                quote = "x" * quote_length
+                article = {"article_id": "a24", "label": "Điều 24", "title": "Bộ luật Lao động",
+                           "document_version_id": "v1", "canonical_text": quote, "pham_vi": "Trung ương",
+                           "retrieval_index_candidate": True, "topic_candidates": ["probation"],
+                           "current_validity": "unverified", "expiry_state": "unknown_expiry",
+                           "reported_status_conflict": False, "source_dataset_revision": "pinned-r1",
+                           "content_sha256": "catalog-hash"}
+
+                class Retriever:
+                    articles = {"a24": article}
+                    def search(self, *args): return {"evidence": [article]}
+
+                class Provider:
+                    def answer(self, question, legal_date, evidence):
+                        evidence_id, source = next(iter(evidence.items()))
+                        return {"state": "provisional", "legal_date": None, "text": quote,
+                                "claims": [{"claim_id": "q1", "text": quote, "evidence_ids": [evidence_id]}],
+                                "citations": [{"evidence_id": evidence_id, "quote": quote, "span_start": 0,
+                                               "span_end": len(quote), "document_version_id": source["document_version_id"]}],
+                                "reason": "", "unanswered": ""}
+
+                response = TestClient(create_app(Provider(), retriever=Retriever(),
+                                                 experimental_snapshot_excerpt_enabled=True)).post(
+                                                     "/api/answer", json={"question": "Thời gian thử việc tối đa bao nhiêu ngày?"})
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json()["answer"]["text"], quote)
+                self.assertTrue(response.json()["validation"]["valid"])
 
     def test_experimental_snapshot_excerpt_retains_temporal_personal_and_scope_gates(self):
         article = {"article_id": "a24", "label": "Điều 24", "document_version_id": "v1",

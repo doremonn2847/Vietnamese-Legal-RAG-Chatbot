@@ -123,3 +123,16 @@ check; together with the earlier leave request, the cap of two was reached.
 The original four-call budget remains separately exhausted. No retry, paid
 fallback, prompt change, or browser UI run occurred. The route safely withheld
 this response; the known oversized-quote failure remains unresolved.
+
+### Experimental quote ceiling update — 2026-10-05
+
+The experimental snapshot excerpt limit is now 1,000 characters in both the
+route guard and Groq instructions, and the bounded smoke check uses the same
+ceiling. This accommodates longer passages from official legal documents. The
+validator still requires the claim to equal an exact cited canonical quote,
+and displayed text to equal joined claim text. The captured 674-character
+working-time response still fails those equality checks; raising the ceiling
+does not retroactively make that response valid. No live request was made for
+this update. Regression tests accept exact 674- and 1,000-character quotes,
+reject a 1,001-character quote, and assert the provider prompt's 1,000-character
+contract. The full offline suite passed 138 tests (137 passed, 1 skipped).

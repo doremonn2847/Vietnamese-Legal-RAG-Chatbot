@@ -141,6 +141,16 @@ now used; the original four-call budget remains separately exhausted. See
 `data/benchmarks/groq_snapshot_working_time_followup_20261005.json`. This
 follow-up does not establish generation reliability or legal correctness.
 
+The experimental snapshot excerpt limit is now 1,000 characters in the route
+guard, Groq instructions, and bounded smoke check. The prior 500-character cap
+was too short for some official legal passages. Exact canonical quote/claim
+matching and display-to-claim validation remain required. In particular, the
+recorded 674-character working-time response still fails those checks even
+under the larger cap; no live request was made after this limit change. Tests
+accept exact 674- and 1,000-character quotes, reject a 1,001-character quote,
+and cover the matching prompt limit. The full suite passed 138 tests (137
+passed, 1 skipped).
+
 ## Local browser verification
 
 On 2026-10-01, the local core app was opened in a browser with the pinned

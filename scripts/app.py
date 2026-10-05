@@ -358,7 +358,7 @@ def create_app(provider=None, event_sink=None, retriever=None, provenance=None, 
                 or answer.get("state") == "provisional" and (
                     not isinstance(answer.get("citations"), list) or not 1 <= len(answer["citations"]) <= 3
                     or any(not isinstance(citation, dict) or not isinstance(citation.get("quote"), str)
-                           or len(citation["quote"]) > 500 for citation in answer["citations"]))):
+                           or len(citation["quote"]) > 1000 for citation in answer["citations"]))):
             return unavailable(502, "Đoạn trích thử nghiệm vượt quá giới hạn hoặc không đúng trạng thái.")
         validation = validate_citations(answer, selected_evidence, requested_legal_date=None if provisional else legal_date)
         if (not validation["valid"] and experimental_excerpt and answer.get("state") == "provisional"

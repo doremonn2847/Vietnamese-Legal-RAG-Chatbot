@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from app import DEMO_EVIDENCE, create_app
 from answer_contract import validate_citations
-from groq import ANSWER_SCHEMA, RESPONSE_FORMAT, GroqConfig, GroqProvider, ProviderHTTPError, http_transport
+from groq import ANSWER_SCHEMA, RESPONSE_FORMAT, SYSTEM_CONTRACT, GroqConfig, GroqProvider, ProviderHTTPError, http_transport
 from smoke_snapshot_excerpt_groq import (_checkpoint, _citation_summary, _provider_responded,
                                          main as snapshot_smoke_main)
 
@@ -19,6 +19,10 @@ class GroqTest(unittest.TestCase):
         self.config = GroqConfig("https://api.groq.com/openai/v1", "chat/completions", "openai/gpt-oss-20b", True)
         self.quote = DEMO_EVIDENCE["fiction-e1"]["canonical_text"]
         self.answer = {"state": "answer", "legal_date": "2024-01-01", "text": self.quote, "claims": [{"claim_id": "c1", "text": self.quote, "evidence_ids": ["fiction-e1"]}], "citations": [{"evidence_id": "fiction-e1", "quote": self.quote, "span_start": 0, "span_end": len(self.quote), "document_version_id": "fiction-v1"}], "reason": "", "unanswered": ""}
+
+    def test_provisional_contract_allows_quotes_up_to_1000_characters(self):
+        self.assertIn("each quote must be at most 1000 characters", SYSTEM_CONTRACT)
+        self.assertNotIn("each quote must be at most 500 characters", SYSTEM_CONTRACT)
 
     def test_smoke_citation_report_omits_raw_quote(self):
         summary = _citation_summary(self.answer["citations"][0])

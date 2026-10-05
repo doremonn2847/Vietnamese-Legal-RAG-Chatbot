@@ -192,7 +192,26 @@
     },
     "live_calls_after_initial_check": 1,
     "working_time_case_status": "sent once after Design review; upstream HTTP 200 provisional; local route HTTP 502 because the citation quote was 674 characters and exceeded the 500-character experimental excerpt guard; pre-route validator diagnostics also found exact-claim and display mismatches; no retry",
-    "design_review_status": "PASS before the working-time call; post-call evidence handoff pending"
+    "design_review_status": "PASS before the working-time call; post-call evidence handoff pending",
+    "experimental_snapshot_quote_limit_chars_after_2026_10_05": 1000,
+    "live_calls_after_limit_change": 0,
+    "quote_limit_change_verification": {
+      "route_limit_chars": 1000,
+      "provider_prompt_limit_chars": 1000,
+      "smoke_check_limit_chars": 1000,
+      "exact_quote_tests": [
+        674,
+        1000
+      ],
+      "over_limit_rejected_chars": 1001,
+      "full_suite": {
+        "tests_run": 138,
+        "passed": 137,
+        "skipped": 1,
+        "failed": 0
+      },
+      "live_calls_after_limit_change": 0
+    }
   },
   "aggregate_additive_http_transport_invocations": 2,
   "aggregate_additive_provider_callback_attempts": 2,

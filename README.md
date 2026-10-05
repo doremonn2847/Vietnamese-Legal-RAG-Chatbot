@@ -186,6 +186,11 @@ fallback were used. The redacted checkpoint is
 [`docs/handoff-readiness.md`](docs/handoff-readiness.md) for the portfolio run
 steps, validity caveats, and measured limits.
 
+The historical 500-character route cap was raised to 1,000 characters on
+2026-10-05 for the experimental snapshot excerpt path. This accommodates longer
+official-source passages; it does not relax exact quote/claim validation or
+change the outcomes recorded by earlier runs.
+
 On 2026-10-01, a local browser smoke verified the core Vietnamese UI with the
 pinned corpus and `GROQ_ENABLED=false`: the corpus revision and unknown-validity
 warning loaded; an explicit Article 24 source-text request displayed the exact

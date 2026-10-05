@@ -293,5 +293,28 @@
     "route_exercised_through": "FastAPI TestClient with real E5/Qdrant and live Groq transport"
   },
   "stop_reason": "Known oversized quote triggered the existing fail-closed route guard; no retry or additional inference call.",
-  "fingerprint_note": "The schema_sha256 differs from the leave report because the leave report hashes the full response_format object, while this follow-up hashes only the inner JSON Schema body. The full response_format fingerprint is included here and matches the leave report; schema content was unchanged."
+  "fingerprint_note": "The schema_sha256 differs from the leave report because the leave report hashes the full response_format object, while this follow-up hashes only the inner JSON Schema body. The full response_format fingerprint is included here and matches the leave report; schema content was unchanged.",
+  "subsequent_policy_update": {
+    "date": "2026-10-05",
+    "experimental_snapshot_quote_limit_chars": 1000,
+    "applies_to": [
+      "scripts/app.py experimental excerpt route guard",
+      "scripts/groq.py provisional system contract",
+      "scripts/smoke_snapshot_excerpt_groq.py bounded result check"
+    ],
+    "exact_claim_quote_validation_unchanged": true,
+    "live_retested": false,
+    "reason": "The prior 500-character cap rejected an official-source passage length observed in this check; the captured 674-character response still has independent claim/quote and display/claim mismatches.",
+    "verification": {
+      "focused_route_tests": "4 experimental snapshot tests passed, including exact 674/1000 acceptance and 1001 rejection",
+      "prompt_contract_test": "1 passed",
+      "full_suite": {
+        "command": ".venv\\Scripts\\python.exe -m unittest discover -s scripts",
+        "tests_run": 138,
+        "passed": 137,
+        "skipped": 1,
+        "failed": 0
+      }
+    }
+  }
 }
